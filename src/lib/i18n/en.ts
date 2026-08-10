@@ -80,14 +80,19 @@ export const en: Record<string, string> = {
   "auth.err.sessionNotFound": "Session not found",
 
   // ── dashboard ────────────────────────────────────────────────────────────
-  "dashboard.hello": "Hello",
-  "dashboard.helloName": "Hello, {name}",
-  "dashboard.subtitle": "What is due soon",
   "dashboard.upcoming": "Upcoming payments",
   "dashboard.allResources": "All resources",
   "dashboard.noAccess": "You do not have access to resources.",
   "dashboard.emptyResources": "No resources yet.",
   "dashboard.addFirst": "Add the first one",
+  "dashboard.searchPlaceholder": "Search by name",
+  "dashboard.allKinds": "All types",
+  "dashboard.show": "How many to show",
+  "dashboard.showCount_one": "{count} row",
+  "dashboard.showCount_other": "{count} rows",
+  "dashboard.nothingFound": "Nothing found",
+  "monitor.searchPlaceholder": "Search by name or IP",
+  "monitor.updatedAt": "updated at {time}",
 
   "due.today": "today",
   "due.tomorrow": "tomorrow",

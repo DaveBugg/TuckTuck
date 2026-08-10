@@ -1,16 +1,29 @@
 "use client";
 
-// Дашборд: ближайшие оплаты слева, здоровье серверов справа.
+// Дашборд: расход за месяц сверху, ближайшие оплаты слева, здоровье серверов
+// справа.
+//
+// Приветствия и подзаголовка тут нет намеренно: экран открывают, чтобы увидеть
+// цифры, а не поздороваться. Верхние две строки съедали первый экран на
+// ноутбуке и не сообщали ничего.
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiFetch } from "@/lib/client-api";
-import { useCurrentUser, usePermissions } from "@/lib/use-permissions";
-import { kindLabel, daysUntil, dueLevel } from "@/lib/resources";
+import { usePermissions } from "@/lib/use-permissions";
+import { kindLabel, daysUntil, dueLevel, KINDS } from "@/lib/resources";
 import { useI18n } from "@/components/i18n-provider";
 import type { TFunc } from "@/lib/i18n/translate";
 import MonitoringCard from "./MonitoringCard";
@@ -27,6 +40,10 @@ const DUE_VARIANT = {
 
 const asDate = (ymd: string) => new Date(ymd + "T00:00:00Z");
 
+/** Сколько строк показывать. Пять — чтобы карточка не тянулась на весь экран. */
+const SIZES = [5, 10, 15] as const;
+const ALL_KINDS = "__all__"; // Radix Select не принимает "" как значение пункта
+
 function dueText(days: number, t: TFunc) {
   if (days === 0) return t("due.today");
   if (days === 1) return t("due.tomorrow");
@@ -37,33 +54,46 @@ function dueText(days: number, t: TFunc) {
 }
 
 export default function DashboardPage() {
-  const me = useCurrentUser();
   const { can } = usePermissions();
   const { t, fmtNum } = useI18n();
   const [rows, setRows] = useState<ResourceRow[] | null>(null);
+  const [size, setSize] = useState<number>(SIZES[0]);
+  const [kind, setKind] = useState<string>(ALL_KINDS);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
 
   // Зависимость — БУЛЕВО право, а не функция can: даже стабильная функция
   // меняется при смене роли, а список надо перезапрашивать только когда
   // доступ реально появился или пропал.
   const mayView = can("resources.view");
 
+  // Ввод не дёргает сервер на каждую букву: у списка оплат нет подсказок, ради
+  // которых стоило бы отвечать мгновенно.
   useEffect(() => {
+    const id = setTimeout(() => setQuery(search.trim()), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  const load = useCallback(() => {
     if (!mayView) return;
-    // Только ближайшие: список уже отсортирован сервером по дате оплаты.
-    apiFetch("/api/resources?pageSize=6")
+    const p = new URLSearchParams({ pageSize: String(size) });
+    if (kind !== ALL_KINDS) p.set("kind", kind);
+    if (query) p.set("search", query);
+    // Список уже отсортирован сервером по ближайшей дате оплаты.
+    apiFetch(`/api/resources?${p}`)
       .then(d => setRows(d.rows))
       .catch(() => setRows([]));
-  }, [mayView]);
+  }, [mayView, size, kind, query]);
+
+  useEffect(load, [load]);
+
+  const kindOptions = useMemo(
+    () => KINDS.map(k => ({ value: k, label: kindLabel(k, t) })),
+    [t]
+  );
 
   return (
     <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">
-          {me?.name ? t("dashboard.helloName", { name: me.name }) : t("dashboard.hello")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
-      </div>
-
       {can("resources.view") && <SpendCard />}
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -79,7 +109,47 @@ export default function DashboardPage() {
               </Link>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-3">
+            {can("resources.view") && (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative min-w-40 flex-1">
+                  <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="h-8 pl-8"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={t("dashboard.searchPlaceholder")}
+                    aria-label={t("dashboard.searchPlaceholder")}
+                  />
+                </div>
+                <Select value={kind} onValueChange={setKind}>
+                  <SelectTrigger className="h-8 w-auto min-w-32" aria-label={t("res.col.kind")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_KINDS}>{t("dashboard.allKinds")}</SelectItem>
+                    {kindOptions.map(o => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={String(size)} onValueChange={v => setSize(Number(v))}>
+                  <SelectTrigger className="h-8 w-auto" aria-label={t("dashboard.show")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SIZES.map(n => (
+                      <SelectItem key={n} value={String(n)}>
+                        {t("dashboard.showCount", { count: n })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {!can("resources.view") && (
               <p className="text-sm text-muted-foreground">{t("dashboard.noAccess")}</p>
             )}
@@ -92,10 +162,19 @@ export default function DashboardPage() {
             )}
             {rows?.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                {t("dashboard.emptyResources")}{" "}
-                <Link href="/resources" className="text-primary hover:underline">
-                  {t("dashboard.addFirst")}
-                </Link>
+                {/* Пусто из-за фильтра и пусто вообще — разные новости, и
+                    предлагать «добавьте первый ресурс» тому, кто просто ищет
+                    не то слово, значит сбивать с толку. */}
+                {query || kind !== ALL_KINDS ? (
+                  t("dashboard.nothingFound")
+                ) : (
+                  <>
+                    {t("dashboard.emptyResources")}{" "}
+                    <Link href="/resources" className="text-primary hover:underline">
+                      {t("dashboard.addFirst")}
+                    </Link>
+                  </>
+                )}
               </p>
             )}
             {rows && rows.length > 0 && (

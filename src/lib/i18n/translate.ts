@@ -74,6 +74,13 @@ export function formatDateTime(v: string | number | Date, locale: Locale): strin
   });
 }
 
+/** Только часы и минуты: «обновлено в 12:34» — дата там лишний шум. */
+export function formatTime(v: string | number | Date, locale: Locale): string {
+  const d = v instanceof Date ? v : new Date(v);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString(intlLocale(locale), { hour: "2-digit", minute: "2-digit" });
+}
+
 export function formatDate(v: string | number | Date, locale: Locale): string {
   const d = v instanceof Date ? v : new Date(v);
   if (isNaN(d.getTime())) return "";

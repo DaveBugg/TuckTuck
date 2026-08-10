@@ -52,7 +52,7 @@ web server at `127.0.0.1:3000`.
 | `TUCKTUCK_TAG` | `latest` | Image tag; a specific one pins the build |
 | `TUCKTUCK_SKIP_PROXY` | `0` | `1` — don't start Caddy, you already have a reverse proxy |
 | `TUCKTUCK_PREFIX` | `tucktuck` | Container name prefix; change it only to run a second panel on the same host |
-| `TUCKTUCK_TLS` | `auto` | `auto` — Let's Encrypt; `internal` — self-signed, for Cloudflare; `cert.pem,key.pem` — your own |
+| `TUCKTUCK_TLS` | `auto` | `auto` — Let's Encrypt, for a server facing the internet directly; `cert.pem,key.pem` — your own certificate, for Cloudflare Full (strict) |
 | `TUCKTUCK_SKIP_DOCKER` | `0` | `1` — don't install Docker, do it yourself |
 | `TURNSTILE_SITE_KEY` | empty | Cloudflare Turnstile, public half |
 | `TURNSTILE_SECRET_KEY` | empty | Turnstile, secret half. Both empty = no captcha |
@@ -208,41 +208,61 @@ previous tag.
 HTTPS is automatic: Caddy holds 80/443 and issues a Let's Encrypt certificate
 for `TUCKTUCK_DOMAIN`. The domain's A record must already point at the server.
 
-### HTTPS: plain DNS, Cloudflare, or your own nginx
+### HTTPS: two supported modes
 
-**Plain DNS — nothing to do.** Caddy holds 80/443, issues a Let's Encrypt
-certificate for `TUCKTUCK_DOMAIN` on first start and renews it on its own, well
-before expiry. No cron, no certbot, no second container. Certificates live in a
-named volume, so recreating the container doesn't send you back to Let's
-Encrypt — that's how you avoid their rate limits.
-
-The only requirement is that the domain's A record already points at the server
-and ports 80 and 443 are reachable: the ACME challenge arrives over them.
-
-**Behind Cloudflare (orange cloud)** the certificate visitors see is
-Cloudflare's; the one on your server only protects the hop between Cloudflare
-and you. Two working setups:
+**1. Server directly on the internet, no Cloudflare.** This is the default and
+needs no options at all:
 
 ```bash
-# SSL/TLS mode "Full" — the origin certificate is not verified, self-signed is fine
-... TUCKTUCK_TLS=internal sh setup.sh
-
-# SSL/TLS mode "Full (strict)" — with a Cloudflare Origin Certificate
-... TUCKTUCK_TLS=/root/origin.pem,/root/origin.key sh setup.sh
+curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | TUCKTUCK_DOMAIN=panel.example.com sh
 ```
 
-`internal` is usually the better choice behind Cloudflare: an Origin Certificate
-is valid for 15 years but has to be renewed by hand eventually, and Let's
-Encrypt through the proxy means the ACME challenge travels through Cloudflare
-for no benefit — the certificate is never shown to anyone.
+Caddy holds 80/443, issues a Let's Encrypt certificate for `TUCKTUCK_DOMAIN` on
+first start and renews it on its own, well before expiry. No cron, no certbot,
+no second container. Certificates live in a named volume, so recreating the
+container doesn't send you back to Let's Encrypt — that is how you stay clear of
+their rate limits.
 
-Leaving `TUCKTUCK_TLS` at `auto` behind Cloudflare also works, as long as port
-80 reaches the origin. It just spends a real certificate on a hop nobody sees.
+Two requirements, both about reachability: the domain's A record already points
+at this server, and ports 80 and 443 are open to the world. The ACME challenge
+arrives over them, and a closed port 80 is the usual reason issuance fails.
 
-> Mode **Flexible is not supported**, deliberately. Cloudflare would talk plain
-> HTTP to your server while the panel redirects everything to HTTPS — that is a
-> redirect loop, and the traffic between Cloudflare and you would be
-> unencrypted. Use Full or Full (strict).
+**2. Behind Cloudflare, SSL/TLS mode Full (strict).** Visitors get Cloudflare's
+certificate; the one on your server protects the hop between Cloudflare and you,
+and in strict mode Cloudflare verifies it. Issue a free Origin Certificate in
+the Cloudflare panel (SSL/TLS → Origin Server → Create Certificate), put both
+files on the server and point at them:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh -o setup.sh
+TUCKTUCK_DOMAIN=panel.example.com TUCKTUCK_TLS=/root/origin.pem,/root/origin.key sh setup.sh
+```
+
+The files are copied into the installation directory, the key gets mode 600, and
+Caddy stops going to Let's Encrypt entirely — sensible, since that certificate
+would never be shown to anyone. An Origin Certificate is valid for 15 years;
+renewing it is a manual job on that day, and the same command with new files is
+all it takes.
+
+Re-running `setup.sh` without `TUCKTUCK_TLS` keeps whatever was chosen before,
+so an update never silently drops you back to Let's Encrypt.
+
+> Cloudflare's **Flexible** mode is not supported, deliberately. Cloudflare
+> would talk plain HTTP to your server while the panel redirects everything to
+> HTTPS — that is a redirect loop, and the traffic between Cloudflare and you
+> would travel unencrypted. Use Full (strict).
+
+<details>
+<summary>Two more cases that work but are rarely what you want</summary>
+
+`TUCKTUCK_TLS=internal` gives Caddy a self-signed certificate — enough for
+Cloudflare's **Full** (non-strict) mode, where the origin certificate isn't
+verified. Simpler than an Origin Certificate, and nothing expires.
+
+Leaving `auto` behind Cloudflare also works as long as port 80 reaches the
+origin: Let's Encrypt just issues a real certificate for a hop nobody ever sees.
+
+</details>
 
 **Your own nginx and certbot** — start without our proxy:
 

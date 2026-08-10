@@ -7,12 +7,13 @@
 // понятные состояния, а не сломанная страница. Мониторинг стоит рядом с
 // оплатами и не должен ронять главный экран.
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Activity, RefreshCw, ArrowRight, ServerCog } from "lucide-react";
+import { Activity, RefreshCw, ArrowRight, ServerCog, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,34 +25,53 @@ import { useI18n } from "@/components/i18n-provider";
 type System = SystemView;
 
 export default function MonitoringCard() {
-  const { t } = useI18n();
+  const { t, fmtTime } = useI18n();
   const [systems, setSystems] = useState<System[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [search, setSearch] = useState("");
 
-  const load = useCallback((manual = false) => {
-    if (manual) setBusy(true);
+  // Крутим кнопку и на автоматическом обновлении тоже: иначе список меняется
+  // сам по себе, и непонятно, это свежие данные или страница подвисла.
+  const load = useCallback(() => {
+    setBusy(true);
     apiFetch("/api/monitoring")
-      .then(d => setSystems(d.systems))
+      .then(d => {
+        setSystems(d.systems);
+        setUpdatedAt(new Date());
+      })
       .catch(() => setSystems([]))
-      .finally(() => setBusy(false));
+      // Задержка не для красоты: без неё при быстром ответе кнопка мигает на
+      // один кадр, и «обновилось» глазом не читается.
+      .finally(() => setTimeout(() => setBusy(false), 400));
   }, []);
 
   useEffect(() => {
     load();
     // Агенты шлют раз в минуту — чаще опрашивать нечего.
-    const t = setInterval(() => load(), 60_000);
-    return () => clearInterval(t);
+    const id = setInterval(load, 60_000);
+    return () => clearInterval(id);
   }, [load]);
 
   const bad = systems?.filter(s => s.health === "down" || s.health === "stale").length ?? 0;
-  const connected = systems?.filter(s => s.agentConnected) ?? [];
   const hasSelf = systems?.some(s => s.isSelf) ?? false;
+
+  // Поиск на клиенте: машин десятки, а не тысячи, и ходить за этим на сервер
+  // значит ждать ответа на каждую букву.
+  const connected = useMemo(() => {
+    const all = systems?.filter(s => s.agentConnected) ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return all;
+    return all.filter(s => s.name.toLowerCase().includes(q) || (s.ip || "").includes(q));
+  }, [systems, search]);
+
+  const anyConnected = (systems?.filter(s => s.agentConnected).length ?? 0) > 0;
 
   const enableSelf = async () => {
     try {
       const d = await apiJson("/api/monitoring/self/enable", "POST");
       toast.success(d.already ? t("monitor.selfAlready") : t("monitor.selfAdded", { name: d.row.name }));
-      load(true);
+      load();
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -65,9 +85,22 @@ export default function MonitoringCard() {
           {t("monitor.servers")}
           {bad > 0 && <Badge variant="destructive">{bad}</Badge>}
         </CardTitle>
-        <Button variant="ghost" size="icon-sm" onClick={() => load(true)} aria-label={t("common.refresh")} disabled={busy}>
-          <RefreshCw className={cn(busy && "animate-spin")} />
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {updatedAt && (
+            <span className="text-xs text-muted-foreground">
+              {t("monitor.updatedAt", { time: fmtTime(updatedAt) })}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={load}
+            aria-label={t("common.refresh")}
+            disabled={busy}
+          >
+            <RefreshCw className={cn(busy && "animate-spin")} />
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
@@ -97,7 +130,7 @@ export default function MonitoringCard() {
           </div>
         )}
 
-        {systems && systems.length > 0 && connected.length === 0 && (
+        {systems && systems.length > 0 && !anyConnected && (
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">
             <p>{t("monitor.noAgents")}</p>
             <p className="text-xs">
@@ -110,13 +143,34 @@ export default function MonitoringCard() {
           </div>
         )}
 
-        {connected.map(s => (
-          <div key={s.id} className="border-b pb-4 last:border-0 last:pb-0">
-            <SystemSummary s={s} />
+        {anyConnected && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-8 pl-8"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t("monitor.searchPlaceholder")}
+              aria-label={t("monitor.searchPlaceholder")}
+            />
           </div>
-        ))}
+        )}
 
-        {connected.length > 0 && (
+        {anyConnected && connected.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t("dashboard.nothingFound")}</p>
+        )}
+
+        {/* Прокрутка внутри карточки, а не рост карточки вниз: с десятком машин
+            виджет уезжал за экран, и до ссылки под ним никто не добирался. */}
+        <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+          {connected.map(s => (
+            <div key={s.id} className="border-b pb-4 last:border-0 last:pb-0">
+              <SystemSummary s={s} />
+            </div>
+          ))}
+        </div>
+
+        {anyConnected && (
           <Link
             href="/resources"
             className="inline-flex items-center gap-1 text-sm text-primary hover:underline"

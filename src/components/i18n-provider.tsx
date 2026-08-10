@@ -16,7 +16,14 @@ import {
   resolveLocale,
   type Locale,
 } from "@/lib/i18n/config";
-import { formatDate, formatDateTime, formatNumber, makeT, type TFunc } from "@/lib/i18n/translate";
+import {
+  formatDate,
+  formatDateTime,
+  formatTime,
+  formatNumber,
+  makeT,
+  type TFunc,
+} from "@/lib/i18n/translate";
 
 type Ctx = {
   locale: Locale;
@@ -24,6 +31,7 @@ type Ctx = {
   setLocale: (l: Locale) => void;
   fmtDate: (v: string | number | Date) => string;
   fmtDateTime: (v: string | number | Date) => string;
+  fmtTime: (v: string | number | Date) => string;
   fmtNum: (v: number, opts?: Intl.NumberFormatOptions) => string;
 };
 
@@ -44,6 +52,7 @@ export function I18nProvider({ locale, children }: { locale: Locale; children: R
       },
       fmtDate: v => formatDate(v, locale),
       fmtDateTime: v => formatDateTime(v, locale),
+      fmtTime: v => formatTime(v, locale),
       fmtNum: (v, opts) => formatNumber(v, locale, opts),
     };
   }, [locale]);
@@ -67,6 +76,7 @@ export function useI18n(): Ctx {
       setLocale: () => {},
       fmtDate: v => formatDate(v, DEFAULT_LOCALE),
       fmtDateTime: v => formatDateTime(v, DEFAULT_LOCALE),
+      fmtTime: v => formatTime(v, DEFAULT_LOCALE),
       fmtNum: (v, opts) => formatNumber(v, DEFAULT_LOCALE, opts),
     }
   );
