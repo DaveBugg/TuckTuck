@@ -65,6 +65,22 @@ export default function SpendCard() {
       month: short ? "short" : "long",
     });
 
+  /**
+   * Нужен ли пересчитанный итог.
+   *
+   * Не нужен ровно в одном случае: валюта одна и она же выбрана для итога —
+   * тогда это то же число второй раз. Во всех остальных, включая одну валюту,
+   * отличную от выбранной, он нужен: «7 858,88 RUB» не отвечает на вопрос
+   * «сколько это в долларах», ради которого настройку и заводили.
+   */
+  const showTotal = (p: Period) =>
+    p.byCurrency.length > 1 ||
+    (p.byCurrency.length === 1 && p.byCurrency[0].currency !== d?.displayCurrency);
+
+  /** Точные суммы одной строкой: «7 858,88 RUB + 12,00 EUR». */
+  const exactLine = (p: Period) =>
+    p.byCurrency.map(c => `${fmt(c.amount, c.isCrypto)} ${c.currency}`).join(" + ");
+
   /** Колонка периода: точные суммы по валютам плюс подпись с общим итогом. */
   const Column = ({
     title,
@@ -96,7 +112,7 @@ export default function SpendCard() {
         ))}
       </div>
 
-      {p.byCurrency.length > 1 && (
+      {showTotal(p) && (
         <div className="text-sm">
           {p.totalReliable ? (
             <>
@@ -150,11 +166,13 @@ export default function SpendCard() {
                     <p className="text-xs text-muted-foreground">
                       {t("spend.nextMonth", {
                         month: monthName(d.nextMonth.index ?? 0),
-                        amount: d.nextMonth.totalReliable
-                          ? `${fmt(d.nextMonth.total, d.displayIsCrypto)} ${d.displayCurrency}`
-                          : d.nextMonth.byCurrency
-                              .map(c => `${fmt(c.amount, c.isCrypto)} ${c.currency}`)
-                              .join(" + "),
+                        amount:
+                          exactLine(d.nextMonth) +
+                          // Пересчёт добавляем той же подписью, что и в колонках:
+                          // следующий месяц читают тем же взглядом, что текущий.
+                          (showTotal(d.nextMonth) && d.nextMonth.totalReliable
+                            ? ` ≈ ${fmt(d.nextMonth.total, d.displayIsCrypto)} ${d.displayCurrency}`
+                            : ""),
                       })}
                     </p>
                   ) : null
