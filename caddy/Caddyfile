@@ -6,8 +6,16 @@
 # ставит один человек, это разница между «работает из коробки» и «разбирайся».
 #
 # Домен берётся из TUCKTUCK_DOMAIN в .env.
+#
+# TUCKTUCK_TLS_DIRECTIVE подставляет способ получения сертификата. Пусто —
+# Let's Encrypt сам, это и нужно на обычном DNS. За Cloudflare в режиме
+# «Full» туда попадает `tls internal` (самоподписанный: наружу всё равно
+# отдаётся сертификат Cloudflare), а с их Origin Certificate — пути к файлам.
+# Строку собирает setup.sh из понятного TUCKTUCK_TLS, см. .env.example.
 
 {$TUCKTUCK_DOMAIN} {
+	{$TUCKTUCK_TLS_DIRECTIVE}
+
 	reverse_proxy tucktuck:3000
 
 	# Панель закрыта от индексации целиком — дублируем заголовком на случай,

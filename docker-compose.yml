@@ -121,11 +121,16 @@ services:
     restart: unless-stopped
     environment:
       TUCKTUCK_DOMAIN: ${TUCKTUCK_DOMAIN:?TUCKTUCK_DOMAIN не задан в .env}
+      # Способ получения сертификата: пусто — Let's Encrypt сам. См. Caddyfile.
+      TUCKTUCK_TLS_DIRECTIVE: ${TUCKTUCK_TLS_DIRECTIVE:-}
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Свои сертификаты (например, Origin Certificate от Cloudflare). Каталог
+      # может быть пустым — тогда он просто не используется.
+      - ./caddy/certs:/certs:ro
       # Сертификаты переживают пересоздание контейнера. Без этого тома каждый
       # деплой заново ходил бы в Let's Encrypt и упёрся бы в их лимиты.
       - tucktuck-caddy-data:/data

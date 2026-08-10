@@ -51,6 +51,8 @@ web server at `127.0.0.1:3000`.
 | `TUCKTUCK_PORT` | `3000` | App port on loopback |
 | `TUCKTUCK_TAG` | `latest` | Image tag; a specific one pins the build |
 | `TUCKTUCK_SKIP_PROXY` | `0` | `1` — don't start Caddy, you already have a reverse proxy |
+| `TUCKTUCK_PREFIX` | `tucktuck` | Container name prefix; change it only to run a second panel on the same host |
+| `TUCKTUCK_TLS` | `auto` | `auto` — Let's Encrypt; `internal` — self-signed, for Cloudflare; `cert.pem,key.pem` — your own |
 | `TUCKTUCK_SKIP_DOCKER` | `0` | `1` — don't install Docker, do it yourself |
 | `TURNSTILE_SITE_KEY` | empty | Cloudflare Turnstile, public half |
 | `TURNSTILE_SECRET_KEY` | empty | Turnstile, secret half. Both empty = no captcha |
@@ -205,6 +207,81 @@ previous tag.
 
 HTTPS is automatic: Caddy holds 80/443 and issues a Let's Encrypt certificate
 for `TUCKTUCK_DOMAIN`. The domain's A record must already point at the server.
+
+### HTTPS: plain DNS, Cloudflare, or your own nginx
+
+**Plain DNS — nothing to do.** Caddy holds 80/443, issues a Let's Encrypt
+certificate for `TUCKTUCK_DOMAIN` on first start and renews it on its own, well
+before expiry. No cron, no certbot, no second container. Certificates live in a
+named volume, so recreating the container doesn't send you back to Let's
+Encrypt — that's how you avoid their rate limits.
+
+The only requirement is that the domain's A record already points at the server
+and ports 80 and 443 are reachable: the ACME challenge arrives over them.
+
+**Behind Cloudflare (orange cloud)** the certificate visitors see is
+Cloudflare's; the one on your server only protects the hop between Cloudflare
+and you. Two working setups:
+
+```bash
+# SSL/TLS mode "Full" — the origin certificate is not verified, self-signed is fine
+... TUCKTUCK_TLS=internal sh setup.sh
+
+# SSL/TLS mode "Full (strict)" — with a Cloudflare Origin Certificate
+... TUCKTUCK_TLS=/root/origin.pem,/root/origin.key sh setup.sh
+```
+
+`internal` is usually the better choice behind Cloudflare: an Origin Certificate
+is valid for 15 years but has to be renewed by hand eventually, and Let's
+Encrypt through the proxy means the ACME challenge travels through Cloudflare
+for no benefit — the certificate is never shown to anyone.
+
+Leaving `TUCKTUCK_TLS` at `auto` behind Cloudflare also works, as long as port
+80 reaches the origin. It just spends a real certificate on a hop nobody sees.
+
+> Mode **Flexible is not supported**, deliberately. Cloudflare would talk plain
+> HTTP to your server while the panel redirects everything to HTTPS — that is a
+> redirect loop, and the traffic between Cloudflare and you would be
+> unencrypted. Use Full or Full (strict).
+
+**Your own nginx and certbot** — start without our proxy:
+
+```bash
+... TUCKTUCK_SKIP_PROXY=1 sh setup.sh
+```
+
+The app then listens on `127.0.0.1:3000` and nothing else is published.
+Certificates and their renewal are certbot's business as usual — its systemd
+timer keeps working, TuckTuck neither knows nor interferes.
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name panel.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/panel.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/panel.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # Agent installation streams its log line by line. With the default
+        # buffering nginx holds it back and the whole log lands at once, at the
+        # end — which looks exactly like a hung installation.
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+    }
+}
+```
+
+The headers are not decoration. `X-Forwarded-For` is what ends up in the session
+list, and `X-Forwarded-Proto`/`X-Forwarded-Host` are how the panel works out the
+address to hand to a monitoring agent. Set `TUCKTUCK_PUBLIC_URL` in `.env` and
+it wins over both — worth doing when the panel sits behind two proxies.
 
 ### Reminders
 

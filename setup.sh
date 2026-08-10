@@ -19,6 +19,9 @@
 #   TUCKTUCK_PORT         порт приложения на loopback, по умолчанию 3000
 #   TUCKTUCK_PREFIX       префикс имён контейнеров, по умолчанию tucktuck
 #   TUCKTUCK_SKIP_PROXY   1 — не поднимать Caddy: свой прокси уже есть
+#   TUCKTUCK_TLS          auto (по умолчанию) — Let's Encrypt сам;
+#                         internal — самоподписанный, для Cloudflare в режиме Full;
+#                         путь к cert.pem и key.pem через запятую — свой сертификат
 #   TUCKTUCK_SKIP_DOCKER  1 — не ставить Docker самому
 #   TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY   капча на входе
 #   TELEGRAM_PROXY_URL    прокси до Telegram, если он с сервера недоступен
@@ -131,6 +134,36 @@ pick() {
 FIRST_RUN=0
 [ -f .env ] || FIRST_RUN=1
 
+# Способ получения сертификата переводим из понятного в директиву Caddy.
+#
+# Три случая, и все три встречаются: обычный DNS (Let's Encrypt сам), домен за
+# Cloudflare в режиме Full (наружу светит сертификат Cloudflare, до сервера
+# достаточно самоподписанного) и свой сертификат — их же Origin Certificate или
+# купленный.
+#
+# Переменную не задали — берём то, что уже записано: иначе повторный запуск
+# молча возвращал бы Let's Encrypt тому, кто выбрал самоподписанный, и панель
+# за Cloudflare переставала бы отвечать.
+TLS_DIRECTIVE=""
+case "${TUCKTUCK_TLS:-}" in
+  "") TLS_DIRECTIVE="$(prev TUCKTUCK_TLS_DIRECTIVE)" ;;
+  auto) TLS_DIRECTIVE="" ;;
+  internal) TLS_DIRECTIVE="tls internal" ;;
+  *,*)
+    cert="${TUCKTUCK_TLS%%,*}"
+    key="${TUCKTUCK_TLS#*,}"
+    [ -f "$cert" ] || die "не найден файл сертификата: $cert"
+    [ -f "$key" ] || die "не найден файл ключа: $key"
+    mkdir -p "$DIR/caddy/certs"
+    cp "$cert" "$DIR/caddy/certs/cert.pem"
+    cp "$key" "$DIR/caddy/certs/key.pem"
+    chmod 600 "$DIR/caddy/certs/key.pem"
+    TLS_DIRECTIVE="tls /certs/cert.pem /certs/key.pem"
+    ;;
+  *) die "TUCKTUCK_TLS: ожидается auto, internal или «путь-к-cert.pem,путь-к-key.pem»" ;;
+esac
+mkdir -p "$DIR/caddy/certs"
+
 PG_PASS="$(pick POSTGRES_PASSWORD "$(gen 24)")"
 JWT="$(pick TUCKTUCK_JWT_SECRET "$(gen 32)")"
 ENC="$(pick TUCKTUCK_ENCRYPTION_KEY "$(gen 32)")"
@@ -147,6 +180,9 @@ TUCKTUCK_PORT="${TUCKTUCK_PORT:-3000}"
 # Префикс имён контейнеров. Менять нужно, только если на этой машине уже стоит
 # другая установка TuckTuck — иначе имена столкнутся.
 TUCKTUCK_PREFIX="$(pick TUCKTUCK_PREFIX "tucktuck")"
+
+# Директива TLS для Caddy. Пусто — Let's Encrypt сам.
+TUCKTUCK_TLS_DIRECTIVE="${TLS_DIRECTIVE}"
 TUCKTUCK_TAG="${TUCKTUCK_TAG:-latest}"
 
 POSTGRES_USER="tucktuck"

@@ -50,6 +50,8 @@ sh setup.sh
 | `TUCKTUCK_PORT` | `3000` | Порт приложения на loopback |
 | `TUCKTUCK_TAG` | `latest` | Тег образов; конкретный фиксирует сборку |
 | `TUCKTUCK_SKIP_PROXY` | `0` | `1` — не поднимать Caddy, свой прокси уже есть |
+| `TUCKTUCK_PREFIX` | `tucktuck` | Префикс имён контейнеров; менять нужно только ради второй панели на том же хосте |
+| `TUCKTUCK_TLS` | `auto` | `auto` — Let's Encrypt; `internal` — самоподписанный, для Cloudflare; `cert.pem,key.pem` — свой |
 | `TUCKTUCK_SKIP_DOCKER` | `0` | `1` — не ставить Docker, поставите сами |
 | `TURNSTILE_SITE_KEY` | пусто | Cloudflare Turnstile, публичная половина |
 | `TURNSTILE_SECRET_KEY` | пусто | Turnstile, секретная половина. Обе пустые = капчи нет |
@@ -201,6 +203,82 @@ docker compose exec tucktuck node prisma/seed.mjs   # первый админ
 
 HTTPS поднимается сам: Caddy держит 80/443 и выпускает сертификат Let's Encrypt
 для `TUCKTUCK_DOMAIN`. A-запись домена должна уже смотреть на сервер.
+
+### HTTPS: обычный DNS, Cloudflare или свой nginx
+
+**Обычный DNS — делать нечего.** Caddy держит 80/443, при первом запуске
+выпускает сертификат Let's Encrypt для `TUCKTUCK_DOMAIN` и сам продлевает его
+заранее. Ни cron, ни certbot, ни второго контейнера. Сертификаты лежат в
+именованном томе, поэтому пересоздание контейнера не отправляет вас снова в
+Let's Encrypt — так и не упираются в их лимиты.
+
+Нужно ровно одно: A-запись домена уже смотрит на сервер, а порты 80 и 443
+доступны снаружи — по ним приходит проверка ACME.
+
+**За Cloudflare (оранжевое облако)** посетители видят сертификат Cloudflare, а
+тот, что на вашем сервере, закрывает только участок между Cloudflare и вами.
+Два рабочих варианта:
+
+```bash
+# режим SSL/TLS «Full» — сертификат сервера не проверяется, годится самоподписанный
+... TUCKTUCK_TLS=internal sh setup.sh
+
+# режим «Full (strict)» — с Origin Certificate от Cloudflare
+... TUCKTUCK_TLS=/root/origin.pem,/root/origin.key sh setup.sh
+```
+
+За Cloudflare обычно лучше `internal`: Origin Certificate живёт 15 лет, но
+однажды его всё равно придётся менять руками, а Let's Encrypt через прокси
+означает, что проверка ACME гоняется через Cloudflare без всякой пользы —
+сертификат всё равно никому не показывается.
+
+Оставить `TUCKTUCK_TLS=auto` за Cloudflare тоже можно, если порт 80 доходит до
+сервера. Просто настоящий сертификат тратится на участок, которого никто не
+видит.
+
+> Режим **Flexible не поддерживается** намеренно. Cloudflare ходил бы к вашему
+> серверу по открытому HTTP, а панель редиректит всё на HTTPS — получается
+> петля, и трафик между Cloudflare и вами идёт незашифрованным. Берите Full или
+> Full (strict).
+
+**Свой nginx и certbot** — поднимайте без нашего прокси:
+
+```bash
+... TUCKTUCK_SKIP_PROXY=1 sh setup.sh
+```
+
+Приложение остаётся на `127.0.0.1:3000`, наружу не публикуется ничего.
+Сертификаты и их продление — обычная работа certbot: его systemd-таймер живёт
+своей жизнью, TuckTuck про него не знает и не мешает.
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name panel.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/panel.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/panel.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # Установка агента печатает лог построчно. При буферизации по умолчанию
+        # nginx придержит его и отдаст целиком в конце — со стороны это выглядит
+        # ровно как зависшая установка.
+        proxy_buffering off;
+        proxy_read_timeout 600s;
+    }
+}
+```
+
+Заголовки здесь не для красоты. `X-Forwarded-For` попадает в список сессий, а по
+`X-Forwarded-Proto` и `X-Forwarded-Host` панель понимает, какой адрес выдать
+агенту мониторинга. Если задать в `.env` `TUCKTUCK_PUBLIC_URL`, он важнее обоих —
+это имеет смысл, когда панель стоит за двумя прокси подряд.
 
 ### Напоминания
 
