@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
-import { visibilityWhere } from "@/lib/resources";
+import { visibilityWhere, CRYPTO_CURRENCIES } from "@/lib/resources";
 import { getSettings } from "@/lib/settings";
 import { getRates, convert } from "@/lib/rates";
 
@@ -58,9 +58,17 @@ export async function GET() {
       else total += c;
     }
 
+    // Итог округляем по валюте, в которой его показываем, а не всегда до
+    // копеек. Валютой итога можно выбрать монету, и 14 долларов в пересчёте —
+    // это 0.00015 BTC: округление до сотых превращало расход в ноль, то есть
+    // настройка молча показывала «вы ничего не тратите».
+    const displayIsCrypto = (CRYPTO_CURRENCIES as readonly string[]).includes(displayCurrency);
+    const step = displayIsCrypto ? 1e8 : 100;
+
     return NextResponse.json({
       displayCurrency,
-      total: byCurrency.size ? Math.round(total * 100) / 100 : 0,
+      displayIsCrypto,
+      total: byCurrency.size ? Math.round(total * step) / step : 0,
       // Курс не получен ни для чего — сумма была бы нулём, и показывать её как
       // «расходов нет» нельзя.
       totalReliable: unconverted.length === 0 && rates.sources.length > 0,

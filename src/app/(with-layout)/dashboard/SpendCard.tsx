@@ -17,6 +17,8 @@ import { useI18n } from "@/components/i18n-provider";
 
 type Totals = {
   displayCurrency: string;
+  /** Валюта итога — монета: знаков после запятой нужно больше двух. */
+  displayIsCrypto: boolean;
   total: number;
   totalReliable: boolean;
   unconverted: string[];
@@ -72,13 +74,13 @@ export default function SpendCard() {
               ))}
             </div>
 
-            {d.byCurrency.length > 1 && (
+            {(d.byCurrency.length > 1 || d.byCurrency[0].currency !== d.displayCurrency) && (
               <div className="border-t pt-3">
                 {d.totalReliable ? (
                   <div className="text-sm">
                     <span className="text-muted-foreground">{t("spend.total")} </span>
                     <span className="tabular font-semibold">
-                      {fmt(d.total, false)} {d.displayCurrency}
+                      {fmt(d.total, d.displayIsCrypto)} {d.displayCurrency}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {" "}
