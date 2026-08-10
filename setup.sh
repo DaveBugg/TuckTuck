@@ -223,6 +223,10 @@ if [ "$FIRST_RUN" = "1" ]; then
 fi
 
 printf '\n%sГотово.%s Панель: %shttps://%s%s\n' "$G" "$N" "$B" "$DOMAIN" "$N"
-printf '  Сертификат Caddy выпустит сам, если A-запись %s уже смотрит на этот сервер.\n' "$DOMAIN"
+if [ "${TUCKTUCK_SKIP_PROXY:-0}" = "1" ]; then
+  printf '  Проксируйте свой веб-сервер на 127.0.0.1:%s — HTTPS на вашей стороне.\n' "${TUCKTUCK_PORT:-3000}"
+else
+  printf '  Сертификат Caddy выпустит сам, если A-запись %s уже смотрит на этот сервер.\n' "$DOMAIN"
+fi
 printf '  Обновление: cd %s && ./deploy.sh\n' "$DIR"
 printf '  Настройки:  %s/.env\n\n' "$DIR"
