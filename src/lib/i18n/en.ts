@@ -66,6 +66,7 @@ export const en: Record<string, string> = {
   "auth.err.credentialsRequired": "Email and password are required",
   "auth.err.captcha": "Captcha check failed",
   "auth.err.badCredentials": "Wrong email or password",
+  "auth.err.tooMany": "Too many attempts. Try again in {sec}s",
   "auth.err.badTotp": "Wrong 2FA code",
   "auth.err.badCode": "Wrong code",
   "auth.err.failed": "Sign in failed",
@@ -91,6 +92,7 @@ export const en: Record<string, string> = {
   "dashboard.showCount_one": "{count} row",
   "dashboard.showCount_other": "{count} rows",
   "dashboard.nothingFound": "Nothing found",
+  "dashboard.openProvider": "Open website: {name}",
   "monitor.searchPlaceholder": "Search by name or IP",
   "monitor.updatedAt": "updated at {time}",
 
@@ -194,6 +196,8 @@ export const en: Record<string, string> = {
   "res.form.nextPayment": "Next payment",
   "res.form.providerNone": "— none —",
   "res.form.addProvider": "Add provider",
+  "res.form.providerUrl": "Provider website link",
+  "res.form.providerUrlPick": "Pick a provider first",
   "res.form.group": "Group (who can see it)",
   "res.form.groupNone": "— admins only —",
   "res.form.tags": "Tags",
@@ -359,6 +363,7 @@ export const en: Record<string, string> = {
   // ── catalogs ─────────────────────────────────────────────────────────────
   "catalog.err.nameRequired": "Name is required",
   "catalog.err.nameTooLong": "Name is longer than 64 characters",
+  "catalog.err.badUrl": "The link must be a website address: example.com or https://example.com",
   "catalog.err.unknownKind": "Unknown catalog type",
 
   // ── notifications ────────────────────────────────────────────────────────
@@ -498,6 +503,24 @@ export const en: Record<string, string> = {
   "settings.proxy.hint":
     "Schemes: socks5, socks4, http, https. Empty means direct. Stored encrypted, returned with the password masked.",
   "settings.proxy.saved": "Proxy saved",
+  "settings.quiet.title": "When to write",
+  "settings.quiet.desc":
+    "The window in which bots send reminders, in the time zone above. A night-time reminder is not lost — it goes out when the window opens.",
+  "settings.quiet.from": "From",
+  "settings.quiet.to": "To",
+  "settings.quiet.always": "Around the clock",
+  "settings.quiet.stateAlways": "No restriction: messages go out at any hour.",
+  "settings.quiet.stateWindow": "Sending from {from} to {to} in {tz}. Outside those hours reminders wait.",
+  "settings.captcha.title": "Sign-in captcha",
+  "settings.captcha.desc":
+    "Cloudflare Turnstile. Both halves of the key come from the Cloudflare panel; with no secret half the captcha is off.",
+  "settings.captcha.siteKey": "Site key (public)",
+  "settings.captcha.secretKey": "Secret key",
+  "settings.captcha.secretSet": "secret saved — type a new one to replace it",
+  "settings.captcha.secretEmpty": "not set — captcha is off",
+  "settings.captcha.saved": "Captcha secret saved",
+  "settings.captcha.disable": "Turn the captcha off",
+  "settings.captcha.hint": "Stored encrypted and never sent back out.",
   "settings.tz.title": "Time zone",
   "settings.tz.search": "City or GMT+3",
   "settings.tz.desc":
@@ -522,6 +545,8 @@ export const en: Record<string, string> = {
   "settings.err.retentionRange": "Retention must be a whole number of days from {min} to {max}",
   "settings.err.currencyFormat": "Currency code must be 2–10 Latin letters",
   "settings.err.unknownLocale": "Unknown language",
+  "settings.err.hourRange": "The hour must be a number from 0 to 23",
+  "settings.err.siteKeyFormat": "That site key looks wrong — copy the whole value",
 
   // ── users ────────────────────────────────────────────────────────────────
   "users.col.user": "User",

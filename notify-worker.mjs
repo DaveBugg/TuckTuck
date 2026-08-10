@@ -55,8 +55,11 @@ async function tick() {
   try {
     const body = await post("/api/notify/run");
     // Пишем только когда что-то произошло: иначе лог за сутки — 288 строк «0 0 0».
-    if (body.sent || body.failed || body.checked) {
-      log(`проверено ${body.checked}, отправлено ${body.sent}, пропущено ${body.skipped}, ошибок ${body.failed}`);
+    if (body.sent || body.failed || body.checked || body.deferred) {
+      log(
+        `проверено ${body.checked}, отправлено ${body.sent}, пропущено ${body.skipped}, ` +
+          `отложено до окна ${body.deferred ?? 0}, ошибок ${body.failed}`
+      );
     }
   } catch (e) {
     // Сеть моргнула или приложение перезапускается — не падаем, ждём следующий тик.

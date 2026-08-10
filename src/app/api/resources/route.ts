@@ -152,7 +152,7 @@ export async function GET(req: Request) {
           sshPort: true,
           sshUser: true,
           sshFingerprint: true,
-          provider: { select: { id: true, name: true } },
+          provider: { select: { id: true, name: true, url: true } },
           group: { select: { id: true, name: true } },
           tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
         },

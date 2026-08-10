@@ -7,7 +7,7 @@
 // трогают раз в жизни, и разносить их по разделам значило бы заставлять искать.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Clock, Coins, Database, Languages, Loader2, Plug, Save } from "lucide-react";
+import { BellOff, Clock, Coins, Database, Languages, Loader2, Plug, Save, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,10 +27,20 @@ type Settings = {
   metricsRetentionDays: number;
   displayCurrency: string;
   notifyLocale: string;
+  /** Окно, в которое можно писать в Телеграм. Равные значения — круглосуточно. */
+  notifyFromHour: number;
+  notifyToHour: number;
+  turnstileSiteKey: string;
+  /** Только факт: сам секрет наружу не отдаётся. */
+  turnstileSecretSet: boolean;
+  turnstileEnvSet: boolean;
   proxy: string;
   proxySet: boolean;
   envProxySet: boolean;
 };
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 // Список поясов берём у самого движка: свой перечень пришлось бы поддерживать
 // вручную, и он всё равно отстал бы от tzdata.
@@ -208,6 +218,63 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <BellOff className="size-4 text-muted-foreground" />
+            {t("settings.quiet.title")}
+          </CardTitle>
+          <CardDescription>{t("settings.quiet.desc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <div>
+              <Label>{t("settings.quiet.from")}</Label>
+              <div className="mt-1.5 w-28">
+                <SearchSelect
+                  value={String(s.notifyFromHour)}
+                  onChange={v => patch({ notifyFromHour: Number(v) })}
+                  options={HOURS.map(h => ({ value: String(h), label: hh(h) }))}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.nothingFound")}
+                  ariaLabel={t("settings.quiet.from")}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>{t("settings.quiet.to")}</Label>
+              <div className="mt-1.5 w-28">
+                <SearchSelect
+                  value={String(s.notifyToHour)}
+                  onChange={v => patch({ notifyToHour: Number(v) })}
+                  options={HOURS.map(h => ({ value: String(h), label: hh(h) }))}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.nothingFound")}
+                  ariaLabel={t("settings.quiet.to")}
+                />
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mb-0.5"
+              onClick={() => patch({ notifyFromHour: 0, notifyToHour: 0 })}
+            >
+              {t("settings.quiet.always")}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {s.notifyFromHour === s.notifyToHour
+              ? t("settings.quiet.stateAlways")
+              : t("settings.quiet.stateWindow", {
+                  from: hh(s.notifyFromHour),
+                  to: hh(s.notifyToHour),
+                  tz: s.timezone,
+                })}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <Database className="size-4 text-muted-foreground" />
             {t("settings.retention.title")}
           </CardTitle>
@@ -276,6 +343,67 @@ export default function SettingsPage() {
               ariaLabel={t("settings.currency.title")}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="size-4 text-muted-foreground" />
+            {t("settings.captcha.title")}
+          </CardTitle>
+          <CardDescription>{t("settings.captcha.desc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div>
+            <Label htmlFor="ts-site">{t("settings.captcha.siteKey")}</Label>
+            <Input
+              id="ts-site"
+              className="mt-1.5 max-w-md font-mono text-xs"
+              defaultValue={s.turnstileSiteKey}
+              placeholder="0x4AAAAAAA…"
+              onBlur={e => {
+                const v = e.target.value.trim();
+                if (v !== s.turnstileSiteKey) patch({ turnstileSiteKey: v });
+              }}
+            />
+          </div>
+          <div>
+            <Label htmlFor="ts-secret">{t("settings.captcha.secretKey")}</Label>
+            <Input
+              id="ts-secret"
+              className="mt-1.5 max-w-md font-mono text-xs"
+              type="password"
+              autoComplete="new-password"
+              placeholder={
+                s.turnstileSecretSet
+                  ? t("settings.captcha.secretSet")
+                  : s.turnstileEnvSet
+                    ? t("settings.proxy.fromEnv")
+                    : t("settings.captcha.secretEmpty")
+              }
+              onBlur={e => {
+                const v = e.target.value;
+                // Пустое поле не трогает сохранённый секрет: иначе любое
+                // касание поля стирало бы капчу.
+                if (v) {
+                  patch({ turnstileSecretKey: v.trim() }, t("settings.captcha.saved"));
+                  e.target.value = "";
+                }
+              }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">{t("settings.captcha.hint")}</p>
+          </div>
+          {s.turnstileSecretSet && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="self-start"
+              onClick={() => patch({ turnstileSecretKey: "", turnstileSiteKey: "" })}
+            >
+              {t("settings.captcha.disable")}
+            </Button>
+          )}
         </CardContent>
       </Card>
 

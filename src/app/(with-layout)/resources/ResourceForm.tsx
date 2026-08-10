@@ -93,6 +93,7 @@ export default function ResourceForm({
   const [busy, setBusy] = useState(false);
   const [newTag, setNewTag] = useState("");
   const [newProvider, setNewProvider] = useState("");
+  const [providerUrl, setProviderUrl] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -125,6 +126,27 @@ export default function ResourceForm({
   }, [open, row]);
 
   const set = (k: keyof typeof f, v: any) => setF(p => ({ ...p, [k]: v }));
+
+  // Ссылка принадлежит провайдеру, а не ресурсу, поэтому подставляется из
+  // справочника при каждой смене выбора и сохраняется отдельным запросом.
+  useEffect(() => {
+    const p = catalog.providers.find(x => x.id === f.providerId);
+    setProviderUrl(p?.url || "");
+  }, [f.providerId, catalog.providers]);
+
+  const saveProviderUrl = async () => {
+    if (!f.providerId) return;
+    const current = catalog.providers.find(x => x.id === f.providerId)?.url || "";
+    const next = providerUrl.trim();
+    if (next === current) return;
+    try {
+      await apiJson("/api/catalog", "PATCH", { type: "provider", id: f.providerId, url: next });
+      onCatalogChange();
+    } catch (e: any) {
+      toast.error(e.message);
+      setProviderUrl(current);
+    }
+  };
 
   const quickAdd = async (type: "tag" | "provider") => {
     const name = (type === "tag" ? newTag : newProvider).trim();
@@ -365,22 +387,25 @@ export default function ResourceForm({
 
             <div className="sm:col-span-6">
               <Label>{t("res.filter.provider")}</Label>
-              <Select
-                value={f.providerId || NONE}
-                onValueChange={v => set("providerId", v === NONE ? "" : v)}
-              >
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>{t("res.form.providerNone")}</SelectItem>
-                  {catalog.providers.map(p => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1.5">
+                {/* «Не задан» остаётся первым пунктом списка, а не отдельной
+                    кнопкой: сбросить выбор — такое же действие, как выбрать. */}
+                <SearchSelect
+                  value={f.providerId || NONE}
+                  onChange={v => set("providerId", v === NONE ? "" : v)}
+                  options={[
+                    { value: NONE, label: t("res.form.providerNone") },
+                    ...catalog.providers.map(p => ({
+                      value: p.id,
+                      label: p.name,
+                      hint: p.url ? new URL(p.url).hostname : "",
+                    })),
+                  ]}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.nothingFound")}
+                  ariaLabel={t("res.filter.provider")}
+                />
+              </div>
               <div className="mt-2 flex gap-2">
                 <Input
                   className="h-8"
@@ -399,23 +424,36 @@ export default function ResourceForm({
                   <Plus />
                 </Button>
               </div>
+              {/* Ссылка на биллинг: с неё начинается оплата, и держать её в
+                  закладках отдельно от карточки — лишний шаг. */}
+              <Input
+                className="mt-2 h-8"
+                value={providerUrl}
+                onChange={e => setProviderUrl(e.target.value)}
+                onBlur={saveProviderUrl}
+                disabled={!f.providerId}
+                placeholder={
+                  f.providerId ? t("res.form.providerUrl") : t("res.form.providerUrlPick")
+                }
+                aria-label={t("res.form.providerUrl")}
+              />
             </div>
 
             <div className="sm:col-span-6">
               <Label>{t("res.form.group")}</Label>
-              <Select value={f.groupId || NONE} onValueChange={v => set("groupId", v === NONE ? "" : v)}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>{t("res.form.groupNone")}</SelectItem>
-                  {catalog.groups.map(g => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="mt-1.5">
+                <SearchSelect
+                  value={f.groupId || NONE}
+                  onChange={v => set("groupId", v === NONE ? "" : v)}
+                  options={[
+                    { value: NONE, label: t("res.form.groupNone") },
+                    ...catalog.groups.map(g => ({ value: g.id, label: g.name })),
+                  ]}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.nothingFound")}
+                  ariaLabel={t("res.form.group")}
+                />
+              </div>
             </div>
 
             <div className="sm:col-span-12">

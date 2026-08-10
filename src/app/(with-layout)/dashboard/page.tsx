@@ -9,9 +9,10 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -185,8 +186,26 @@ export default function DashboardPage() {
                     <li key={r.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">{r.name}</div>
-                        <div className="text-xs text-muted-foreground">{kindLabel(r.kind, t)}</div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {kindLabel(r.kind, t)}
+                          {/* Провайдер здесь потому, что платить идут к нему, а
+                              не к ресурсу: «Hetzner» отвечает на вопрос «куда
+                              теперь», а тип — нет. */}
+                          {r.provider && <> · {r.provider.name}</>}
+                        </div>
                       </div>
+                      {r.provider?.url && (
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon-sm"
+                          title={t("dashboard.openProvider", { name: r.provider.name })}
+                        >
+                          <a href={r.provider.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink />
+                          </a>
+                        </Button>
+                      )}
                       <div className="tabular text-sm">
                         {fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} {r.currency}
                       </div>

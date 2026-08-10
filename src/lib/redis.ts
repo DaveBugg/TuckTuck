@@ -1,14 +1,24 @@
 // Единый клиент Redis. Ленивое подключение, fail-soft: вызывающий код обязан
 // переживать недоступность (мы гасим 'error', чтобы сетевые сбои не роняли
-// процесс). Redis здесь не хранилище, а кеш курсов — без него всё работает,
-// просто чаще ходим в источники.
+// процесс). Redis здесь не хранилище, а кеш курсов и настроек — без него всё
+// работает, просто чаще ходим в источники и в базу.
+//
+// Пустой REDIS_URL означает «Redis нет», а не «попробуй localhost». Прежнее
+// умолчание на 127.0.0.1 заставляло установку без Redis вечно переподключаться
+// в фоне: сокеты, шум в логах и процесс, который не может завершиться, потому
+// что таймер переподключения держит цикл событий.
 import Redis from "ioredis";
 
 let client: Redis | null = null;
 
+/** Настроен ли Redis вообще. Пусто = нет, и это нормальный режим работы. */
+export function redisConfigured(): boolean {
+  return !!(process.env.REDIS_URL || "").trim();
+}
+
 export function getRedis(): Redis {
   if (client) return client;
-  const url = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+  const url = (process.env.REDIS_URL || "").trim();
   client = new Redis(url, {
     maxRetriesPerRequest: 2,
     enableOfflineQueue: false, // горячий путь не виснет, если redis недоступен
@@ -26,6 +36,7 @@ export function getRedis(): Redis {
  * недоступный Redis не задерживал ответ страницы.
  */
 export function redisReady(timeoutMs = 3000): Promise<boolean> {
+  if (!redisConfigured()) return Promise.resolve(false);
   const r = getRedis();
   if (r.status === "ready") return Promise.resolve(true);
   return new Promise(resolve => {

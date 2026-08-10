@@ -30,13 +30,13 @@ export type ResourceRow = {
   sshUser: string;
   /** Запомненный отпечаток хоста. Пусто — ещё не подключались. */
   sshFingerprint: string;
-  provider: { id: string; name: string } | null;
+  provider: { id: string; name: string; url: string } | null;
   group: { id: string; name: string } | null;
   tags: TagRow[];
 };
 
 export type Catalog = {
-  providers: Array<{ id: string; name: string }>;
+  providers: Array<{ id: string; name: string; url: string }>;
   tags: TagRow[];
   groups: Array<{ id: string; name: string }>;
 };

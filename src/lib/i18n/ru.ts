@@ -66,6 +66,7 @@ export const ru: Record<string, string> = {
   "auth.err.credentialsRequired": "Email и пароль обязательны",
   "auth.err.captcha": "Проверка капчи не пройдена",
   "auth.err.badCredentials": "Неверный email или пароль",
+  "auth.err.tooMany": "Слишком много попыток. Повторите через {sec} с",
   "auth.err.badTotp": "Неверный код 2FA",
   "auth.err.badCode": "Неверный код",
   "auth.err.failed": "Не удалось войти",
@@ -93,6 +94,7 @@ export const ru: Record<string, string> = {
   "dashboard.showCount_many": "{count} строк",
   "dashboard.showCount_other": "{count} строки",
   "dashboard.nothingFound": "Ничего не найдено",
+  "dashboard.openProvider": "Открыть сайт: {name}",
   "monitor.searchPlaceholder": "Поиск по имени или IP",
   "monitor.updatedAt": "обновлено в {time}",
 
@@ -204,6 +206,8 @@ export const ru: Record<string, string> = {
   "res.form.nextPayment": "Ближайшая оплата",
   "res.form.providerNone": "— не задан —",
   "res.form.addProvider": "Добавить провайдера",
+  "res.form.providerUrl": "Ссылка на сайт провайдера",
+  "res.form.providerUrlPick": "Сначала выберите провайдера",
   "res.form.group": "Группа (кто видит)",
   "res.form.groupNone": "— только админы —",
   "res.form.tags": "Теги",
@@ -378,6 +382,7 @@ export const ru: Record<string, string> = {
   // ── справочники ──────────────────────────────────────────────────────────
   "catalog.err.nameRequired": "Название обязательно",
   "catalog.err.nameTooLong": "Название длиннее 64 символов",
+  "catalog.err.badUrl": "Ссылка должна быть адресом сайта: example.com или https://example.com",
   "catalog.err.unknownKind": "Неизвестный тип справочника",
 
   // ── оповещения ───────────────────────────────────────────────────────────
@@ -524,6 +529,24 @@ export const ru: Record<string, string> = {
   "settings.proxy.hint":
     "Схемы: socks5, socks4, http, https. Пусто — напрямую. Хранится зашифрованным, наружу отдаётся с закрытым паролем.",
   "settings.proxy.saved": "Прокси сохранён",
+  "settings.quiet.title": "Когда можно писать",
+  "settings.quiet.desc":
+    "Окно, в которое боты отправляют напоминания, в часовом поясе выше. Ночное напоминание не пропадает — оно уходит, когда окно открывается.",
+  "settings.quiet.from": "С",
+  "settings.quiet.to": "До",
+  "settings.quiet.always": "Круглосуточно",
+  "settings.quiet.stateAlways": "Ограничения нет: пишем в любое время суток.",
+  "settings.quiet.stateWindow": "Пишем с {from} до {to} по {tz}. В остальное время напоминания ждут.",
+  "settings.captcha.title": "Капча на входе",
+  "settings.captcha.desc":
+    "Cloudflare Turnstile. Обе половины ключа берутся в панели Cloudflare; без секретной половины капча выключена.",
+  "settings.captcha.siteKey": "Ключ сайта (публичный)",
+  "settings.captcha.secretKey": "Секретный ключ",
+  "settings.captcha.secretSet": "секрет сохранён — введите новый, чтобы заменить",
+  "settings.captcha.secretEmpty": "не задан — капча выключена",
+  "settings.captcha.saved": "Секрет капчи сохранён",
+  "settings.captcha.disable": "Выключить капчу",
+  "settings.captcha.hint": "Хранится зашифрованным и наружу не отдаётся.",
   "settings.tz.title": "Часовой пояс",
   "settings.tz.search": "Город или GMT+3",
   "settings.tz.desc":
@@ -554,6 +577,8 @@ export const ru: Record<string, string> = {
   "settings.err.retentionRange": "Срок хранения — целое число от {min} до {max} дней",
   "settings.err.currencyFormat": "Код валюты — 2–10 латинских букв",
   "settings.err.unknownLocale": "Неизвестный язык",
+  "settings.err.hourRange": "Час должен быть числом от 0 до 23",
+  "settings.err.siteKeyFormat": "Ключ сайта выглядит неверно — скопируйте его целиком",
 
   // ── пользователи ─────────────────────────────────────────────────────────
   "users.col.user": "Пользователь",

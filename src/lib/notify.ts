@@ -10,6 +10,7 @@ import { sendMessage, esc, type InlineButton } from "./telegram";
 import { proxyForBot } from "./notify-proxy";
 import { kindLabel, periodText, type Kind } from "./resources";
 import { getSettings } from "./settings";
+import { hourInTimezone, isWithinWindow, windowFor } from "./quiet-hours";
 import { makeT, formatNumber, type TFunc } from "./i18n/translate";
 import { DEFAULT_LOCALE, type Locale } from "./i18n/config";
 
@@ -100,6 +101,8 @@ export type RunResult = {
   sent: number;
   skipped: number;
   failed: number;
+  /** Отложено до открытия окна оповещений. Не потеряно — придёт позже. */
+  deferred: number;
 };
 
 /**
@@ -111,12 +114,21 @@ export type RunResult = {
  */
 export async function runNotify(now = new Date()): Promise<RunResult> {
   const today = todayUTC(now);
-  const res: RunResult = { checked: 0, sent: 0, skipped: 0, failed: 0 };
+  const res: RunResult = { checked: 0, sent: 0, skipped: 0, failed: 0, deferred: 0 };
 
   // Язык сообщений — общий для установки, а не язык пользователя: сообщение
   // уходит в чат, где сидят разные люди, и «язык получателя» там не определён.
-  const { notifyLocale } = await getSettings();
+  const settings = await getSettings();
+  const { notifyLocale } = settings;
   const t = makeT(notifyLocale);
+
+  // Час в поясе из настроек: окно тишины задано местным временем, а сервер
+  // почти всегда живёт в UTC.
+  const localHour = hourInTimezone(now, settings.timezone);
+  const awake = (bot: { notifyFromHour: number | null; notifyToHour: number | null }) => {
+    const w = windowFor(bot, settings);
+    return isWithinWindow(localHour, w.from, w.to);
+  };
 
   const bots = await prisma.notifyBot.findMany({
     where: { isActive: true },
@@ -160,6 +172,26 @@ export async function runNotify(now = new Date()): Promise<RunResult> {
       // (dueDays < 0) сюда не попадает намеренно: напоминать «за 2 дня» о том,
       // что просрочено неделю назад, бессмысленно — для этого есть панель.
       if (dueDays !== rem.daysBefore) continue;
+
+      // Кому это напоминание вообще предназначено.
+      const matching = usable.filter(bot =>
+        botMatches({ kinds: bot.kinds as string[], tags: bot.tags }, { kind: r.kind, tags: r.tags })
+      );
+      if (matching.length === 0) continue;
+
+      // Все получатели спят — откладываем ЦЕЛИКОМ и, главное, не заявляем
+      // отправку: заявка отсекает повторы навсегда, и отложить после неё
+      // значило бы не отложить, а потерять.
+      //
+      // Если часть ботов бодрствует, шлём им сейчас. Тому, у кого окно ещё не
+      // открылось, это напоминание не достанется — но своё окно он и задавал
+      // ради того, чтобы в это время молчать.
+      const ready = matching.filter(awake);
+      if (ready.length === 0) {
+        res.deferred++;
+        continue;
+      }
+
       res.checked++;
 
       // Заявка на отправку ДО обращения к сети: уникальный индекс не даст
@@ -176,15 +208,7 @@ export async function runNotify(now = new Date()): Promise<RunResult> {
       let anyOk = false;
       const errors: string[] = [];
 
-      for (const bot of usable) {
-        if (
-          !botMatches(
-            { kinds: bot.kinds as string[], tags: bot.tags },
-            { kind: r.kind, tags: r.tags }
-          )
-        ) {
-          continue;
-        }
+      for (const bot of ready) {
         let token: string;
         try {
           token = decryptSecret(bot.tokenEnc);

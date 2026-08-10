@@ -5,6 +5,8 @@ import path from "node:path";
 import { prisma } from "./prisma";
 import { safeTimezone } from "./timezone";
 import { isLocale, resolveLocale, type Locale } from "./i18n/config";
+import { parseHour } from "./quiet-hours";
+import { getRedis, redisReady } from "./redis";
 import type { TFunc } from "./i18n/translate";
 
 export type AppSettingsView = {
@@ -13,6 +15,11 @@ export type AppSettingsView = {
   displayCurrency: string;
   /** Язык сообщений бота. Не язык интерфейса: см. схему AppSettings. */
   notifyLocale: Locale;
+  /** Окно, в которое можно писать в Телеграм. Равные значения — круглосуточно. */
+  notifyFromHour: number;
+  notifyToHour: number;
+  /** Публичная половина ключа капчи. Секретная наружу не отдаётся никогда. */
+  turnstileSiteKey: string;
 };
 
 import { RETENTION_MIN, RETENTION_MAX } from "./settings-config";
@@ -85,14 +92,91 @@ export function serverTimezone(): string {
  * не стали: пустая таблица честнее строки с выдуманными значениями, а дефолты
  * всё равно нужны на случай, если её удалят руками.
  */
-export async function getSettings(): Promise<AppSettingsView> {
-  const s = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+const CACHE_KEY = "tucktuck:settings:v1";
+const CACHE_TTL_SEC = 300;
+const MEMORY_TTL_MS = 30_000;
+
+let memory: AppSettingsView | null = null;
+let memoryUntil = 0;
+
+function shape(s: {
+  timezone?: string | null;
+  metricsRetentionDays?: number | null;
+  displayCurrency?: string | null;
+  notifyLocale?: string | null;
+  notifyFromHour?: number | null;
+  notifyToHour?: number | null;
+  turnstileSiteKey?: string | null;
+} | null): AppSettingsView {
   return {
     timezone: safeTimezone(s?.timezone) ?? serverTimezone(),
     metricsRetentionDays: s?.metricsRetentionDays ?? 90,
     displayCurrency: (s?.displayCurrency || "USD").toUpperCase(),
     notifyLocale: resolveLocale(s?.notifyLocale),
+    notifyFromHour: parseHour(s?.notifyFromHour) ?? 0,
+    notifyToHour: parseHour(s?.notifyToHour) ?? 0,
+    turnstileSiteKey: (s?.turnstileSiteKey || "").trim(),
   };
+}
+
+/**
+ * Настройки с подстановкой значений по умолчанию.
+ *
+ * Строки может не быть вовсе — до первого сохранения. Заводить её миграцией
+ * не стали: пустая таблица честнее строки с выдуманными значениями, а дефолты
+ * всё равно нужны на случай, если её удалят руками.
+ *
+ * Два эшелона кеша. Настройки читаются на каждый показ метрик, на каждый
+ * пересчёт итога и на каждый тик воркера, а меняются раз в жизни — ходить за
+ * ними в базу каждый раз незачем. Redis общий на все процессы, память процесса
+ * прикрывает те 30 секунд, когда и до Redis идти не стоит. Без Redis работает
+ * ровно как раньше, просто чаще ходит в базу.
+ */
+export async function getSettings(): Promise<AppSettingsView> {
+  if (memory && memoryUntil > Date.now()) return memory;
+
+  try {
+    if (await redisReady(1000)) {
+      const raw = await getRedis().get(CACHE_KEY);
+      if (raw) {
+        const parsed = shape(JSON.parse(raw));
+        memory = parsed;
+        memoryUntil = Date.now() + MEMORY_TTL_MS;
+        return parsed;
+      }
+    }
+  } catch {
+    // Redis недоступен — не повод падать: ниже обычный запрос к базе.
+  }
+
+  const row = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+  const view = shape(row);
+  memory = view;
+  memoryUntil = Date.now() + MEMORY_TTL_MS;
+  try {
+    if (await redisReady(1000)) {
+      await getRedis().set(CACHE_KEY, JSON.stringify(view), "EX", CACHE_TTL_SEC);
+    }
+  } catch {
+    // Кеш не обязателен.
+  }
+  return view;
+}
+
+/**
+ * Сбросить кеш настроек. Зовётся при сохранении.
+ *
+ * Без этого правка в интерфейсе вступала бы в силу через пять минут, и человек
+ * решил бы, что настройка не работает.
+ */
+export async function invalidateSettingsCache(): Promise<void> {
+  memory = null;
+  memoryUntil = 0;
+  try {
+    if (await redisReady(1000)) await getRedis().del(CACHE_KEY);
+  } catch {
+    // Не страшно: память процесса уже сброшена, остальные подтянут через TTL.
+  }
 }
 
 /** Проверка перед сохранением. Возвращает текст ошибки или null. */
@@ -101,6 +185,9 @@ export function validateSettings(b: {
   metricsRetentionDays?: unknown;
   displayCurrency?: unknown;
   notifyLocale?: unknown;
+  notifyFromHour?: unknown;
+  notifyToHour?: unknown;
+  turnstileSiteKey?: unknown;
 }, t: TFunc): string | null {
   if (b.timezone !== undefined) {
     // safeTimezone проверяет по системному списку Intl: свой перечень пришлось
@@ -119,6 +206,15 @@ export function validateSettings(b: {
   }
   if (b.notifyLocale !== undefined && !isLocale(b.notifyLocale)) {
     return t("settings.err.unknownLocale");
+  }
+  for (const k of ["notifyFromHour", "notifyToHour"] as const) {
+    if (b[k] !== undefined && parseHour(b[k]) === null) return t("settings.err.hourRange");
+  }
+  if (b.turnstileSiteKey !== undefined) {
+    const v = String(b.turnstileSiteKey).trim();
+    // Ключ сайта Turnstile — короткая строка вида 0x4AAAA…; пробелы и переводы
+    // строк в ней означают, что скопировали лишнее.
+    if (v && !/^[\w-]{8,64}$/.test(v)) return t("settings.err.siteKeyFormat");
   }
   return null;
 }
