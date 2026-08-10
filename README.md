@@ -78,36 +78,100 @@ a weekend, a subscription renews at a price you meant to review months ago. Ever
 provider has its own panel and its own reminder email, and none of them know
 about each other. TuckTuck is the list none of them can give you.
 
-Concretely, it does this:
+It is built for one person or a small team, on your own machine: no SaaS, no
+account anywhere else, no telemetry, no outbound traffic except to Telegram and
+the currency rate APIs.
 
-- **Keeps everything you pay for in one table** — servers, VPNs, proxies,
-  domains, SaaS subscriptions. Sorted by the next payment date, so the top of the
-  screen is always what's due soonest.
-- **Warns you in Telegram before the money leaves.** Two days ahead and one day
-  ahead by default, per resource. Under each message are buttons: paid, dismiss,
-  delete. Press "paid" and the date rolls forward by the billing period on its
-  own — you never open the panel.
-- **Adds up what it costs you per month.** Exactly, per currency, plus a
-  converted grand total in the one currency you choose. Crypto counts too: coin
-  and network, because the same coin in a different network is a different
-  address and a different fee.
-- **Watches the machines you pay for.** CPU, memory, disk, load and uptime, once
-  a minute. The agent is a shell script — nothing to install on the target, no
-  Node, no Docker. The panel's own server needs no agent at all.
-- **Shows where the load actually goes.** Averages over 1, 7, 14 or 30 days and a
-  breakdown by hour of day: which hours the machine is busy is a question about
-  local time, so the time zone is a setting.
-- **Installs the agent for you.** Paste an SSH key in the panel, watch the
-  installation log stream in live. The key is never stored — only the host, port,
-  user and its fingerprint.
-- **Keeps credentials out of the wrong hands.** Roles, groups deciding who sees
-  which resource, two-factor auth, secrets encrypted at rest, sessions you can
-  revoke one by one.
-- **Speaks English and Russian**, per user. The bot's language is a separate
-  setting, because a chat has more than one reader.
+## What's in it
 
-It's built for one person or a small team, on your own machine. No SaaS, no
-account anywhere else, no telemetry.
+### Payments
+
+Everything you pay for lives in one table — servers, VPNs, proxies, domains and
+SaaS subscriptions — sorted by the next payment date, so the top of the screen is
+always what's due soonest. Filter by "due in 3 / 7 / 14 days", by type, provider
+or tag; search by name, IP, domain or link.
+
+A billing period is a number plus a unit: every 30 days, every 3 months, once a
+year. Days and months are not the same thing here — 30 days is always 30 days,
+while a calendar month moves 31 January to 28 February.
+
+Press **Mark as paid** and the payment goes into history while the date rolls
+forward by one period. Each provider can hold a link to its billing page, shown
+right next to the payment on the dashboard.
+
+### Money
+
+Amounts are kept per currency and never mixed. Fiat and crypto both work; crypto
+carries the network alongside the coin, because the same coin in a different
+network is a different address and a different fee.
+
+The dashboard shows the **current month**, the **next month** and the **whole
+year** — counted from the real payment schedule, not by averaging. A yearly
+subscription does not contribute one twelfth every month; it lands once, in full,
+in its own month. A chart button opens the year broken down by month, where the
+spikes are exactly your quarterly, semi-annual and yearly bills.
+
+Per-currency sums are exact. Under them is a total converted into the one
+currency you pick in the settings, at rates taken from four free sources and
+cached for an hour. When a rate is missing, the currency is listed as
+unconverted instead of silently dropping out of the sum.
+
+### Telegram reminders
+
+Reminders are sent by bots you create yourself in @BotFather — two days and one
+day ahead by default, adjustable per resource.
+
+You can have several bots, each with its own filter by resource type and tags:
+production servers into one chat, domains and subscriptions into another. Under
+every message are three buttons — **paid**, **dismiss**, **delete from the
+panel** — so the usual case never requires opening the panel at all. Deletion
+takes a second press to confirm, and pressing a button twice repeats nothing.
+
+**Quiet hours** keep the bot from writing at night: set the window in the panel's
+time zone, globally or per bot. A reminder that falls outside the window is not
+lost — it goes out when the window opens.
+
+If Telegram is blocked from your server (it is, on some hosts), set a SOCKS5 or
+HTTP proxy — globally or for one bot. The panel checks reachability and says
+plainly which path works.
+
+### Monitoring
+
+CPU, memory, disk, load average and uptime from every machine, once a minute. The
+agent is a POSIX shell script: no Node, no Python, no Docker on the target. The
+panel's own server needs no agent at all.
+
+Installation is either **one command** or **over SSH from the panel** — paste a
+key, watch the log stream in live. See [how the agent works](#how-the-agent-works)
+below for what is stored and what isn't.
+
+In the resources table the monitoring icon is coloured by the machine's worst
+indicator: amber when something is loaded, red when it is critical or the machine
+has gone quiet. You see trouble without hovering over a single row.
+
+History covers 1, 7, 14 and 30 days and includes a breakdown by hour of day —
+which hours a machine is busy is a question about local time, so the time zone is
+a setting. Old points are rolled up automatically: a year of history for one
+machine is a couple of thousand rows instead of half a million.
+
+### Access and security
+
+Accounts are created by an administrator; there is no sign-up. Roles are `ADMIN`
+and `USER`, and groups decide who sees which resource — a resource with no group
+is visible to admins only.
+
+Sign-in is protected by a rate limit (per account and per address) and,
+optionally, by a Cloudflare Turnstile captcha configured in the panel. Two-factor
+auth is TOTP, turned on by the user. Sessions are listed in the profile and can
+be revoked one by one. Bot tokens, proxy passwords and the captcha secret are
+encrypted at rest; the panel is closed to search engines by three independent
+layers.
+
+### The interface
+
+English and Russian, chosen per user; the bot's language is separate, because a
+chat has more than one reader. Light and dark themes. Long lists — currencies,
+time zones, providers — are searchable rather than scrollable.
 
 ### Not built yet
 
@@ -117,16 +181,16 @@ pulls.
 
 ## Screens
 
-- `/dashboard` — what is due soon, monthly spend, server health
-- `/resources` — the main table
-- `/notifications` — Telegram bots and their filters
-- `/settings` — proxy, time zone, metric retention, total currency, bot language
-- `/users` — accounts, roles, password resets
-- `/profile` — language, password, two-factor, active sessions
+| Screen | What's there |
+|---|---|
+| `/dashboard` | Spend for the month and the year, what's due soon, server health |
+| `/resources` | The main table: everything you pay for, with filters and search |
+| `/notifications` | Telegram bots, their chats and filters, reachability check |
+| `/settings` | Time zone, quiet hours, captcha, proxy, metric retention, total currency, bot language |
+| `/users` | Accounts, roles, password resets |
+| `/profile` | Language, password, two-factor, active sessions |
 
-There is no sign-up: the administrator creates accounts.
-
-## Monitoring
+## How the agent works
 
 The agent is a POSIX shell script that reads `/proc` and `df` and posts a
 snapshot once a minute. Requiring Node, Python or Docker on someone else's
@@ -303,7 +367,7 @@ list, and `X-Forwarded-Proto`/`X-Forwarded-Host` are how the panel works out the
 address to hand to a monitoring agent. Set `TUCKTUCK_PUBLIC_URL` in `.env` and
 it wins over both — worth doing when the panel sits behind two proxies.
 
-### Reminders
+### The reminder worker
 
 The worker is a separate container from the same image:
 
