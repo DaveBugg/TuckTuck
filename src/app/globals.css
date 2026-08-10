@@ -153,4 +153,39 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Полосы прокрутки в цветах темы.
+     
+     Системная полоса в тёмной теме остаётся светлой и режет глаз — особенно в
+     виджете серверов, где прокрутка теперь своя. Цвета берём из тех же
+     переменных, что и остальной интерфейс, поэтому переключение темы меняет и
+     их, без второго набора значений.
+     
+     Два синтаксиса: стандартный scrollbar-color понимают Firefox и свежие
+     Chromium, ::-webkit-* нужен остальным. Где не поддержано ни то ни другое,
+     останется системная полоса — это ухудшение вида, а не поломка. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 999px;
+    /* Прозрачная рамка сужает ползунок, оставляя площадь для попадания мышью. */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }

@@ -109,8 +109,13 @@ export const ru: Record<string, string> = {
   "due.overdue_many": "просрочено на {count} дней",
   "due.overdue_other": "просрочено на {count} дня",
 
-  "spend.title": "Расход в месяц",
-  "spend.empty": "Активных ресурсов нет",
+  "spend.thisMonth": "Расход в {month}",
+  "spend.nextMonth": "В {month} — {amount}",
+  "spend.year": "Расход за {year} год",
+  "spend.none": "платежей нет",
+  "spend.byMonths": "По месяцам",
+  "spend.byMonthsTitle": "Расход по месяцам, {year}",
+  "spend.byMonthsHint": "Всплески — кварталы, полугодия и годовые подписки.",
   "spend.count_one": "{count} ресурс",
   "spend.count_few": "{count} ресурса",
   "spend.count_many": "{count} ресурсов",
@@ -119,7 +124,6 @@ export const ru: Record<string, string> = {
   "spend.total": "Итого примерно",
   "spend.ratesAt": "по курсу на {at}",
   "spend.noRateFor": "Общий итог не посчитан: нет курса для",
-  "spend.exactAbove": "Суммы по валютам выше — точные.",
 
   // ── ресурсы ──────────────────────────────────────────────────────────────
 

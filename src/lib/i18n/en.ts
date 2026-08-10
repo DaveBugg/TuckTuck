@@ -103,15 +103,19 @@ export const en: Record<string, string> = {
   "due.overdue_one": "{count} day overdue",
   "due.overdue_other": "{count} days overdue",
 
-  "spend.title": "Monthly spend",
-  "spend.empty": "No active resources",
+  "spend.thisMonth": "Spend in {month}",
+  "spend.nextMonth": "In {month} — {amount}",
+  "spend.year": "Spend in {year}",
+  "spend.none": "no payments",
+  "spend.byMonths": "By month",
+  "spend.byMonthsTitle": "Spend by month, {year}",
+  "spend.byMonthsHint": "The spikes are quarterly, semi-annual and yearly subscriptions.",
   "spend.count_one": "{count} resource",
   "spend.count_other": "{count} resources",
   "spend.crypto": "crypto",
   "spend.total": "Roughly",
   "spend.ratesAt": "at rates from {at}",
   "spend.noRateFor": "Grand total not computed: no rate for",
-  "spend.exactAbove": "The per-currency sums above are exact.",
 
   // ── resources ────────────────────────────────────────────────────────────
 
