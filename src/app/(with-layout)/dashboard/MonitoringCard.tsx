@@ -162,7 +162,9 @@ export default function MonitoringCard() {
 
         {/* Прокрутка внутри карточки, а не рост карточки вниз: с десятком машин
             виджет уезжал за экран, и до ссылки под ним никто не добирался. */}
-        <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+        {/* pr-1 — зазор между полосой прокрутки и содержимым: без него ползунок
+            встаёт вплотную к процентам справа и читается как часть цифры. */}
+        <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto pr-1">
           {connected.map(s => (
             <div key={s.id} className="border-b pb-4 last:border-0 last:pb-0">
               <SystemSummary s={s} />
