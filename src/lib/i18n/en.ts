@@ -104,7 +104,7 @@ export const en: Record<string, string> = {
   "due.overdue_other": "{count} days overdue",
 
   "spend.thisMonth": "Spend in {month}",
-  "spend.nextMonth": "In {month} — {amount}",
+  "spend.nextMonth": "Next month: {month} — {amount}",
   "spend.year": "Spend in {year}",
   "spend.none": "no payments",
   "spend.byMonths": "By month",

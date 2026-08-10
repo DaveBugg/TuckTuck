@@ -109,8 +109,8 @@ export const ru: Record<string, string> = {
   "due.overdue_many": "просрочено на {count} дней",
   "due.overdue_other": "просрочено на {count} дня",
 
-  "spend.thisMonth": "Расход в {month}",
-  "spend.nextMonth": "В {month} — {amount}",
+  "spend.thisMonth": "Расход за {month}",
+  "spend.nextMonth": "Следующий месяц: {month} — {amount}",
   "spend.year": "Расход за {year} год",
   "spend.none": "платежей нет",
   "spend.byMonths": "По месяцам",
