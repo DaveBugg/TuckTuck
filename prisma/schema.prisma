@@ -1,0 +1,546 @@
+// TuckTuck schema v1 — пользователи/сессии + доменная часть ТЗ:
+// группы (видимость), оплачиваемые ресурсы, оплаты, теги/провайдеры, креды с
+// логом раскрытия, напоминания об оплате.
+// Migrations: npx prisma migrate dev (локально) / migrate deploy (сервер).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Селфхостед на одного/мини-команду: ADMIN видит и настраивает всё, USER —
+// обычный пользователь. Код проверяет ПРАВО (см. lib/permissions), а не роль,
+// поэтому новые роли добавляются одной строкой в ROLE_PERMISSIONS.
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String   @default("")
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true)
+  totpSecret   String? // задан при настройке 2FA; активен только при totpEnabled
+  totpEnabled  Boolean  @default(false)
+  // Язык интерфейса. Хранится здесь, а не только в куке, чтобы не выбирать его
+  // заново с каждого нового устройства; в куку он попадает при входе.
+  locale       String   @default("en")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions         Session[]
+  groups           GroupMember[]
+  createdResources Resource[]         @relation("ResourceCreatedBy")
+  reveals          CredentialReveal[]
+  recordedPayments ResourcePayment[]  @relation("PaymentRecordedBy")
+}
+
+// Мультисессии: JWT несёт jti → строка здесь. Ревокация = revokedAt, проверяется
+// в getAuthUser на каждом запросе (вместе с DB-ревалидацией юзера).
+model Session {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  userId     String    @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jti        String    @unique
+  userAgent  String    @default("")
+  ip         String    @default("")
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([userId, createdAt])
+}
+
+// ─────────────────────────── Видимость ───────────────────────────
+
+// Группа определяет, кто видит ресурс. По умолчанию (ориентир ТЗ — селфхостед
+// на одного) ресурс заводится без группы: тогда его видит только ADMIN.
+model Group {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  name        String   @unique
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members   GroupMember[]
+  resources Resource[]
+}
+
+model GroupMember {
+  id      String   @id @default(uuid(7)) @db.Uuid
+  groupId String   @db.Uuid
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId  String   @db.Uuid
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+// ─────────────────────── Справочники-фильтры ───────────────────────
+
+// Провайдер и тег по ТЗ заводятся одинаково — «быстро, как тег», прямо из формы
+// ресурса. Разные модели, а не одна с kind: у ресурса РОВНО один провайдер и
+// сколько угодно тегов, и связь 1-N против N-M это в схеме и выражает.
+model Provider {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  resources Resource[]
+}
+
+model Tag {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @unique
+  color     String   @default("") // вариант бейджа в интерфейсе; пусто = по умолчанию
+  createdAt DateTime @default(now())
+
+  resources  ResourceTag[]
+  notifyBots NotifyBotTag[]
+}
+
+model ResourceTag {
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  tagId      String   @db.Uuid
+  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([resourceId, tagId])
+  @@index([tagId])
+}
+
+// ──────────────────── Оплачиваемые ресурсы ────────────────────
+
+// Период оплаты числом + единицей, а не enum'ом «месяц/год»: встречается и
+// «раз в 3 месяца», и «раз в 90 дней», и загонять это в фиксированный список
+// пришлось бы правкой схемы на каждый новый тариф.
+enum PeriodUnit {
+  DAY
+  WEEK
+  MONTH
+  YEAR
+}
+
+enum ResourceKind {
+  SERVER
+  VPN
+  PROXY
+  DOMAIN
+  SERVICE // SaaS-подписки
+}
+
+// ОДНА таблица на все типы, а не пять моделей.
+//
+// Главный экран из ТЗ — единый список «что скоро оплачивать»: сортировка по
+// ближайшей дате, фильтры по тегам и провайдеру, подсветка ближайших 14/7/3
+// дней. На пяти раздельных таблицах это UNION из пяти запросов, а оплаты,
+// напоминания, креды и теги пришлось бы дублировать пятикратно — вместе с
+// логикой фильтрации.
+//
+// Типовые поля различаются, поэтому лежат рядом и заполняются по kind: сетевые
+// (ip/port) у SERVER/VPN/PROXY, url у SERVICE, domain у DOMAIN. Незаполненное
+// поле = пустая строка, а не NULL: фильтрам и сортировке так проще, а «не
+// задано» и «задано пустым» здесь неразличимы по смыслу.
+//
+// Если у какого-то типа появятся тяжёлые собственные поля — он получит свою
+// 1-1 таблицу-расширение, не трогая общую часть и остальные типы.
+model Resource {
+  id   String       @id @default(uuid(7)) @db.Uuid
+  kind ResourceKind @default(SERVER)
+  name String
+  note String       @default("") // доп. инфо, необязательно
+
+  // SERVER / VPN / PROXY
+  ip     String @default("")
+  port   Int?
+  // SERVICE (SaaS) — ссылка на панель управления подпиской
+  url    String @default("")
+  // DOMAIN — само доменное имя
+  domain String @default("")
+
+  // Ресурс — сам сервер, на котором крутится панель. Такому агент не нужен:
+  // метрики снимаются изнутри контейнера с примонтированного хостового /proc.
+  // Флаг, а не отдельная модель: во всём остальном это обычный ресурс, за
+  // который так же надо платить.
+  isSelf Boolean @default(false)
+
+  // Токен агента мониторинга. Свой на ресурс, а не один общий: утёкший токен
+  // с одной машины не даёт слать метрики за все остальные и отзывается
+  // перевыпуском в карточке. Пусто = агент не подключён.
+  agentToken String @default("")
+
+  // Куда ходить по SSH при установке агента из панели. Здесь только адресные
+  // поля — ключ НЕ хранится нигде: он приходит в теле запроса, живёт в памяти
+  // процесса на время установки и уходит вместе с ней. Хранить чужой приватный
+  // ключ ради удобства повторной установки — плохой размен.
+  //
+  // sshHost отдельно от ip: у сервера бывает отдельный адрес управления, а ip
+  // в карточке — тот, по которому к нему ходят пользователи. Пусто = ip.
+  sshHost String @default("")
+  sshPort Int    @default(22)
+  sshUser String @default("root")
+
+  // Отпечаток хостового ключа, запомненный при первом подключении (TOFU, как в
+  // самом ssh). Сменился — подключение обрывается с ошибкой, а не «доверяем
+  // молча»: иначе установка с токеном ушла бы тому, кто подменил сервер.
+  sshFingerprint String @default("")
+
+  // Редкий хвост, не заслуживающий колонки (номер тарифа, регион, seats).
+  // Не замена полям выше: по meta нельзя ни отфильтровать по-человечески,
+  // ни построить индекс.
+  meta Json?
+
+  providerId String?   @db.Uuid
+  provider   Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  groupId    String?   @db.Uuid
+  group      Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  // Сумма и валюта. Для крипты в currency лежит тикер монеты (USDT, BTC), а в
+  // chain — сеть (TRC20, ERC20): одна и та же монета в разных сетях платится
+  // по-разному, и без сети адрес выбрать нельзя.
+  //
+  // 8 знаков после запятой, а не 2: 0.00042 BTC — обычная сумма, и округление
+  // до копеек превратило бы её в ноль. Фиату лишние нули не мешают.
+  amount   Decimal @db.Decimal(24, 8)
+  currency String  @default("USD")
+  isCrypto Boolean @default(false)
+  chain    String  @default("")
+
+  periodValue Int        @default(1)
+  periodUnit  PeriodUnit @default(MONTH)
+
+  // «Дата оплаты» из ТЗ — БЛИЖАЙШАЯ, по ней таблица сортируется и фильтруется
+  // (в ближайшие 14/7/3 дня). Дата без времени: оплата привязана ко дню, а не к
+  // моменту, и хранение с временем дало бы сдвиг суток при смене пояса.
+  nextPaymentAt DateTime @db.Date
+
+  isActive    Boolean  @default(true)
+  createdById String?  @db.Uuid
+  createdBy   User?    @relation("ResourceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags           ResourceTag[]
+  credentials    ResourceCredential[]
+  payments       ResourcePayment[]
+  reminders      PaymentReminder[]
+  notifyMessages NotifyMessage[]
+  metrics        ResourceMetric[]
+  rollups        ResourceMetricRollup[]
+
+  // Главный экран — «что скоро платить»: сортировка по дате всегда, поэтому
+  // индекс по ней, а не по createdAt.
+  @@index([nextPaymentAt])
+  @@index([groupId])
+  @@index([kind])
+  @@index([agentToken])
+}
+
+// ──────────────────── Креды (шифрование + журнал) ────────────────────
+
+// secretEnc хранится ТОЛЬКО зашифрованным (lib/secret-crypto, AES-256-GCM,
+// формат enc:v1:...). Поле намеренно называется не `secret`: имя должно
+// напоминать, что класть сюда плейнтекст нельзя.
+model ResourceCredential {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  label     String @default("") // «root SSH», «панель хостера», «API-токен»
+  username  String @default("")
+  secretEnc String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reveals CredentialReveal[]
+
+  @@index([resourceId])
+}
+
+// Журнал раскрытия: кто и когда посмотрел секрет. Пишется на КАЖДЫЙ показ —
+// в этом весь смысл, поэтому запись не удаляется вместе с юзером (SetNull),
+// иначе удалением аккаунта можно было бы стереть след своих просмотров.
+model CredentialReveal {
+  id           String             @id @default(uuid(7)) @db.Uuid
+  credentialId String             @db.Uuid
+  credential   ResourceCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  userId       String?            @db.Uuid
+  user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  ip         String   @default("")
+  userAgent  String   @default("")
+  revealedAt DateTime @default(now())
+
+  @@index([credentialId, revealedAt])
+  @@index([userId])
+}
+
+// ──────────────────────── История оплат ────────────────────────
+
+model ResourcePayment {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // Сумма/валюта копируются из ресурса на момент оплаты, а не берутся ссылкой:
+  // тариф меняется, а история должна остаться такой, какой была.
+  amount   Decimal @db.Decimal(24, 8)
+  currency String  @default("USD")
+  isCrypto Boolean @default(false)
+  chain    String  @default("")
+
+  paidAt DateTime @db.Date
+  note   String   @default("")
+
+  recordedById String?  @db.Uuid
+  recordedBy   User?    @relation("PaymentRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([resourceId, paidAt])
+}
+
+// ──────────────────── Напоминания об оплате ────────────────────
+
+// По ТЗ при заведении ресурса ставятся напоминания за 2 суток и за сутки;
+// в форме можно добавить свои. Хранится «за сколько дней», а не готовая дата:
+// при сдвиге nextPaymentAt пересчитывать пришлось бы каждую строку.
+model PaymentReminder {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  daysBefore Int
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  dispatches ReminderDispatch[]
+
+  @@unique([resourceId, daysBefore])
+}
+
+// Факт отправки. Уникальность (reminderId, dueDate) — защита от повторной
+// отправки: воркер по расписанию просыпается чаще раза в сутки, и без этого
+// ограничения одно и то же напоминание уходило бы в телеграм на каждый тик.
+model ReminderDispatch {
+  id         String          @id @default(uuid(7)) @db.Uuid
+  reminderId String          @db.Uuid
+  reminder   PaymentReminder @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+
+  dueDate DateTime @db.Date // дата оплаты, к которой относилось напоминание
+  sentAt  DateTime @default(now())
+  ok      Boolean  @default(true)
+  error   String   @default("")
+
+  @@unique([reminderId, dueDate])
+}
+
+// ──────────────────── Telegram-оповещения ────────────────────
+
+// НЕСКОЛЬКО ботов, а не один: у каждого свой фильтр, поэтому потоки можно
+// развести — боевые серверы в один чат, домены и подписки в другой, чужой
+// команде отдать только её теги.
+model NotifyBot {
+  id   String @id @default(uuid(7)) @db.Uuid
+  name String
+
+  // Токен бота хранится ТОЛЬКО зашифрованным (lib/secret-crypto, AES-256-GCM,
+  // формат enc:v1:...). Поле названо не `token` намеренно: имя должно
+  // напоминать, что класть сюда плейнтекст нельзя.
+  tokenEnc String
+
+  isActive Boolean @default(true)
+
+  // Прокси только для этого бота. Пусто = берётся общий из NotifySettings, а
+  // если и там пусто — TELEGRAM_PROXY_URL из окружения, иначе напрямую.
+  // Шифруется: в адресе прокси лежит пароль.
+  proxyUrlEnc String @default("")
+
+  // Фильтр «какие ресурсы этому боту интересны».
+  // ПУСТОЙ массив = без ограничения (все типы). Это не то же самое, что
+  // «ничего»: бот без настроенного фильтра должен слать всё, иначе свежесозданный
+  // бот молча молчал бы, и это выглядело бы как поломка.
+  kinds ResourceKind[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chats    NotifyBotChat[]
+  tags     NotifyBotTag[]
+  messages NotifyMessage[]
+}
+
+// Куда слать. Личный чат, группа или канал — для Telegram это одинаковый chat_id.
+model NotifyBotChat {
+  id    String    @id @default(uuid(7)) @db.Uuid
+  botId String    @db.Uuid
+  bot   NotifyBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  chatId String // строка, а не число: у каналов id вида -100... и длиннее int32
+  label  String @default("") // подпись для человека: «мой чат», «дежурные»
+
+  // Кому в этом чате разрешено нажимать кнопки под напоминаниями (telegram
+  // user id). Секретный вебхук подтверждает, что запрос пришёл ОТ Telegram, но
+  // не говорит, КТО нажал: в групповом чате это любой участник, в том числе
+  // человек без аккаунта в панели. Без списка он мог бы удалить ресурс.
+  //
+  // ПУСТОЙ список = разрешено всем в этом чате. Это осознанный дефолт для
+  // личного чата 1:1, где «все» — это ты сам; для группы список надо заполнить.
+  allowedUserIds String[] @default([])
+
+  createdAt DateTime @default(now())
+
+  @@unique([botId, chatId])
+}
+
+// Второй фильтр — по тегам ресурса. Пустой список = без ограничения по тегам.
+model NotifyBotTag {
+  botId String    @db.Uuid
+  bot   NotifyBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+  tagId String    @db.Uuid
+  tag   Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([botId, tagId])
+  @@index([tagId])
+}
+
+// Отправленное сообщение — чтобы кнопки под ним продолжали работать.
+//
+// Зачем хранить: callback от кнопки приносит только chat_id и message_id, а нам
+// нужно понять, о каком ресурсе речь. Держать это в callback_data нельзя —
+// там 64 байта, и подделать их может кто угодно, кто добавит бота к себе.
+model NotifyMessage {
+  id    String    @id @default(uuid(7)) @db.Uuid
+  botId String    @db.Uuid
+  bot   NotifyBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  chatId    String
+  messageId String // Telegram отдаёт число, но хранение строкой избавляет от int-границ
+
+  resourceId String?   @db.Uuid
+  resource   Resource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  // Дата оплаты, о которой напоминали. Нужна при «отметить оплаченным»:
+  // сдвигать надо от НЕЁ, а не от текущей даты ресурса — она могла уже уехать.
+  dueDate DateTime? @db.Date
+
+  // Действие, сделанное кнопкой: paid / cancelled / deleted. Пусто — ещё не
+  // трогали. Хранится, чтобы повторное нажатие не выполнило действие дважды.
+  actedAction String    @default("")
+  actedAt     DateTime?
+  actedBy     String    @default("") // telegram user id нажавшего
+
+  createdAt DateTime @default(now())
+
+  @@unique([chatId, messageId])
+  @@index([resourceId])
+}
+
+// ──────────────────── Мониторинг здоровья ────────────────────
+
+// Свой сбор метрик, а не интеграция с чужим хабом.
+//
+// Причина не в независимости: у любого готового мониторинга свой список машин,
+// который живёт отдельно от наших Resource. Получилось бы два справочника
+// серверов, синхронизируемых руками. Здесь метрика вешается прямо на ресурс,
+// который уже заведён ради оплат.
+//
+// Принцип взят из beszel: агент на машине сам шлёт снимок в хаб, авторизуясь
+// токеном. Опроса машин со стороны панели нет намеренно — он требовал бы
+// доступа внутрь чужих сетей и хранения ssh-ключей ко всему парку.
+model ResourceMetric {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // Проценты 0..100. Nullable: агент на урезанной системе может не суметь
+  // прочитать что-то одно, и это не повод терять весь снимок.
+  cpu    Float?
+  memory Float?
+  disk   Float?
+
+  // Средняя загрузка за минуту и аптайм в секундах — дёшево снять, полезно видеть.
+  load1     Float?
+  uptimeSec Int?
+
+  // Хвост, который агент прислал сверх известных полей: температура, свободное
+  // место в байтах, версия агента. Схему под каждую мелочь не правим.
+  extra Json?
+
+  createdAt DateTime @default(now())
+
+  // Свежие метрики по ресурсу — самый частый запрос (последний снимок и
+  // короткая история), поэтому индекс по паре с датой по убыванию.
+  @@index([resourceId, createdAt])
+}
+
+// Настройки системы. Одна строка на всю установку — отсюда фиксированный id:
+// настройки глобальные, и «вторая строка» означала бы, что где-то потерялся
+// WHERE.
+model AppSettings {
+  id String @id @default("singleton")
+
+  // Общий прокси до api.telegram.org. С части хостингов Телеграм недоступен
+  // напрямую, и без прокси боты не заводятся вовсе. Шифруется — там пароль.
+  proxyUrlEnc String @default("")
+
+  // Часовой пояс для суточных разрезов: «в какие часы сервер нагружен» имеет
+  // смысл только в местном времени. Хранится именем IANA, проверяется через
+  // lib/timezone (значение уходит в SQL литералом).
+  timezone String @default("UTC")
+
+  // Сколько дней держать историю метрик. Минутные точки живут сутки, дальше
+  // сворачиваются в часовые, через месяц — в суточные; этот срок ограничивает
+  // и агрегаты тоже.
+  metricsRetentionDays Int @default(90)
+
+  // Валюта, в которой на дашборде показывается общий расход за месяц.
+  displayCurrency String @default("USD")
+
+  // Язык оповещений в Телеграме. Отдельно от языка интерфейса: сообщение уходит
+  // в чат, а не человеку, и языка получателя там просто нет — в одной группе
+  // сидят разные люди с разными настройками панели.
+  notifyLocale String @default("en")
+
+  updatedAt DateTime @updatedAt
+}
+
+// Свёрнутые метрики: средние за час и за сутки.
+//
+// Минутные точки хранить долго нельзя — при минутном интервале это полмиллиона
+// строк в год на КАЖДЫЙ сервер, и график за месяц пришлось бы строить по
+// сорока тысячам точек. Свёртка оставляет от года пару тысяч строк, при этом
+// суточное распределение нагрузки остаётся точным: час — достаточная
+// подробность, чтобы увидеть пик.
+model ResourceMetricRollup {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  // HOUR или DAY. Строкой, а не enum: добавить WEEK не должно стоить миграции
+  // с блокировкой таблицы.
+  bucket   String
+  // Начало интервала в UTC. Местный час считается на чтении, по timezone из
+  // настроек: иначе смена пояса потребовала бы пересчёта всей истории.
+  startsAt DateTime
+
+  cpu     Float?
+  memory  Float?
+  disk    Float?
+  load1   Float?
+  // Сколько исходных точек попало в интервал. Нужно, чтобы отличить «сервер
+  // молчал» от «сервер простаивал»: у первого samples мало.
+  samples Int    @default(0)
+
+  @@unique([resourceId, bucket, startsAt])
+  @@index([resourceId, bucket, startsAt])
+}

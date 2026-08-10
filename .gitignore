@@ -1,0 +1,84 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock*
+*.log
+
+# Окружение. Правило «всё .env, кроме образца» — вместо перечисления известных
+# суффиксов: .env.staging / .env.prod / .env.backup под перечень не попадали и
+# уехали бы в репозиторий с боевыми паролями.
+.env*
+!.env.example
+
+# Секреты и ключи. Панель работает с кредами серверов — приватный ключ, дамп
+# или выгрузка, случайно положенные в каталог проекта, не должны стать коммитом.
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.ppk
+
+# Дампы и резервные копии БД/серверов (в т.ч. tsv.gz из планируемой выгрузки)
+*.sql
+!prisma/migrations/**/*.sql
+*.sql.gz
+*.dump
+*.tsv.gz
+/backups/
+
+# Локальные заметки и конфиги, не предназначенные для репозитория
+*.local
+*.local.*
+!*.local.example
+CLAUDE.local.md
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE / инструменты
+.idea
+.vscode
+.cursor
+.aider*
+.serena
+
+# артефакты слияния/правок
+*.bak
+*.orig
+*.rej
+
+# Планы и состояние — рабочий документ, а не часть поставки. Живёт локально:
+# в нём отметки «сделано/дальше», которые устаревают быстрее кода и никому,
+# кроме автора, ничего не говорят.
+/ROADMAP.md
+/ROADMAP.ru.md

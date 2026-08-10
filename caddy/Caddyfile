@@ -1,0 +1,30 @@
+# Обратный прокси с автоматическим HTTPS.
+#
+# Caddy, а не nginx+certbot: сертификат Let's Encrypt выпускается и продлевается
+# сам, без cron, без второго контейнера и без ручного бутстрапа «сначала подними
+# на 80, потом получи сертификат, потом переключи конфиг». Для селфхостеда, где
+# ставит один человек, это разница между «работает из коробки» и «разбирайся».
+#
+# Домен берётся из TUCKTUCK_DOMAIN в .env.
+
+{$TUCKTUCK_DOMAIN} {
+	reverse_proxy tucktuck:3000
+
+	# Панель закрыта от индексации целиком — дублируем заголовком на случай,
+	# если до robots.txt дело не дойдёт (превью-ссылки, зеркала).
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		# HSTS: полгода. Панель работает только по HTTPS.
+		Strict-Transport-Security "max-age=15768000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	encode zstd gzip
+
+	log {
+		output stdout
+		format console
+	}
+}

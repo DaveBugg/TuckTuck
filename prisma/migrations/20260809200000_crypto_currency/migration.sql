@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "Resource" ADD COLUMN     "chain" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "isCrypto" BOOLEAN NOT NULL DEFAULT false,
+ALTER COLUMN "amount" SET DATA TYPE DECIMAL(24,8);
+
+-- AlterTable
+ALTER TABLE "ResourcePayment" ADD COLUMN     "chain" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "isCrypto" BOOLEAN NOT NULL DEFAULT false,
+ALTER COLUMN "amount" SET DATA TYPE DECIMAL(24,8);
+

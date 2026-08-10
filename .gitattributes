@@ -1,0 +1,37 @@
+# Нормализация переводов строк. Разработка идёт на Windows, а исполняется всё в
+# Linux-контейнерах: shell-скрипт, закоммиченный с CRLF, падает на сервере с
+# `bad interpreter: /usr/bin/env bash^M` — и по сообщению это не опознать.
+# Поэтому в репозитории всегда LF.
+* text=auto eol=lf
+
+# Явно для того, что исполняется или парсится в контейнере
+*.sh      text eol=lf
+Dockerfile text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.sql     text eol=lf
+*.prisma  text eol=lf
+*.toml    text eol=lf
+
+# Бинарники git трогать не должен
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.eot  binary
+*.pdf  binary
+*.mp4  binary
+
+# Лок-файл не нужен в диффах ревью — он машинный
+package-lock.json -diff linguist-generated
+
+# GitHub считает язык репозитория по коду, а не по витрине шаблона
+src/assets/**   linguist-vendored
+public/**       linguist-vendored
+src/app/\(with-layout\)/demo/**     linguist-generated
+src/app/\(with-nonlayout\)/demo/**  linguist-generated

@@ -1,0 +1,138 @@
+# CI: проверки на каждый пуш, публикация образов в GHCR — только с main и тегов.
+#
+# Образы собираются ОДИН раз в job `publish` и оттуда же пушатся: собирать в CI,
+# а потом пересобирать на сервере — верный способ получить на проде не тот код,
+# который прошёл тесты.
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  # ghcr требует имя в нижнем регистре, а github.repository — как заведено в UI
+  IMAGE_APP: ghcr.io/davebugg/tucktuck
+  IMAGE_MIGRATE: ghcr.io/davebugg/tucktuck-migrate
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # legacy-peer-deps повторяет npmConfig из package.json (сам npm его оттуда
+      # не читает). ci, а не install: лок должен быть источником истины.
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      # Клиент Prisma генерируется в node_modules и в git не лежит — без этого
+      # шага не соберётся ни tsc, ни тесты, импортирующие @prisma/client.
+      - run: npx prisma generate
+
+      - name: Юнит-тесты
+        run: npm run test:unit
+
+      # НЕ блокирует сборку — исторически здесь копились чужие ошибки (слайсы
+      # и демо-графики), они же игнорируются в next.config.js. Шаг оставлен
+      # видимым, чтобы рост числа ошибок было заметно в логе.
+      - name: Проверка типов (информационно)
+        run: npm run type-check
+        continue-on-error: true
+
+  publish:
+    needs: test
+    # PR из форков не получают доступ к пакетам, да и публиковать их нечего
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Теги: латест-указатель по ветке, короткий sha (для отката к конкретной
+      # сборке) и семвер с тега. sha обязателен — по нему деплой-скрипт
+      # закрепляет версию и умеет откатываться.
+      - name: Метаданные образа приложения
+        id: meta_app
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_APP }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Метаданные образа мигратора
+        id: meta_migrate
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_MIGRATE }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      # Стадия test падает, если юниты красные. Дублирует job `test` намеренно:
+      # тот проверяет код, этот — что тесты проходят ВНУТРИ образа, с тем же
+      # деревом зависимостей, которое поедет на прод.
+      - name: Прогон тестов внутри образа
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: test
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Сборка и публикация приложения
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: runner
+          push: true
+          tags: ${{ steps.meta_app.outputs.tags }}
+          labels: ${{ steps.meta_app.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ github.ref_type == 'tag' && github.ref_name || format('{0}-{1}', github.ref_name, github.sha) }}
+            NEXT_PUBLIC_BASE_PATH=${{ vars.NEXT_PUBLIC_BASE_PATH }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Сборка и публикация мигратора
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrator
+          push: true
+          tags: ${{ steps.meta_migrate.outputs.tags }}
+          labels: ${{ steps.meta_migrate.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Итог
+        run: |
+          echo "### Образы опубликованы" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta_app.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta_migrate.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

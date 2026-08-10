@@ -1,0 +1,131 @@
+# Прод-стек: Postgres + приложение. Образы берутся ГОТОВЫМИ из GHCR — на сервере
+# ничего не собирается (сборка живёт в CI, см. .github/workflows/ci.yml).
+#
+#   docker compose pull && ./scripts/deploy.sh
+#
+# Переменные читаются из .env рядом с этим файлом (см. .env.example).
+
+services:
+  tucktuck-pg:
+    image: postgres:17-alpine
+    container_name: tucktuck-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tucktuck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD не задан в .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tucktuck}
+    volumes:
+      - tucktuck-pg-data:/var/lib/postgresql/data
+    # Порт наружу НЕ публикуется: база доступна только по внутренней сети
+    # compose. Нужен доступ снаружи — только через ssh-туннель.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tucktuck} -d ${POSTGRES_DB:-tucktuck}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Разовый прогон миграций. Профиль `tools` не даёт ему стартовать вместе со
+  # стеком по `up`: миграции должны идти управляемо, перед подъёмом приложения
+  # (это делает scripts/deploy.sh).
+  tucktuck-migrate:
+    image: ghcr.io/davebugg/tucktuck-migrate:${TUCKTUCK_TAG:-latest}
+    profiles: ["tools"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL не задан в .env}
+    depends_on:
+      tucktuck-pg:
+        condition: service_healthy
+    restart: "no"
+
+  # Кеш курсов валют. Не хранилище: при недоступности панель просто чаще ходит
+  # в источники курсов, данные не теряются.
+  tucktuck-redis:
+    image: redis:7-alpine
+    container_name: tucktuck-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  tucktuck:
+    image: ghcr.io/davebugg/tucktuck:${TUCKTUCK_TAG:-latest}
+    container_name: tucktuck
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL не задан в .env}
+      TUCKTUCK_JWT_SECRET: ${TUCKTUCK_JWT_SECRET:?TUCKTUCK_JWT_SECRET не задан в .env}
+      TUCKTUCK_ENCRYPTION_KEY: ${TUCKTUCK_ENCRYPTION_KEY:?TUCKTUCK_ENCRYPTION_KEY не задан в .env}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL:-}
+      # Публичный адрес нужен для вебхука Telegram: кнопки под напоминаниями
+      # без него не работают (Телеграм не примет localhost).
+      TUCKTUCK_PUBLIC_URL: ${TUCKTUCK_PUBLIC_URL:-https://${TUCKTUCK_DOMAIN}}
+      TUCKTUCK_WORKER_TOKEN: ${TUCKTUCK_WORKER_TOKEN:-}
+      # Пути к хостовым /proc и корню — они смонтированы ниже. Нужны, чтобы
+      # панель показывала метрики САМОГО СЕРВЕРА, а не своего контейнера.
+      REDIS_URL: redis://tucktuck-redis:6379
+      TUCKTUCK_HOST_PROC: /host/proc
+      TUCKTUCK_HOST_ROOT: /host/root
+    volumes:
+      # ТОЛЬКО ЧТЕНИЕ. Тот же приём, что у node_exporter: без хостового /proc в
+      # контейнере видна память и диск контейнера, а не машины. Записать
+      # что-либо через эти монтирования нельзя.
+      - /proc:/host/proc:ro
+      - /:/host/root:ro
+    ports:
+      # Только на loopback: наружу — через прокси ниже. Порт всё равно
+      # публикуется, потому что по нему deploy.sh проверяет /api/health с хоста.
+      - "127.0.0.1:${TUCKTUCK_PORT:-3000}:3000"
+    depends_on:
+      tucktuck-pg:
+        condition: service_healthy
+      tucktuck-redis:
+        condition: service_healthy
+
+  # Воркер напоминаний: тот же образ, другая команда. Профиль workers, чтобы
+  # `up` без него поднимал только веб — на машине разработчика воркер не нужен.
+  tucktuck-notify:
+    image: ghcr.io/davebugg/tucktuck:${TUCKTUCK_TAG:-latest}
+    container_name: tucktuck-notify
+    restart: unless-stopped
+    profiles: ["workers"]
+    command: ["node", "notify-worker.mjs"]
+    # Health-проверка образа дёргает /api/health по HTTP, но воркер не веб-сервер
+    # и порт не слушает — унаследованная проверка давала вечный unhealthy.
+    # Живость воркера видна по логу и по факту рассылки.
+    healthcheck:
+      disable: true
+    environment:
+      TUCKTUCK_INTERNAL_URL: http://tucktuck:3000
+      TUCKTUCK_WORKER_TOKEN: ${TUCKTUCK_WORKER_TOKEN:?TUCKTUCK_WORKER_TOKEN не задан в .env}
+      NOTIFY_INTERVAL_SEC: ${NOTIFY_INTERVAL_SEC:-300}
+    depends_on:
+      - tucktuck
+
+  # Обратный прокси с автоматическим Let's Encrypt. Держит 80/443; сам
+  # выпускает и продлевает сертификат для TUCKTUCK_DOMAIN.
+  tucktuck-proxy:
+    image: caddy:2-alpine
+    container_name: tucktuck-proxy
+    restart: unless-stopped
+    environment:
+      TUCKTUCK_DOMAIN: ${TUCKTUCK_DOMAIN:?TUCKTUCK_DOMAIN не задан в .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Сертификаты переживают пересоздание контейнера. Без этого тома каждый
+      # деплой заново ходил бы в Let's Encrypt и упёрся бы в их лимиты.
+      - tucktuck-caddy-data:/data
+      - tucktuck-caddy-config:/config
+    depends_on:
+      - tucktuck
+
+volumes:
+  tucktuck-pg-data:
+  tucktuck-caddy-data:
+  tucktuck-caddy-config:

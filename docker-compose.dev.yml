@@ -1,0 +1,31 @@
+# Локальная разработка: только Postgres. Приложение запускается хостом
+# (`npm run dev`), чтобы работал hot reload — образ собирается отдельно
+# (см. Dockerfile) и проверяется на стенде.
+#
+# Порт 5437, а не 5432: на дев-машине уже висят чужие постгресы, и совпадение
+# порта тихо уводит миграции не в ту базу.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   npm run db:deploy && npm run db:seed
+
+services:
+  tucktuck-pg:
+    image: postgres:17-alpine
+    container_name: tucktuck-pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tucktuck
+      POSTGRES_PASSWORD: tucktuck_dev
+      POSTGRES_DB: tucktuck
+    ports:
+      - "127.0.0.1:5437:5432"
+    volumes:
+      - tucktuck-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tucktuck -d tucktuck"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tucktuck-pg-data:
