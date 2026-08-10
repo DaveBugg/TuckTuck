@@ -4,11 +4,16 @@
 #   docker compose pull && ./scripts/deploy.sh
 #
 # Переменные читаются из .env рядом с этим файлом (см. .env.example).
+#
+# Имена контейнеров собираются из TUCKTUCK_PREFIX (по умолчанию «tucktuck»).
+# Фиксированные имена удобны — `docker compose exec tucktuck …` предсказуем, — но
+# двух установок на одном хосте с ними не бывает: вторая упирается в занятое имя.
+# Префикс это чинит и не меняет ничего для тех, кто ставит одну.
 
 services:
   tucktuck-pg:
     image: postgres:17-alpine
-    container_name: tucktuck-pg
+    container_name: ${TUCKTUCK_PREFIX:-tucktuck}-pg
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tucktuck}
@@ -41,7 +46,7 @@ services:
   # в источники курсов, данные не теряются.
   tucktuck-redis:
     image: redis:7-alpine
-    container_name: tucktuck-redis
+    container_name: ${TUCKTUCK_PREFIX:-tucktuck}-redis
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
@@ -52,7 +57,7 @@ services:
 
   tucktuck:
     image: ghcr.io/davebugg/tucktuck:${TUCKTUCK_TAG:-latest}
-    container_name: tucktuck
+    container_name: ${TUCKTUCK_PREFIX:-tucktuck}
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL не задан в .env}
@@ -92,7 +97,7 @@ services:
   # `up` без него поднимал только веб — на машине разработчика воркер не нужен.
   tucktuck-notify:
     image: ghcr.io/davebugg/tucktuck:${TUCKTUCK_TAG:-latest}
-    container_name: tucktuck-notify
+    container_name: ${TUCKTUCK_PREFIX:-tucktuck}-notify
     restart: unless-stopped
     profiles: ["workers"]
     command: ["node", "notify-worker.mjs"]
@@ -112,7 +117,7 @@ services:
   # выпускает и продлевает сертификат для TUCKTUCK_DOMAIN.
   tucktuck-proxy:
     image: caddy:2-alpine
-    container_name: tucktuck-proxy
+    container_name: ${TUCKTUCK_PREFIX:-tucktuck}-proxy
     restart: unless-stopped
     environment:
       TUCKTUCK_DOMAIN: ${TUCKTUCK_DOMAIN:?TUCKTUCK_DOMAIN не задан в .env}

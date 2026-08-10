@@ -17,6 +17,7 @@
 #   TUCKTUCK_DOMAIN       домен панели — единственное обязательное
 #   TUCKTUCK_DIR          куда ставить, по умолчанию /opt/tucktuck
 #   TUCKTUCK_PORT         порт приложения на loopback, по умолчанию 3000
+#   TUCKTUCK_PREFIX       префикс имён контейнеров, по умолчанию tucktuck
 #   TUCKTUCK_SKIP_PROXY   1 — не поднимать Caddy: свой прокси уже есть
 #   TUCKTUCK_SKIP_DOCKER  1 — не ставить Docker самому
 #   TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY   капча на входе
@@ -143,6 +144,9 @@ cat > .env <<EOF
 
 TUCKTUCK_DOMAIN="${DOMAIN}"
 TUCKTUCK_PORT="${TUCKTUCK_PORT:-3000}"
+# Префикс имён контейнеров. Менять нужно, только если на этой машине уже стоит
+# другая установка TuckTuck — иначе имена столкнутся.
+TUCKTUCK_PREFIX="$(pick TUCKTUCK_PREFIX "tucktuck")"
 TUCKTUCK_TAG="${TUCKTUCK_TAG:-latest}"
 
 POSTGRES_USER="tucktuck"
