@@ -58,6 +58,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL не задан в .env}
       TUCKTUCK_JWT_SECRET: ${TUCKTUCK_JWT_SECRET:?TUCKTUCK_JWT_SECRET не задан в .env}
       TUCKTUCK_ENCRYPTION_KEY: ${TUCKTUCK_ENCRYPTION_KEY:?TUCKTUCK_ENCRYPTION_KEY не задан в .env}
+      # Обе половины капчи — переменными запуска. Ключ сайта публичен и
+      # отдаётся браузеру через /api/config; секрет остаётся здесь.
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL:-}
       # Публичный адрес нужен для вебхука Telegram: кнопки под напоминаниями

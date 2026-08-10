@@ -2,9 +2,13 @@
 // Cloudflare Turnstile — лёгкая обёртка без зависимостей: грузит скрипт CF и
 // рендерит виджет. onToken(token) — при успехе; токен одноразовый, поэтому
 // наружу торчит reset() через ref для повторного прохождения (шаг 2FA).
-import React, { useEffect, useImperativeHandle, useRef, forwardRef } from "react";
+//
+// Ключ сайта берётся с сервера (/api/config), а не из NEXT_PUBLIC_*: сборочная
+// переменная означала бы, что поставивший панель готовым образом свой ключ
+// задать не может. Пока ключ не пришёл или он пуст — не рендерим ничего, и
+// вход работает без капчи (проверка на бэке при пустом секрете fail-open).
+import React, { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 
-const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 const SCRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 declare global {
@@ -41,6 +45,7 @@ export const Turnstile = forwardRef<TurnstileHandle, { onToken: (t: string) => v
   function Turnstile({ onToken }, ref) {
     const boxRef = useRef<HTMLDivElement>(null);
     const widgetId = useRef<string | null>(null);
+    const [siteKey, setSiteKey] = useState<string | null>(null);
 
     useImperativeHandle(ref, () => ({
       reset: () => {
@@ -49,13 +54,27 @@ export const Turnstile = forwardRef<TurnstileHandle, { onToken: (t: string) => v
     }));
 
     useEffect(() => {
-      // капча не настроена (нет sitekey) — не рендерим ничего (fail-open на бэке)
-      if (!SITE_KEY) return;
+      let cancelled = false;
+      fetch("/api/config")
+        .then(r => r.json())
+        .then(d => {
+          if (!cancelled) setSiteKey(String(d?.turnstileSiteKey || ""));
+        })
+        // Настройки не доехали — считаем, что капчи нет: не пускать человека на
+        // вход из-за упавшего запроса за ключом было бы хуже.
+        .catch(() => setSiteKey(""));
+      return () => {
+        cancelled = true;
+      };
+    }, []);
+
+    useEffect(() => {
+      if (!siteKey) return;
       let cancelled = false;
       loadScript().then(() => {
         if (cancelled || !boxRef.current || !window.turnstile) return;
         widgetId.current = window.turnstile.render(boxRef.current, {
-          sitekey: SITE_KEY,
+          sitekey: siteKey,
           callback: (t: string) => onToken(t),
           "expired-callback": () => onToken(""),
           "error-callback": () => onToken(""),
@@ -66,10 +85,12 @@ export const Turnstile = forwardRef<TurnstileHandle, { onToken: (t: string) => v
         cancelled = true;
         if (window.turnstile && widgetId.current) window.turnstile.remove(widgetId.current);
       };
+      // onToken меняется на каждый рендер родителя — перерисовывать виджет из-за
+      // этого нельзя, он бы сбрасывал уже пройденную проверку.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [siteKey]);
 
-    if (!SITE_KEY) return null;
-    return <div ref={boxRef} className="d-flex justify-content-center mb-3" />;
+    if (!siteKey) return null;
+    return <div ref={boxRef} className="flex justify-center" />;
   }
 );

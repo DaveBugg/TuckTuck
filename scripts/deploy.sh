@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 # Раскатка и обновление TuckTuck на сервере.
 #
-#   ./scripts/deploy.sh              — обновиться до latest
-#   ./scripts/deploy.sh sha-a1b2c3d  — раскатать конкретную сборку (или откатиться)
-#   ./scripts/deploy.sh v0.1.0       — раскатать тег релиза
+#   ./deploy.sh              — обновиться до latest
+#   ./deploy.sh sha-a1b2c3d  — раскатать конкретную сборку (или откатиться)
+#   ./deploy.sh v0.1.0       — раскатать тег релиза
 #
 # Сборка живёт в CI: сюда приезжают ГОТОВЫЕ образы из GHCR. На сервере не нужны
 # ни исходники, ни node, ни npm — только docker, этот скрипт, docker-compose.yml
 # и .env.
 set -Eeuo pipefail
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+# Ищем стек рядом со скриптом, а потом уровнем выше. Два места, потому что
+# сценария тоже два: клон репозитория (скрипт в scripts/) и установка через
+# setup.sh (скрипт лежит прямо в каталоге стека).
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$here/docker-compose.yml" ]; then cd "$here"
+elif [ -f "$here/../docker-compose.yml" ]; then cd "$here/.."
+else
+  echo "ОШИБКА: docker-compose.yml не найден рядом со скриптом" >&2
+  exit 1
+fi
 
 TAG="${1:-latest}"
 COMPOSE="docker compose"
