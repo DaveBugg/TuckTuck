@@ -20,6 +20,7 @@ import type { TFunc } from "@/lib/i18n/translate";
 import ResourceForm from "./ResourceForm";
 import AgentDialog from "./AgentDialog";
 import MonitorCell from "./MonitorCell";
+import type { SystemView } from "@/components/monitoring/metrics";
 import type { Catalog, ResourceRow } from "./types";
 
 const fetcher = apiFetcher<ResourceRow>("/api/resources");
@@ -65,6 +66,27 @@ export default function ResourcesPage() {
   const [modal, setModal] = useState<{ open: boolean; row?: ResourceRow }>({ open: false });
   const [agent, setAgent] = useState<{ open: boolean; row?: ResourceRow }>({ open: false });
   const [catalog, setCatalog] = useState<Catalog>({ providers: [], tags: [], groups: [] });
+  // Метрики всех машин одним запросом на страницу: значку в колонке нужен цвет
+  // сразу, а не по наведению, и сотня строк не должна означать сотню запросов.
+  const [systems, setSystems] = useState<Record<string, SystemView>>({});
+
+  const loadSystems = useCallback(() => {
+    apiFetch("/api/monitoring")
+      .then((d: { systems: SystemView[] }) => {
+        const map: Record<string, SystemView> = {};
+        for (const s of d.systems) map[s.id] = s;
+        setSystems(map);
+      })
+      .catch(() => {
+        /* без метрик значок останется серым — таблица работает и так */
+      });
+  }, []);
+  useEffect(() => {
+    loadSystems();
+    // Агенты шлют раз в минуту — чаще опрашивать нечего.
+    const id = setInterval(loadSystems, 60_000);
+    return () => clearInterval(id);
+  }, [loadSystems]);
 
   const loadCatalog = useCallback(() => {
     apiFetch("/api/catalog")
@@ -144,7 +166,11 @@ export default function ResourcesPage() {
       // нечего мерить, и пустая ячейка там честнее иконки-заглушки.
       cell: r =>
         MONITORABLE.includes(r.kind as any) ? (
-          <MonitorCell row={r} onOpen={row => setAgent({ open: true, row })} />
+          <MonitorCell
+            row={r}
+            system={systems[r.id]}
+            onOpen={row => setAgent({ open: true, row })}
+          />
         ) : (
           <span className="text-muted-foreground">—</span>
         ),

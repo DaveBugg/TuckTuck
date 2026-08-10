@@ -16,7 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "node prisma/seed.mjs",
-    "test:unit": "tsx --test tests/unit/permissions.test.ts tests/unit/list-query.test.ts tests/unit/secret-crypto.test.ts tests/unit/timezone.test.ts tests/unit/notify.test.ts tests/unit/monitoring.test.ts tests/unit/ssh-install.test.ts tests/unit/i18n.test.ts tests/unit/panel-url.test.ts tests/unit/server-timezone.test.ts tests/unit/robots.test.ts tests/unit/totals.test.ts tests/unit/quiet-hours.test.ts tests/unit/rate-limit.test.ts tests/unit/spend.test.ts",
+    "test:unit": "tsx --test tests/unit/permissions.test.ts tests/unit/list-query.test.ts tests/unit/secret-crypto.test.ts tests/unit/timezone.test.ts tests/unit/notify.test.ts tests/unit/monitoring.test.ts tests/unit/ssh-install.test.ts tests/unit/i18n.test.ts tests/unit/panel-url.test.ts tests/unit/server-timezone.test.ts tests/unit/robots.test.ts tests/unit/totals.test.ts tests/unit/quiet-hours.test.ts tests/unit/rate-limit.test.ts tests/unit/spend.test.ts tests/unit/worst-level.test.ts",
     "test": "npm run test:unit"
   },
   "prisma": {

@@ -2,44 +2,51 @@
 
 // Ячейка мониторинга в списке ресурсов.
 //
-// Наведение — короткая сводка, клик — попап с подробностями и управлением
-// агентом. Данные грузятся ТОЛЬКО при первом наведении: в таблице на сто строк
-// сотня запросов при отрисовке никому не нужна, а большинство строк никто не
-// трогает.
+// Цвет значка — худшее из состояний машины: оранжевый, если что-то нагружено,
+// красный, если критично или она молчит. Смысл в том, чтобы беду было видно, не
+// наводя мышь на каждую строку.
+//
+// Поэтому метрики приходят СВЕРХУ, одним запросом на всю таблицу, а не по
+// одному на строку при наведении. Раньше грузилось по наведению — иначе сотня
+// строк давала сотню запросов; но тогда до наведения цвет был неизвестен, а
+// именно он и нужен с первого взгляда. Один запрос на страницу решает обе
+// задачи сразу.
 
-import React, { useCallback, useRef, useState } from "react";
-import { Activity, Loader2 } from "lucide-react";
+import React from "react";
+import { Activity } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
-import { apiFetch } from "@/lib/client-api";
+import { worstLevel } from "@/lib/monitoring";
 import { SystemSummary, type SystemView } from "@/components/monitoring/metrics";
 import { useI18n } from "@/components/i18n-provider";
 import type { ResourceRow } from "./types";
 
+/** Цвет значка по худшему показателю. Серый — данных ещё нет. */
+const ICON_COLOR = {
+  ok: "text-primary",
+  warn: "text-warning",
+  crit: "text-destructive",
+  none: "text-muted-foreground",
+} as const;
+
+const DOT_COLOR = {
+  up: "bg-success",
+  stale: "bg-warning",
+  down: "bg-destructive",
+  unknown: "bg-muted-foreground/40",
+} as const;
+
 export default function MonitorCell({
   row,
+  system,
   onOpen,
 }: {
   row: ResourceRow;
+  /** Метрики машины из общего запроса страницы. undefined — ещё грузятся. */
+  system?: SystemView;
   onOpen: (row: ResourceRow) => void;
 }) {
   const { t } = useI18n();
-  const [data, setData] = useState<SystemView | null>(null);
-  const [loading, setLoading] = useState(false);
-  const loadedRef = useRef(false);
-
-  const load = useCallback(() => {
-    if (loadedRef.current || loading) return;
-    loadedRef.current = true;
-    setLoading(true);
-    apiFetch(`/api/monitoring/${row.id}`)
-      .then(d => setData(d.system))
-      .catch(() => {
-        // Не смогли — дадим попробовать снова при следующем наведении.
-        loadedRef.current = false;
-      })
-      .finally(() => setLoading(false));
-  }, [row.id, loading]);
 
   // Сервер самой панели мониторится изнутри, без агента и без токена, поэтому
   // проверять только agentConnected нельзя: у него метрики есть, а иконки не
@@ -59,39 +66,27 @@ export default function MonitorCell({
     );
   }
 
-  const dot =
-    data?.health === "up"
-      ? "bg-success"
-      : data?.health === "stale"
-        ? "bg-warning"
-        : data?.health === "down"
-          ? "bg-destructive"
-          : "bg-muted-foreground/40";
+  const level = system ? worstLevel(system) : "none";
 
   return (
     <HoverCard openDelay={150} closeDelay={80}>
       <HoverCardTrigger asChild>
         <button
           type="button"
-          onMouseEnter={load}
-          onFocus={load}
           onClick={() => onOpen(row)}
           className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 hover:bg-accent"
           aria-label={t("monitor.aria", { name: row.name })}
         >
-          <Activity className="size-4 text-primary" />
-          <span className={cn("size-1.5 rounded-full", dot)} />
+          <Activity className={cn("size-4", ICON_COLOR[level])} />
+          <span
+            className={cn("size-1.5 rounded-full", DOT_COLOR[system?.health ?? "unknown"])}
+          />
         </button>
       </HoverCardTrigger>
       <HoverCardContent className="w-72">
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
-            {t("monitor.loading")}
-          </div>
-        )}
-        {!loading && data && <SystemSummary s={data} compact />}
-        {!loading && !data && (
+        {system ? (
+          <SystemSummary s={system} compact />
+        ) : (
           <div className="text-sm text-muted-foreground">{t("monitor.unavailable")}</div>
         )}
       </HoverCardContent>

@@ -47,6 +47,29 @@ export function metricLevel(pct: number | null): "ok" | "warn" | "crit" | "none"
   return "ok";
 }
 
+/**
+ * Худшее из состояний машины одним значением: и здоровье, и все метрики.
+ *
+ * Нужно там, где места ровно на один значок. Молчащая машина важнее занятого
+ * диска, поэтому здоровье проверяется первым: у неё цифры всё равно устарели.
+ */
+export function worstLevel(s: {
+  health: Health;
+  cpu: number | null;
+  memory: number | null;
+  disk: number | null;
+}): "ok" | "warn" | "crit" | "none" {
+  if (s.health === "down") return "crit";
+  if (s.health === "stale") return "warn";
+  if (s.health === "unknown") return "none";
+  const levels = [metricLevel(s.cpu), metricLevel(s.memory), metricLevel(s.disk)];
+  if (levels.includes("crit")) return "crit";
+  if (levels.includes("warn")) return "warn";
+  // Все три пусты — данных ещё нет, и зелёный тут был бы обещанием, которого
+  // никто не давал.
+  return levels.every(l => l === "none") ? "none" : "ok";
+}
+
 /** Процент из произвольного значения агента. Мусор и выход за 0..100 → null. */
 export function pct(v: unknown): number | null {
   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;

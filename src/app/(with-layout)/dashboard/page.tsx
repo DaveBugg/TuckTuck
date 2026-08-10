@@ -41,8 +41,10 @@ const DUE_VARIANT = {
 
 const asDate = (ymd: string) => new Date(ymd + "T00:00:00Z");
 
-/** Сколько строк показывать. Пять — чтобы карточка не тянулась на весь экран. */
-const SIZES = [5, 10, 15] as const;
+// Сколько строк показывать. Десять по умолчанию: список прокручивается внутри
+// карточки, поэтому длина больше не растягивает страницу, а на десяти уже видно
+// весь ближайший месяц.
+const SIZES = [10, 15, 20] as const;
 const ALL_KINDS = "__all__"; // Radix Select не принимает "" как значение пункта
 
 function dueText(days: number, t: TFunc) {
@@ -179,7 +181,11 @@ export default function DashboardPage() {
               </p>
             )}
             {rows && rows.length > 0 && (
-              <ul className="flex flex-col divide-y">
+              // Прокрутка внутри карточки — как у соседнего виджета серверов:
+              // иначе двадцать строк уводят страницу вниз, и здоровье машин
+              // справа оказывается за экраном. pr-1 — зазор, чтобы ползунок не
+              // прилипал к бейджам срока.
+              <ul className="flex max-h-[60vh] flex-col divide-y overflow-y-auto pr-1">
                 {rows.map(r => {
                   const d = daysUntil(asDate(r.nextPaymentAt));
                   return (
