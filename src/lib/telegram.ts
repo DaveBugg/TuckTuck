@@ -126,6 +126,24 @@ export function setWebhook(token: string, url: string, secret: string, proxyUrl 
   );
 }
 
+/**
+ * Что Телеграм думает о нашем вебхуке.
+ *
+ * Единственный способ узнать правду: панель знает, какой адрес она ПЫТАЛАСЬ
+ * поставить, но не знает, дошло ли до Телеграма и что у него не получается при
+ * доставке. Без этого «кнопка не реагирует» не диагностируется вообще — с
+ * нашей стороны просто тишина.
+ */
+export function getWebhookInfo(token: string, proxyUrl = "") {
+  return call<{
+    url: string;
+    pending_update_count: number;
+    last_error_date?: number;
+    last_error_message?: string;
+    ip_address?: string;
+  }>(token, "getWebhookInfo", {}, proxyUrl);
+}
+
 export function deleteWebhook(token: string, proxyUrl = "") {
   return call(token, "deleteWebhook", {}, proxyUrl);
 }
