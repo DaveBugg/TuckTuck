@@ -4,6 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { botMatches, reminderText, reminderButtons } from "../../src/lib/notify";
 import { makeT } from "../../src/lib/i18n/translate";
+import { DEFAULT_REMINDER_DAYS } from "../../src/lib/resources";
 
 const res = (kind: string, tagIds: string[] = []) => ({
   kind,
@@ -113,4 +114,26 @@ test("кнопки: оплата, отмена и удаление, все с к
   );
   // callback_data Телеграм ограничивает 64 байтами — ключ обязан влезать
   for (const b of all) assert.ok(Buffer.byteLength(b.callback_data) <= 64);
+});
+
+test("по умолчанию напоминаем и в сам день оплаты", () => {
+  // Раньше набор был [2, 1], и в день списания панель молчала — именно тогда,
+  // когда ещё можно успеть заплатить.
+  assert.ok(DEFAULT_REMINDER_DAYS.includes(0), "нет напоминания в день оплаты");
+  assert.deepEqual([...DEFAULT_REMINDER_DAYS], [2, 1, 0]);
+});
+
+test("кнопки под напоминанием: оплатить, отменить, удалить", () => {
+  const rows = reminderButtons("msgkey", makeT("ru"));
+  const flat = rows.flat();
+  assert.equal(flat.length, 3);
+  // Ключ сообщения обязан быть в каждой кнопке: по нему вебхук находит, о каком
+  // напоминании речь, и без него нажатие некуда отнести.
+  for (const b of flat) assert.ok(b.callback_data.endsWith(":msgkey"), b.callback_data);
+  assert.deepEqual(
+    flat.map(b => b.callback_data.split(":")[0]),
+    ["paid", "cancel", "del"]
+  );
+  // Удаление отдельной строкой: рядом с «оплачено» его нажимают промахом.
+  assert.equal(rows[1].length, 1);
 });

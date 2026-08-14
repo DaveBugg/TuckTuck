@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { parseListParams, toApiError } from "@/lib/list-query";
-import { visibilityWhere, KINDS, PERIOD_UNITS, CURRENCIES, CHAINS } from "@/lib/resources";
+import { visibilityWhere, DEFAULT_REMINDER_DAYS, KINDS, PERIOD_UNITS, CURRENCIES, CHAINS } from "@/lib/resources";
 import type { Prisma } from "@prisma/client";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -189,9 +189,11 @@ export async function POST(req: Request) {
     if ((data as any).error) return NextResponse.json(data, { status: 400 });
 
     const tagIds: string[] = Array.isArray(b.tagIds) ? b.tagIds.filter(Boolean) : [];
-    // По ТЗ при заведении ресурса напоминания ставятся сразу: за 2 суток и за
-    // сутки. Форма может прислать свой набор — тогда берём его.
-    const days: number[] = Array.isArray(b.reminderDays) ? b.reminderDays : [2, 1];
+    // При заведении ресурса напоминания ставятся сразу: за 2 суток, за сутки и
+    // в день оплаты. Форма может прислать свой набор — тогда берём его.
+    const days: number[] = Array.isArray(b.reminderDays)
+      ? b.reminderDays
+      : [...DEFAULT_REMINDER_DAYS];
     const uniqueDays = [...new Set(days.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 365))];
 
     const row = await prisma.resource.create({

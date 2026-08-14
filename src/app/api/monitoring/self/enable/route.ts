@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import os from "node:os";
 import { tForRequest } from "@/lib/i18n/server";
+import { DEFAULT_REMINDER_DAYS } from "@/lib/resources";
 
 /**
  * Включить мониторинг сервера самой панели.
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
         periodUnit: "MONTH",
         nextPaymentAt: next,
         createdById: me.id,
-        reminders: { create: [{ daysBefore: 2 }, { daysBefore: 1 }] },
+        reminders: { create: DEFAULT_REMINDER_DAYS.map(daysBefore => ({ daysBefore })) },
       },
       select: { id: true, name: true },
     });
