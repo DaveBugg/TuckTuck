@@ -255,9 +255,19 @@ prebuilt from GHCR. [Quick start](#quick-start) above sets all of it up;
 `setup.sh` leaves behind a directory with `docker-compose.yml`, `.env` and
 `deploy.sh`.
 
-Updating is `./deploy.sh`, run from that directory. Rolling back to a specific
-build is `./deploy.sh sha-a1b2c3d`. Re-running `setup.sh` also works and picks
-up changes to the compose file itself.
+Updating is one command, from anywhere on the server and with no variables at
+all — the domain and every secret are read from the installation's own `.env`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | sh
+```
+
+It pulls fresh images, applies migrations and restarts the stack, and unlike
+`deploy.sh` it also updates `docker-compose.yml` and the Caddy config — so new
+services and settings arrive too.
+
+From inside the installation directory `./deploy.sh` does the same for the app
+alone, and `./deploy.sh sha-a1b2c3d` rolls back to a specific build.
 
 Setting it up by hand instead, from a clone:
 

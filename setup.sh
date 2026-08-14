@@ -4,6 +4,9 @@
 #   curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh \
 #     | TUCKTUCK_DOMAIN=panel.example.com sh
 #
+# Обновление уже поставленной панели — та же команда без переменных:
+#   curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | sh
+#
 # Минимум — только домен. Всё остальное (пароль базы, три секрета, токен
 # воркера) генерируется здесь же и кладётся в .env. Задавать их руками имеет
 # смысл только при переезде на другую машину с той же базой.
@@ -50,8 +53,23 @@ die()  { printf '%sОШИБКА:%s %s\n' "$R" "$N" "$*" >&2; exit 1; }
 [ "$(id -u)" = "0" ] || die "нужен root: запустите под sudo"
 
 DOMAIN="${TUCKTUCK_DOMAIN:-}"
+
+# Домен можно не передавать, если панель здесь уже стоит: берём его из её же
+# .env. Тогда эта же команда без единой переменной работает как ОБНОВЛЕНИЕ —
+# подтянуть свежие compose-файлы, накатить миграции и перезапустить стек.
+UPDATE=0
+if [ -z "$DOMAIN" ] && [ -r "$DIR/.env" ]; then
+  # Читаем одну строку, а не подключаем файл: там секреты, и выполнять его
+  # содержимое как код незачем.
+  DOMAIN="$(sed -n 's/^TUCKTUCK_DOMAIN=//p' "$DIR/.env" | head -1 | tr -d '"')"
+  if [ -n "$DOMAIN" ]; then
+    UPDATE=1
+  fi
+fi
+
 [ -n "$DOMAIN" ] || die "не задан TUCKTUCK_DOMAIN.
-  Пример: curl -fsSL ${RAW}/setup.sh | TUCKTUCK_DOMAIN=panel.example.com sh"
+  Установка: curl -fsSL ${RAW}/setup.sh | TUCKTUCK_DOMAIN=panel.example.com sh
+  Обновление уже поставленной панели переменных не требует вовсе."
 
 # Домен, а не URL и не адрес с портом: его подставят в конфиг Caddy, и мусор
 # там обернётся неудачным выпуском сертификата с невнятной ошибкой.
@@ -67,6 +85,10 @@ fetch() {
   else die "нет ни curl, ни wget"
   fi
 }
+
+if [ "$UPDATE" = "1" ]; then
+  say "Обновляю установку в $DIR (домен $DOMAIN взят из .env)"
+fi
 
 say "Проверяю систему"
 if [ -r /etc/os-release ]; then
