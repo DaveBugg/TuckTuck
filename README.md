@@ -206,6 +206,13 @@ Two ways to install it:
 - **One command**, copied from the same dialog and run as root. It is
   idempotent: re-running it updates the agent without duplicating the schedule.
 
+Updating an agent that is already installed needs no variables at all — the
+address and the token are taken from its own settings file:
+
+```bash
+curl -fsSL https://panel.example.com/install.sh | sh
+```
+
 The panel's own server needs neither: metrics are read from the host `/proc` and
 `/` mounted read-only into the container.
 
