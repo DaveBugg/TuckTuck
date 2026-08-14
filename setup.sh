@@ -125,8 +125,15 @@ mkdir -p "$DIR/caddy"
 # именно их обновление приносит новые сервисы и настройки.
 fetch "${RAW}/docker-compose.yml" "$DIR/docker-compose.yml"
 fetch "${RAW}/caddy/Caddyfile" "$DIR/caddy/Caddyfile"
-fetch "${RAW}/scripts/deploy.sh" "$DIR/deploy.sh" && chmod +x "$DIR/deploy.sh"
-ok "docker-compose.yml, caddy/Caddyfile, deploy.sh"
+# deploy.sh кладём в корень установки, но НЕ поверх клона репозитория: там он
+# уже есть в scripts/, и вторая копия рядом — лишний повод гадать, какая свежее.
+if [ -f "$DIR/scripts/deploy.sh" ]; then
+  ok "docker-compose.yml, caddy/Caddyfile (deploy.sh уже есть в scripts/)"
+else
+  fetch "${RAW}/scripts/deploy.sh" "$DIR/deploy.sh"
+  chmod +x "$DIR/deploy.sh"
+  ok "docker-compose.yml, caddy/Caddyfile, deploy.sh"
+fi
 
 cd "$DIR"
 
