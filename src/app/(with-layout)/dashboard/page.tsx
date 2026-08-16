@@ -9,7 +9,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Search, ExternalLink } from "lucide-react";
+import { ArrowRight, Search, ExternalLink, CircleCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, apiJson } from "@/lib/client-api";
+import { toast } from "sonner";
 import { usePermissions } from "@/lib/use-permissions";
 import { kindLabel, daysUntil, dueLevel, KINDS } from "@/lib/resources";
 import { useI18n } from "@/components/i18n-provider";
@@ -58,12 +59,15 @@ function dueText(days: number, t: TFunc) {
 
 export default function DashboardPage() {
   const { can } = usePermissions();
-  const { t, fmtNum } = useI18n();
+  const { t, fmtNum, fmtDate } = useI18n();
   const [rows, setRows] = useState<ResourceRow[] | null>(null);
   const [size, setSize] = useState<number>(SIZES[0]);
   const [kind, setKind] = useState<string>(ALL_KINDS);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
+  // Отметка оплаты меняет и этот список, и суммы в виджете расхода рядом.
+  // Ключ поднят сюда, чтобы обновились оба, а не только тот, где нажали.
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Зависимость — БУЛЕВО право, а не функция can: даже стабильная функция
   // меняется при смене роли, а список надо перезапрашивать только когда
@@ -86,9 +90,38 @@ export default function DashboardPage() {
     apiFetch(`/api/resources?${p}`)
       .then(d => setRows(d.rows))
       .catch(() => setRows([]));
-  }, [mayView, size, kind, query]);
+  }, [mayView, size, kind, query, reloadKey]);
 
   useEffect(load, [load]);
+
+  /**
+   * Отметить оплату прямо отсюда.
+   *
+   * Подтверждение обязательно: действие пишет платёж в историю и двигает дату
+   * на период, а промах по кнопке в списке — дело одной секунды.
+   */
+  const markPaid = async (r: ResourceRow) => {
+    if (
+      !confirm(
+        t("res.confirm.pay", {
+          name: r.name,
+          date: fmtDate(asDate(r.nextPaymentAt)),
+          amount: `${fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} ${r.currency}`,
+        })
+      )
+    ) {
+      return;
+    }
+    try {
+      const d = await apiJson(`/api/resources/${r.id}/pay`, "POST", {});
+      toast.success(t("res.toast.paid"), {
+        description: t("res.toast.nextPayment", { date: fmtDate(asDate(d.nextPaymentAt)) }),
+      });
+      setReloadKey(k => k + 1);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
 
   const kindOptions = useMemo(
     () => KINDS.map(k => ({ value: k, label: kindLabel(k, t) })),
@@ -97,7 +130,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
-      {can("resources.view") && <SpendCard />}
+      {can("resources.view") && <SpendCard reloadKey={reloadKey} />}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -216,6 +249,17 @@ export default function DashboardPage() {
                         {fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} {r.currency}
                       </div>
                       <Badge variant={DUE_VARIANT[dueLevel(d)]}>{dueText(d, t)}</Badge>
+                      {can("resources.manage") && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => markPaid(r)}
+                          title={t("res.action.pay")}
+                          aria-label={t("res.action.pay")}
+                        >
+                          <CircleCheck />
+                        </Button>
+                      )}
                     </li>
                   );
                 })}

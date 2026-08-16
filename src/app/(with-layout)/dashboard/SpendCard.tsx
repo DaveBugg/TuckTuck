@@ -41,16 +41,18 @@ type Totals = {
   ratesAt: string;
 };
 
-export default function SpendCard() {
+export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
   const { t, fmtNum, fmtDateTime, locale } = useI18n();
   const [d, setD] = useState<Totals | null>(null);
 
+  // reloadKey приходит снаружи: отметка оплаты в соседнем списке меняет суммы
+  // здесь, и оставить их прежними значило бы показать устаревшие цифры.
   const load = useCallback(() => {
     apiFetch("/api/resources/totals")
       .then(setD)
       .catch(() => setD(null));
   }, []);
-  useEffect(load, [load]);
+  useEffect(load, [load, reloadKey]);
 
   /** Крипте нужны знаки: 0.0004 BTC при округлении до копеек стало бы нулём. */
   const fmt = (v: number, crypto: boolean) =>

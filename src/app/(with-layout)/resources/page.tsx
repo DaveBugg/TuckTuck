@@ -5,7 +5,7 @@
 // типу, провайдеру и тегу, подсветка ближайших 14/7/3 дней и просрочки.
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, Server, ShieldCheck, Repeat, Globe, AppWindow } from "lucide-react";
+import { Plus, Server, ShieldCheck, Repeat, Globe, AppWindow, CircleCheck } from "lucide-react";
 import { toast } from "sonner";
 import DataTable, { apiFetcher, type DataTableColumn } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +97,33 @@ export default function ResourcesPage() {
   }, []);
   useEffect(loadCatalog, [loadCatalog]);
 
+  /**
+   * Отметить оплату. Одна функция на колонку и на пункт меню: два одинаковых
+   * обработчика разъехались бы при первой правке текста подтверждения.
+   */
+  const markPaid = async (row: ResourceRow) => {
+    if (
+      !confirm(
+        t("res.confirm.pay", {
+          name: row.name,
+          date: fmtDate(asDate(row.nextPaymentAt)),
+          amount: money(row.amount, row.currency),
+        })
+      )
+    ) {
+      return;
+    }
+    try {
+      const d = await apiJson(`/api/resources/${row.id}/pay`, "POST", {});
+      setReloadKey(k => k + 1);
+      toast.success(t("res.toast.paid"), {
+        description: t("res.toast.nextPayment", { date: fmtDate(asDate(d.nextPaymentAt)) }),
+      });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   const columns: Array<DataTableColumn<ResourceRow>> = [
     {
       id: "name",
@@ -138,9 +165,25 @@ export default function ResourcesPage() {
       cell: r => {
         const d = daysUntil(asDate(r.nextPaymentAt));
         return (
-          <div className="flex flex-col items-start gap-1">
-            <span>{fmtDate(asDate(r.nextPaymentAt))}</span>
-            <Badge variant={DUE_VARIANT[dueLevel(d)]}>{dueText(d, t)}</Badge>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-start gap-1">
+              <span>{fmtDate(asDate(r.nextPaymentAt))}</span>
+              <Badge variant={DUE_VARIANT[dueLevel(d)]}>{dueText(d, t)}</Badge>
+            </div>
+            {/* Отметка оплаты — самое частое действие в таблице, и держать его
+                только в выпадающем меню значит прятать то, ради чего сюда
+                заходят чаще всего. В меню оно тоже осталось. */}
+            {can("resources.manage") && r.isActive && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => markPaid(r)}
+                title={t("res.action.pay")}
+                aria-label={t("res.action.pay")}
+              >
+                <CircleCheck />
+              </Button>
+            )}
           </div>
         );
       },
@@ -253,29 +296,8 @@ export default function ResourcesPage() {
               {
                 label: t("res.action.pay"),
                 permission: "resources.manage",
-                onClick: async (row, rl) => {
-                  if (
-                    !confirm(
-                      t("res.confirm.pay", {
-                        name: row.name,
-                        date: fmtDate(asDate(row.nextPaymentAt)),
-                        amount: money(row.amount, row.currency),
-                      })
-                    )
-                  )
-                    return;
-                  try {
-                    const d = await apiJson(`/api/resources/${row.id}/pay`, "POST", {});
-                    rl();
-                    toast.success(t("res.toast.paid"), {
-                      description: t("res.toast.nextPayment", {
-                        date: fmtDate(asDate(d.nextPaymentAt)),
-                      }),
-                    });
-                  } catch (e: any) {
-                    toast.error(e.message);
-                  }
-                },
+                // Тот же обработчик, что и у кнопки в колонке срока.
+                onClick: row => markPaid(row),
               },
               {
                 label: t("res.col.monitor"),
