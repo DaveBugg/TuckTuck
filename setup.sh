@@ -163,6 +163,12 @@ pick() {
 FIRST_RUN=0
 [ -f .env ] || FIRST_RUN=1
 
+# Ставить ли свой прокси. Решение запоминается в .env: без этого следующее
+# обновление без переменных снова полезло бы занимать 80-й порт на машине, где
+# его держит чужой веб-сервер.
+SKIP_PROXY="${TUCKTUCK_SKIP_PROXY:-$(prev TUCKTUCK_SKIP_PROXY)}"
+[ -n "$SKIP_PROXY" ] || SKIP_PROXY=0
+
 # Способ получения сертификата переводим из понятного в директиву Caddy.
 #
 # Три случая, и все три встречаются: обычный DNS (Let's Encrypt сам), домен за
@@ -212,6 +218,8 @@ TUCKTUCK_PREFIX="$(pick TUCKTUCK_PREFIX "tucktuck")"
 
 # Директива TLS для Caddy. Пусто — Let's Encrypt сам.
 TUCKTUCK_TLS_DIRECTIVE="${TLS_DIRECTIVE}"
+# 1 — свой прокси уже есть, Caddy не поднимаем.
+TUCKTUCK_SKIP_PROXY="${SKIP_PROXY}"
 TUCKTUCK_TAG="${TUCKTUCK_TAG:-latest}"
 
 POSTGRES_USER="tucktuck"
@@ -255,8 +263,50 @@ say "Применяю миграции"
 docker compose --profile tools run --rm tucktuck-migrate >/dev/null   || die "миграции не прошли. Логи: cd $DIR && docker compose logs tucktuck-pg"
 ok "схема актуальна"
 
+# Занят ли порт. Не смогли проверить — не мешаем: лучше пропустить проверку,
+# чем остановить установку из-за отсутствия ss и netstat.
+port_busy() {
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn 2>/dev/null | grep -qE "[:.]$1[[:space:]]"
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -ltn 2>/dev/null | grep -qE "[:.]$1[[:space:]]"
+  else
+    return 1
+  fi
+}
+
+# Порты проверяем заранее и только когда собираемся их занять. Иначе docker
+# падает уже на подъёме контейнера с «address already in use», и человеку надо
+# догадаться, что делать дальше. Свой же работающий прокси не в счёт: при
+# обновлении он держит порт совершенно законно.
+if [ "$SKIP_PROXY" != "1" ]; then
+  # Именно if, а не «условие && присваивание»: при set -e несовпавший grep в
+  # конце такой цепочки завершает весь скрипт.
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "${TUCKTUCK_PREFIX:-tucktuck}-proxy"; then
+    ours=1
+  else
+    ours=0
+  fi
+  if [ "$ours" = "0" ]; then
+    for prt in 80 443; do
+      if port_busy "$prt"; then
+        die "порт $prt уже занят другой программой (веб-сервер, панель, туннель).
+  Поднимите TuckTuck без своего прокси и проксируйте на него сами:
+
+    curl -fsSL ${RAW}/setup.sh | TUCKTUCK_SKIP_PROXY=1 sh
+
+  Приложение останется на 127.0.0.1:${TUCKTUCK_PORT:-3000} — направьте туда свой
+  веб-сервер. Пример конфига nginx есть в README, раздел про HTTPS."
+      fi
+    done
+  fi
+fi
+
 say "Поднимаю панель"
-if [ "${TUCKTUCK_SKIP_PROXY:-0}" = "1" ]; then
+if [ "$SKIP_PROXY" = "1" ]; then
+  # Прежний контейнер прокси мог остаться от установки, где его поднимали:
+  # оставить его — значит и дальше держать порт, ради которого всё затевалось.
+  docker compose rm -sf tucktuck-proxy >/dev/null 2>&1 || true
   # Свой прокси уже есть: не отбираем у него 80 и 443. Приложение остаётся на
   # loopback, проксировать на него — забота того, кто это выбрал.
   docker compose up -d tucktuck >/dev/null
@@ -288,7 +338,7 @@ if [ "$FIRST_RUN" = "1" ]; then
 fi
 
 printf '\n%sГотово.%s Панель: %shttps://%s%s\n' "$G" "$N" "$B" "$DOMAIN" "$N"
-if [ "${TUCKTUCK_SKIP_PROXY:-0}" = "1" ]; then
+if [ "$SKIP_PROXY" = "1" ]; then
   printf '  Проксируйте свой веб-сервер на 127.0.0.1:%s — HTTPS на вашей стороне.\n' "${TUCKTUCK_PORT:-3000}"
 else
   printf '  Сертификат Caddy выпустит сам, если A-запись %s уже смотрит на этот сервер.\n' "$DOMAIN"
