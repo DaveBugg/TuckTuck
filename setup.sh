@@ -33,6 +33,12 @@
 #
 # POSIX sh: на голом сервере bash есть не всегда, а зависеть от него ради
 # массивов не хочется.
+#
+# ВАЖНО про stdin. Скрипт запускают как `curl ... | sh`, то есть он сам приходит
+# по стандартному вводу. Команда внутри, читающая stdin, съедает остаток скрипта,
+# и шелл упирается в конец файла посреди конструкции — «Syntax error: end of file
+# unexpected». Поэтому каждой команде docker закрыт stdin через </dev/null, а у
+# `compose run` дополнительно стоит -T: без него compose выделяет терминал.
 
 set -eu
 
@@ -251,16 +257,19 @@ ok "$DIR/.env (права 600)"
 # ─────────────────────── Запуск ───────────────────────
 
 say "Тяну образы"
-docker compose pull -q tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy 2>/dev/null   || docker compose pull tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy
+docker compose pull -q tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy 2>/dev/null </dev/null \
+  || docker compose pull tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy </dev/null
 # Мигратор в профиле tools: без --profile compose его не видит.
-docker compose --profile tools pull -q tucktuck-migrate 2>/dev/null   || docker compose --profile tools pull tucktuck-migrate
+docker compose --profile tools pull -q tucktuck-migrate 2>/dev/null </dev/null \
+  || docker compose --profile tools pull tucktuck-migrate </dev/null
 
 say "Поднимаю базу и кеш"
-docker compose up -d tucktuck-pg tucktuck-redis >/dev/null
+docker compose up -d tucktuck-pg tucktuck-redis >/dev/null </dev/null
 ok "postgres и redis"
 
 say "Применяю миграции"
-docker compose --profile tools run --rm tucktuck-migrate >/dev/null   || die "миграции не прошли. Логи: cd $DIR && docker compose logs tucktuck-pg"
+docker compose --profile tools run --rm -T tucktuck-migrate >/dev/null </dev/null \
+  || die "миграции не прошли. Логи: cd $DIR && docker compose logs tucktuck-pg"
 ok "схема актуальна"
 
 # Занят ли порт. Не смогли проверить — не мешаем: лучше пропустить проверку,
@@ -306,22 +315,22 @@ say "Поднимаю панель"
 if [ "$SKIP_PROXY" = "1" ]; then
   # Прежний контейнер прокси мог остаться от установки, где его поднимали:
   # оставить его — значит и дальше держать порт, ради которого всё затевалось.
-  docker compose rm -sf tucktuck-proxy >/dev/null 2>&1 || true
+  docker compose rm -sf tucktuck-proxy >/dev/null 2>&1 </dev/null || true
   # Свой прокси уже есть: не отбираем у него 80 и 443. Приложение остаётся на
   # loopback, проксировать на него — забота того, кто это выбрал.
-  docker compose up -d tucktuck >/dev/null
+  docker compose up -d tucktuck >/dev/null </dev/null
   ok "приложение на 127.0.0.1:${TUCKTUCK_PORT:-3000} (прокси пропущен)"
 else
-  docker compose up -d tucktuck tucktuck-proxy >/dev/null
+  docker compose up -d tucktuck tucktuck-proxy >/dev/null </dev/null
   ok "приложение и прокси с автоматическим HTTPS"
 fi
-docker compose --profile workers up -d tucktuck-notify >/dev/null
+docker compose --profile workers up -d tucktuck-notify >/dev/null </dev/null
 ok "воркер напоминаний"
 
 say "Жду готовности"
 i=0
 until [ "$i" -ge 60 ]; do
-  if docker compose exec -T tucktuck node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then
+  if docker compose exec -T tucktuck node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" 2>/dev/null </dev/null; then
     break
   fi
   i=$((i + 1)); sleep 2
@@ -334,7 +343,7 @@ ok "панель отвечает"
 if [ "$FIRST_RUN" = "1" ]; then
   say "Завожу администратора"
   # Пароль печатается ОДИН раз и нигде не сохраняется.
-  docker compose exec -T tucktuck node prisma/seed.mjs || warn "создать администратора не удалось — запустите вручную"
+  docker compose exec -T tucktuck node prisma/seed.mjs </dev/null || warn "создать администратора не удалось — запустите вручную"
 fi
 
 printf '\n%sГотово.%s Панель: %shttps://%s%s\n' "$G" "$N" "$B" "$DOMAIN" "$N"
