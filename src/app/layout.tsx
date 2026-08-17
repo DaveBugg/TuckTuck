@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/components/i18n-provider";
+import { ConfirmProvider } from "@/components/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { getLocale } from "@/lib/i18n/server";
 import { makeT } from "@/lib/i18n/translate";
@@ -30,8 +31,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               определять его на клиенте значило бы отрисовать первый кадр на
               одном языке, а после гидрации переключиться на другой. */}
           <I18nProvider locale={locale}>
-            {children}
-            <Toaster />
+            {/* Провайдер подтверждений — над всем деревом: свои окна вместо
+                confirm() нужны и в разделах, и на экранах без сайдбара. */}
+            <ConfirmProvider>
+              {children}
+              <Toaster />
+            </ConfirmProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

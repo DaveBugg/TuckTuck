@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { apiJson } from "@/lib/client-api";
 import { useCurrentUser } from "@/lib/use-permissions";
 import { useI18n } from "@/components/i18n-provider";
+import { useConfirm } from "@/components/confirm-dialog";
 import { LOCALES, LOCALE_LABEL } from "@/lib/i18n/config";
 
 type SessionRow = {
@@ -30,6 +31,7 @@ type SessionRow = {
 export default function ProfilePage() {
   const me = useCurrentUser();
   const { t, locale, setLocale, fmtDateTime } = useI18n();
+  const { confirm } = useConfirm();
 
   // ── смена пароля ──
   const [cur, setCur] = useState("");
@@ -101,7 +103,12 @@ export default function ProfilePage() {
   };
 
   const disable2fa = async () => {
-    if (!confirm(t("profile.confirm.totpOff"))) return;
+    const ok = await confirm({
+      title: t("profile.totp"),
+      description: t("profile.confirm.totpOff"),
+      destructive: true,
+    });
+    if (!ok) return;
     setTotpBusy(true);
     try {
       await apiJson("/api/auth/2fa/disable", "POST", { code });
@@ -125,7 +132,12 @@ export default function ProfilePage() {
   useEffect(loadSessions, [loadSessions]);
 
   const revoke = async (sessionId?: string) => {
-    if (!confirm(t(sessionId ? "profile.confirm.revokeOne" : "profile.confirm.revokeAll"))) return;
+    const ok = await confirm({
+      title: sessionId ? t("profile.revoke") : t("profile.revokeOthers"),
+      description: t(sessionId ? "profile.confirm.revokeOne" : "profile.confirm.revokeAll"),
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await apiJson("/api/auth/sessions", "DELETE", sessionId ? { sessionId } : { others: true });
       loadSessions();

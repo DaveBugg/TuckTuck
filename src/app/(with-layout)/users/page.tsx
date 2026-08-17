@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiJson } from "@/lib/client-api";
 import { useCurrentUser, usePermissions } from "@/lib/use-permissions";
 import { useI18n } from "@/components/i18n-provider";
+import { useConfirm } from "@/components/confirm-dialog";
 
 type UserRow = {
   id: string;
@@ -43,6 +44,7 @@ const emptyForm = { email: "", name: "", role: "USER", password: "", isActive: t
 export default function UsersPage() {
   const { can } = usePermissions();
   const { t, fmtDate } = useI18n();
+  const { confirm, reveal } = useConfirm();
   const me = useCurrentUser();
   const [reloadKey, setReloadKey] = useState(0);
   const [modal, setModal] = useState<{ open: boolean; row?: UserRow }>({ open: false });
@@ -180,12 +182,24 @@ export default function UsersPage() {
                 label: t("users.resetPassword"),
                 permission: "users.manage",
                 onClick: async row => {
-                  if (!confirm(t("users.confirm.reset", { email: row.email }))) return;
+                  const ok = await confirm({
+                    title: t("users.resetPassword"),
+                    description: t("users.confirm.reset", { email: row.email }),
+                    confirmText: t("users.resetPassword"),
+                    destructive: true,
+                  });
+                  if (!ok) return;
                   try {
                     const d = await apiJson(`/api/users/${row.id}/reset-password`, "POST");
                     // prompt, а не toast: пароль показывается один раз, и его
                     // нужно успеть скопировать — всплывашка исчезнет сама.
-                    prompt(t("users.tempPassword"), d.tempPassword);
+                    // Своё окно, а не prompt: пароль показывается один раз,
+                    // и его надо успеть скопировать — здесь для этого кнопка.
+                    await reveal({
+                      title: t("users.resetPassword"),
+                      description: t("users.tempPassword"),
+                      value: d.tempPassword,
+                    });
                   } catch (e: any) {
                     toast.error(e.message);
                   }
@@ -197,7 +211,13 @@ export default function UsersPage() {
                 variant: "destructive",
                 hidden: row => row.id === me.id,
                 onClick: async (row, rl) => {
-                  if (!confirm(t("users.confirm.delete", { email: row.email }))) return;
+                  const ok = await confirm({
+                    title: t("common.delete"),
+                    description: t("users.confirm.delete", { email: row.email }),
+                    confirmText: t("common.yesDelete"),
+                    destructive: true,
+                  });
+                  if (!ok) return;
                   try {
                     await apiJson(`/api/users/${row.id}`, "DELETE");
                     toast.success(t("common.deleted"));

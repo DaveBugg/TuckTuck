@@ -16,12 +16,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { kindLabel, KINDS } from "@/lib/resources";
 import { useI18n } from "@/components/i18n-provider";
+import { useConfirm } from "@/components/confirm-dialog";
 import BotForm, { type BotRow } from "./BotForm";
 import TelegramReachability from "./TelegramReachability";
 import type { Catalog } from "../resources/types";
 
 export default function NotificationsPage() {
   const { t } = useI18n();
+  const { confirm } = useConfirm();
   const [rows, setRows] = useState<BotRow[] | null>(null);
   const [webhookBase, setWebhookBase] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<Catalog>({ providers: [], tags: [], groups: [] });
@@ -45,7 +47,13 @@ export default function NotificationsPage() {
   useEffect(load, [load]);
 
   const remove = async (b: BotRow) => {
-    if (!confirm(t("notify.confirm.delete", { name: b.name }))) return;
+    const ok = await confirm({
+      title: t("common.delete"),
+      description: t("notify.confirm.delete", { name: b.name }),
+      confirmText: t("common.yesDelete"),
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await apiJson(`/api/notify/bots/${b.id}`, "DELETE");
       toast.success(t("notify.toast.deleted"));

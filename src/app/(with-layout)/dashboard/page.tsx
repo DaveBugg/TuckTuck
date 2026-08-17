@@ -25,6 +25,7 @@ import {
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/use-permissions";
+import { useConfirm } from "@/components/confirm-dialog";
 import { kindLabel, daysUntil, dueLevel, KINDS } from "@/lib/resources";
 import { useI18n } from "@/components/i18n-provider";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -60,6 +61,7 @@ function dueText(days: number, t: TFunc) {
 export default function DashboardPage() {
   const { can } = usePermissions();
   const { t, fmtNum, fmtDate } = useI18n();
+  const { confirm } = useConfirm();
   const [rows, setRows] = useState<ResourceRow[] | null>(null);
   const [size, setSize] = useState<number>(SIZES[0]);
   const [kind, setKind] = useState<string>(ALL_KINDS);
@@ -101,17 +103,16 @@ export default function DashboardPage() {
    * на период, а промах по кнопке в списке — дело одной секунды.
    */
   const markPaid = async (r: ResourceRow) => {
-    if (
-      !confirm(
-        t("res.confirm.pay", {
-          name: r.name,
-          date: fmtDate(asDate(r.nextPaymentAt)),
-          amount: `${fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} ${r.currency}`,
-        })
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: t("res.action.pay"),
+      description: t("res.confirm.pay", {
+        name: r.name,
+        date: fmtDate(asDate(r.nextPaymentAt)),
+        amount: `${fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} ${r.currency}`,
+      }),
+      confirmText: t("res.action.pay"),
+    });
+    if (!ok) return;
     try {
       const d = await apiJson(`/api/resources/${r.id}/pay`, "POST", {});
       toast.success(t("res.toast.paid"), {

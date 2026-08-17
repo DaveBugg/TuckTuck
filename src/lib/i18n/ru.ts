@@ -19,6 +19,8 @@ export const ru: Record<string, string> = {
   "common.saved": "Сохранено",
   "common.saving": "Сохраняю…",
   "common.cancel": "Отмена",
+  "common.confirm": "Подтвердить",
+  "common.yesDelete": "Да, удалить",
   "common.close": "Закрыть",
   "common.done": "Готово",
   "common.copy": "Скопировать",

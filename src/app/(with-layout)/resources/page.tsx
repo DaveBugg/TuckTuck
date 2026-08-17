@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { usePermissions } from "@/lib/use-permissions";
+import { useConfirm } from "@/components/confirm-dialog";
 import { KINDS, kindLabel, daysUntil, dueLevel, periodText, type Kind } from "@/lib/resources";
 import { MONITORABLE } from "@/lib/monitoring";
 import { useI18n } from "@/components/i18n-provider";
@@ -56,6 +57,7 @@ const asDate = (ymd: string) => new Date(ymd + "T00:00:00Z");
 export default function ResourcesPage() {
   const { can } = usePermissions();
   const { t, fmtDate, fmtNum } = useI18n();
+  const { confirm } = useConfirm();
 
   const money = (amount: string, currency: string) => {
     const n = Number(amount);
@@ -102,17 +104,16 @@ export default function ResourcesPage() {
    * обработчика разъехались бы при первой правке текста подтверждения.
    */
   const markPaid = async (row: ResourceRow) => {
-    if (
-      !confirm(
-        t("res.confirm.pay", {
-          name: row.name,
-          date: fmtDate(asDate(row.nextPaymentAt)),
-          amount: money(row.amount, row.currency),
-        })
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: t("res.action.pay"),
+      description: t("res.confirm.pay", {
+        name: row.name,
+        date: fmtDate(asDate(row.nextPaymentAt)),
+        amount: money(row.amount, row.currency),
+      }),
+      confirmText: t("res.action.pay"),
+    });
+    if (!ok) return;
     try {
       const d = await apiJson(`/api/resources/${row.id}/pay`, "POST", {});
       setReloadKey(k => k + 1);
@@ -315,7 +316,13 @@ export default function ResourcesPage() {
                 permission: "resources.manage",
                 variant: "destructive",
                 onClick: async (row, rl) => {
-                  if (!confirm(t("res.confirm.delete", { name: row.name }))) return;
+                  const ok = await confirm({
+                    title: t("common.delete"),
+                    description: t("res.confirm.delete", { name: row.name }),
+                    confirmText: t("common.yesDelete"),
+                    destructive: true,
+                  });
+                  if (!ok) return;
                   try {
                     await apiJson(`/api/resources/${row.id}`, "DELETE");
                     toast.success(t("common.deleted"));

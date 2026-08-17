@@ -25,6 +25,7 @@ import MetricsHistory from "@/components/monitoring/history";
 import { AGENT_INTERVAL_SEC } from "@/lib/monitoring";
 import SshInstall from "./SshInstall";
 import { useI18n } from "@/components/i18n-provider";
+import { useConfirm } from "@/components/confirm-dialog";
 import type { ResourceRow } from "./types";
 
 function CopyBlock({
@@ -84,6 +85,7 @@ export default function AgentDialog({
   onChanged: () => void;
 }) {
   const { t } = useI18n();
+  const { confirm } = useConfirm();
   const [token, setToken] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [system, setSystem] = useState<SystemView | null>(null);
@@ -106,8 +108,14 @@ export default function AgentDialog({
   if (!row) return null;
 
   const issue = async () => {
-    if (row.agentConnected && !confirm(t("agent.confirm.reissue"))) {
-      return;
+    if (row.agentConnected) {
+      const ok = await confirm({
+        title: t("agent.reissue"),
+        description: t("agent.confirm.reissue"),
+        confirmText: t("agent.reissue"),
+        destructive: true,
+      });
+      if (!ok) return;
     }
     setBusy(true);
     try {
@@ -122,7 +130,13 @@ export default function AgentDialog({
   };
 
   const disable = async () => {
-    if (!confirm(t("agent.confirm.disable"))) return;
+    const ok = await confirm({
+      title: t("agent.disable"),
+      description: t("agent.confirm.disable"),
+      confirmText: t("agent.disable"),
+      destructive: true,
+    });
+    if (!ok) return;
     setBusy(true);
     try {
       await apiJson(`/api/resources/${row.id}/agent`, "DELETE");
