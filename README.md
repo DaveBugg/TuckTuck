@@ -269,6 +269,13 @@ services and settings arrive too.
 From inside the installation directory `./deploy.sh` does the same for the app
 alone, and `./deploy.sh sha-a1b2c3d` rolls back to a specific build.
 
+After a successful update the images left over from previous builds are removed.
+Each update moves the `latest` tag to a new image and the old one stays behind
+untagged — nothing ever deletes those on its own, and a few dozen updates add up
+to tens of gigabytes. Only untagged images are removed, and only once the new
+version has answered its health check: until then a rollback is still possible.
+`TUCKTUCK_KEEP_IMAGES=1` turns the cleanup off.
+
 Setting it up by hand instead, from a clone:
 
 ```bash
