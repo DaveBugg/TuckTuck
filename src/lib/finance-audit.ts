@@ -18,11 +18,16 @@ export function serializeSnapshot<T>(value: T): unknown {
   if (typeof value !== "object") return value;
   if (Array.isArray(value)) return value.map(serializeSnapshot);
 
-  // Decimal — у @prisma/client/runtime есть метод toString()
+  // Decimal из @prisma/client/runtime: в бандле имя конструктора может быть
+  // минифицировано, поэтому определяем либо по имени, либо по характерным
+  // полям (s, e, d) и наличию toString().
   const anyV = value as any;
   if (
     typeof anyV.toString === "function" &&
-    anyV.constructor?.name === "Decimal"
+    (anyV.constructor?.name === "Decimal" ||
+      (Array.isArray(anyV.d) &&
+        typeof anyV.e === "number" &&
+        typeof anyV.s === "number"))
   ) {
     return anyV.toString();
   }

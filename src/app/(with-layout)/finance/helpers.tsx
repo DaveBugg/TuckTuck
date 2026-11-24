@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { TFunc } from "@/lib/i18n/translate";
-import type { ExpenseRow, IncomeRow } from "./types";
+import type { ExpenseRow, IncomeRow, RecurringRow } from "./types";
 
 export function formatMoney(
   amount: string | number,
@@ -63,6 +63,22 @@ export function scopeBadge(
   t: TFunc
 ): React.ReactNode {
   return <Badge variant="outline">{t(`finance.scope.${scope}`)}</Badge>;
+}
+
+export function recurringScheduleText(
+  row: Pick<RecurringRow, "frequency" | "interval" | "dayOfMonth">,
+  t: TFunc
+): string {
+  const { frequency, interval, dayOfMonth } = row;
+  const unit = t(`finance.recurring.unit.${frequency}`, { count: interval });
+  const schedule =
+    interval === 1
+      ? t(`finance.recurring.frequency.${frequency}`).toLowerCase()
+      : t("finance.recurring.everyN", { n: interval, unit });
+  if (dayOfMonth) {
+    return `${schedule} · ${t("finance.recurring.dayOfMonthShort", { day: dayOfMonth })}`;
+  }
+  return schedule;
 }
 
 export function incomeStatus(

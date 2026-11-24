@@ -15,7 +15,14 @@ import { apiFetch, apiJson } from "@/lib/client-api";
 import { useI18n } from "@/components/i18n-provider";
 import { usePermissions } from "@/lib/use-permissions";
 import { useConfirm } from "@/components/confirm-dialog";
-import { moneyCell, statusBadge, kindBadge, scopeBadge } from "../helpers";
+import { Switch } from "@/components/ui/switch";
+import {
+  moneyCell,
+  statusBadge,
+  kindBadge,
+  scopeBadge,
+  recurringScheduleText,
+} from "../helpers";
 import OperationDialog from "../OperationDialog";
 import RecurringDialog from "../RecurringDialog";
 import type { ExpenseRow, RecurringRow } from "../types";
@@ -331,13 +338,7 @@ export default function ExpensesPage({
       header: t("finance.recurring.col.schedule"),
       cell: r => (
         <span className="text-muted-foreground">
-          {t("finance.recurring.everyN", {
-            n: r.interval,
-            unit: t(`finance.recurring.unit.${r.frequency}`),
-          })}
-          {r.dayOfMonth
-            ? ` · ${t("finance.recurring.dayShort", { day: r.dayOfMonth })}`
-            : null}
+          {recurringScheduleText(r, t)}
         </span>
       ),
     },
@@ -388,11 +389,38 @@ export default function ExpensesPage({
       id: "active",
       header: t("finance.recurring.col.active"),
       sortable: true,
-      cell: r => (
-        <span className={r.active ? "text-success" : "text-muted-foreground"}>
-          {r.active ? t("finance.active") : t("finance.inactive")}
-        </span>
-      ),
+      cell: r => {
+        if (can("finance.manage")) {
+          return (
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={r.active}
+                onCheckedChange={async v => {
+                  try {
+                    await apiJson(`/api/finance/recurring/${r.id}`, "PATCH", {
+                      active: v,
+                    });
+                    setReloadKey(k => k + 1);
+                    toast.success(t("common.saved"));
+                  } catch (e: any) {
+                    toast.error(e.message);
+                  }
+                }}
+              />
+              <span
+                className={r.active ? "text-success" : "text-muted-foreground"}
+              >
+                {r.active ? t("finance.active") : t("finance.inactive")}
+              </span>
+            </div>
+          );
+        }
+        return (
+          <span className={r.active ? "text-success" : "text-muted-foreground"}>
+            {r.active ? t("finance.active") : t("finance.inactive")}
+          </span>
+        );
+      },
     },
   ];
 
@@ -455,6 +483,7 @@ export default function ExpensesPage({
         <CardContent className="pt-5">
           {tab === "all" ? (
             <DataTable<ExpenseRow>
+              key="all"
               columns={columns}
               fetcher={fetcher(displayCurrency)}
               rowKey={r => r.id}
@@ -506,6 +535,7 @@ export default function ExpensesPage({
             />
           ) : (
             <DataTable<RecurringRow>
+              key="recurring"
               columns={recurringColumns}
               fetcher={recurringFetcher()}
               rowKey={r => r.id}

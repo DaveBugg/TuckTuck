@@ -85,8 +85,8 @@ export default function RecurringDialog({
     setDayOfMonth(row?.dayOfMonth ? String(row.dayOfMonth) : "");
     setNextRunAt(
       row?.nextRunAt
-        ? row.nextRunAt.slice(0, 10)
-        : new Date().toISOString().slice(0, 10)
+        ? new Date(row.nextRunAt).toLocaleDateString("en-CA")
+        : new Date().toLocaleDateString("en-CA")
     );
     setActive(row?.active ?? true);
     setDescription(row?.description ?? "");
