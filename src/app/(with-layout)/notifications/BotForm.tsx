@@ -30,7 +30,12 @@ export type BotRow = {
   name: string;
   isActive: boolean;
   kinds: string[];
-  chats: Array<{ id: string; chatId: string; label: string; allowedUserIds: string[] }>;
+  chats: Array<{
+    id: string;
+    chatId: string;
+    label: string;
+    allowedUserIds: string[];
+  }>;
   tags: Array<{ id: string; name: string }>;
   /** Замаскированный адрес; пусто = берётся общий. Сам адрес наружу не отдаётся. */
   proxy?: string;
@@ -59,7 +64,11 @@ export default function BotForm({
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [chats, setChats] = useState<ChatDraft[]>([]);
   const [proxyUrl, setProxyUrl] = useState("");
-  const [newChat, setNewChat] = useState<ChatDraft>({ chatId: "", label: "", allowed: "" });
+  const [newChat, setNewChat] = useState<ChatDraft>({
+    chatId: "",
+    label: "",
+    allowed: "",
+  });
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -97,7 +106,11 @@ export default function BotForm({
     }
     setChats([
       ...chats,
-      { chatId: id, label: newChat.label.trim(), allowed: newChat.allowed.trim() },
+      {
+        chatId: id,
+        label: newChat.label.trim(),
+        allowed: newChat.allowed.trim(),
+      },
     ]);
     setNewChat({ chatId: "", label: "", allowed: "" });
   };
@@ -130,7 +143,11 @@ export default function BotForm({
       const d = row
         ? await apiJson(`/api/notify/bots/${row.id}`, "PATCH", payload)
         : await apiJson("/api/notify/bots", "POST", payload);
-      toast.success(row ? t("common.saved") : t("notify.form.botAdded", { username: d.username }));
+      toast.success(
+        row
+          ? t("common.saved")
+          : t("notify.form.botAdded", { username: d.username })
+      );
       if (d.webhook && d.webhook !== "ok") {
         // Бот создан, но кнопки работать не будут — это надо сказать прямо,
         // а не прятать за общим «сохранено».
@@ -153,10 +170,12 @@ export default function BotForm({
       <DialogContent className="sm:max-w-xl">
         <form onSubmit={save} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>{row ? t("notify.form.editTitle", { name: row.name }) : t("notify.form.newTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("notify.form.hint")}
-            </DialogDescription>
+            <DialogTitle>
+              {row
+                ? t("notify.form.editTitle", { name: row.name })
+                : t("notify.form.newTitle")}
+            </DialogTitle>
+            <DialogDescription>{t("notify.form.hint")}</DialogDescription>
           </DialogHeader>
 
           <div>
@@ -191,16 +210,24 @@ export default function BotForm({
             <Label>{t("notify.bot.chats")}</Label>
             <div className="mt-1.5 flex flex-wrap gap-2">
               {chats.length === 0 && (
-                <span className="text-sm text-muted-foreground">{t("common.emptyYet")}</span>
+                <span className="text-sm text-muted-foreground">
+                  {t("common.emptyYet")}
+                </span>
               )}
               {chats.map(c => (
-                <Badge key={c.chatId} variant="secondary" className="gap-1 py-1">
+                <Badge
+                  key={c.chatId}
+                  variant="secondary"
+                  className="gap-1 py-1"
+                >
                   {c.label ? `${c.label} · ` : ""}
                   {c.chatId}
                   {c.allowed ? " · 🔒" : ""}
                   <button
                     type="button"
-                    onClick={() => setChats(chats.filter(x => x.chatId !== c.chatId))}
+                    onClick={() =>
+                      setChats(chats.filter(x => x.chatId !== c.chatId))
+                    }
                     className="text-muted-foreground hover:text-destructive"
                     aria-label={t("notify.form.removeChat")}
                   >
@@ -213,7 +240,9 @@ export default function BotForm({
               <Input
                 className="h-8 max-w-44"
                 value={newChat.chatId}
-                onChange={e => setNewChat({ ...newChat, chatId: e.target.value })}
+                onChange={e =>
+                  setNewChat({ ...newChat, chatId: e.target.value })
+                }
                 placeholder="chat_id"
                 onKeyDown={e => {
                   if (e.key === "Enter") {
@@ -225,7 +254,9 @@ export default function BotForm({
               <Input
                 className="h-8"
                 value={newChat.label}
-                onChange={e => setNewChat({ ...newChat, label: e.target.value })}
+                onChange={e =>
+                  setNewChat({ ...newChat, label: e.target.value })
+                }
                 placeholder={t("notify.form.chatLabel")}
                 onKeyDown={e => {
                   if (e.key === "Enter") {
@@ -234,14 +265,21 @@ export default function BotForm({
                   }
                 }}
               />
-              <Button type="button" variant="outline" size="icon-sm" onClick={addChat}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                onClick={addChat}
+              >
                 <Plus />
               </Button>
             </div>
             <Input
               className="mt-2 h-8"
               value={newChat.allowed}
-              onChange={e => setNewChat({ ...newChat, allowed: e.target.value })}
+              onChange={e =>
+                setNewChat({ ...newChat, allowed: e.target.value })
+              }
               placeholder={t("notify.form.allowedIds")}
               onKeyDown={e => {
                 if (e.key === "Enter") {
@@ -289,7 +327,11 @@ export default function BotForm({
           <div>
             <Label>{t("res.form.tags")}</Label>
             <div className="mt-1.5 flex flex-wrap gap-2">
-              {tags.length === 0 && <span className="text-sm text-muted-foreground">{t("notify.form.noTags")}</span>}
+              {tags.length === 0 && (
+                <span className="text-sm text-muted-foreground">
+                  {t("notify.form.noTags")}
+                </span>
+              )}
               {tags.map(tag => {
                 const on = tagIds.includes(tag.id);
                 return (
@@ -334,7 +376,11 @@ export default function BotForm({
           </div>
 
           <div className="flex items-center gap-2">
-            <Switch id="bf-active" checked={isActive} onCheckedChange={setIsActive} />
+            <Switch
+              id="bf-active"
+              checked={isActive}
+              onCheckedChange={setIsActive}
+            />
             <Label htmlFor="bf-active" className="font-normal">
               {t("notify.form.enabled")}
             </Label>

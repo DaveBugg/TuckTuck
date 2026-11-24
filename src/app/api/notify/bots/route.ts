@@ -6,7 +6,11 @@ import { encryptSecret, decryptSecret } from "@/lib/secret-crypto";
 import { getMe, setWebhook } from "@/lib/telegram";
 import { publicBaseUrl, webhookSecret } from "@/lib/notify-webhook";
 import { KINDS } from "@/lib/resources";
-import { maskProxyUrl, proxyForBot, validateProxyUrl } from "@/lib/notify-proxy";
+import {
+  maskProxyUrl,
+  proxyForBot,
+  validateProxyUrl,
+} from "@/lib/notify-proxy";
 import { encryptSecret as enc } from "@/lib/secret-crypto";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -19,7 +23,9 @@ const SELECT = {
   kinds: true,
   createdAt: true,
   proxyUrlEnc: true,
-  chats: { select: { id: true, chatId: true, label: true, allowedUserIds: true } },
+  chats: {
+    select: { id: true, chatId: true, label: true, allowedUserIds: true },
+  },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const;
 
@@ -45,7 +51,11 @@ const shape = (b: any, t: TFunc) => {
  * Пустой список = всем, кто в чате: для личного чата 1:1 это ты сам. Для
  * группы список надо заполнить, иначе удалить ресурс сможет любой участник.
  */
-export type ChatInput = { chatId: string; label: string; allowedUserIds: string[] };
+export type ChatInput = {
+  chatId: string;
+  label: string;
+  allowedUserIds: string[];
+};
 
 export function parseChats(raw: unknown): ChatInput[] {
   if (!Array.isArray(raw)) return [];
@@ -67,8 +77,14 @@ export async function GET(req: Request) {
   const t = tForRequest(req);
   try {
     await requirePermission("notify.manage");
-    const rows = await prisma.notifyBot.findMany({ orderBy: { createdAt: "asc" }, select: SELECT });
-    return NextResponse.json({ rows: rows.map(r => shape(r, t)), webhookBase: publicBaseUrl() });
+    const rows = await prisma.notifyBot.findMany({
+      orderBy: { createdAt: "asc" },
+      select: SELECT,
+    });
+    return NextResponse.json({
+      rows: rows.map(r => shape(r, t)),
+      webhookBase: publicBaseUrl(),
+    });
   } catch (e) {
     return toApiError(e, t);
   }
@@ -82,14 +98,23 @@ export async function POST(req: Request) {
 
     const name = typeof b.name === "string" ? b.name.trim() : "";
     const token = typeof b.token === "string" ? b.token.trim() : "";
-    if (!name) return NextResponse.json({ error: t("notify.err.nameRequired") }, { status: 400 });
-    if (!token) return NextResponse.json({ error: t("notify.err.tokenRequired") }, { status: 400 });
+    if (!name)
+      return NextResponse.json(
+        { error: t("notify.err.nameRequired") },
+        { status: 400 }
+      );
+    if (!token)
+      return NextResponse.json(
+        { error: t("notify.err.tokenRequired") },
+        { status: 400 }
+      );
 
     // Проверяем токен ДО сохранения: иначе бот молча не работал бы, а понять
     // это можно было бы только по отсутствию сообщений.
     const proxyRaw = typeof b.proxyUrl === "string" ? b.proxyUrl.trim() : "";
     const proxyErr = validateProxyUrl(proxyRaw, t);
-    if (proxyErr) return NextResponse.json({ error: proxyErr }, { status: 400 });
+    if (proxyErr)
+      return NextResponse.json({ error: proxyErr }, { status: 400 });
     // Прокси для проверки берём тот же, что будет у бота потом: иначе
     // getMe прошёл бы напрямую, а рассылка пошла через прокси (или наоборот).
     const proxy = proxyRaw || (await proxyForBot(""));
@@ -109,8 +134,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const kinds = Array.isArray(b.kinds) ? b.kinds.filter((k: string) => KINDS.includes(k as any)) : [];
-    const tagIds: string[] = Array.isArray(b.tagIds) ? b.tagIds.filter(Boolean) : [];
+    const kinds = Array.isArray(b.kinds)
+      ? b.kinds.filter((k: string) => KINDS.includes(k as any))
+      : [];
+    const tagIds: string[] = Array.isArray(b.tagIds)
+      ? b.tagIds.filter(Boolean)
+      : [];
     const chats = parseChats(b.chats);
 
     const row = await prisma.notifyBot.create({
@@ -140,7 +169,10 @@ export async function POST(req: Request) {
       webhook = r.ok ? "ok" : t("notify.webhook.failed", { error: r.error });
     }
 
-    return NextResponse.json({ row: shape(row, t), username: me.result.username, webhook }, { status: 201 });
+    return NextResponse.json(
+      { row: shape(row, t), username: me.result.username, webhook },
+      { status: 201 }
+    );
   } catch (e) {
     return toApiError(e, t);
   }

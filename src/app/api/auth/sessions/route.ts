@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { tForRequest } from "@/lib/i18n/server";
 
 function asApiError(e: unknown): NextResponse {
-  if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+  if (e instanceof AuthError)
+    return NextResponse.json({ error: e.message }, { status: e.status });
   throw e;
 }
 
@@ -16,7 +17,14 @@ export async function GET() {
     const sessions = await prisma.session.findMany({
       where: { userId: user.id, revokedAt: null },
       orderBy: { lastSeenAt: "desc" },
-      select: { id: true, jti: true, userAgent: true, ip: true, createdAt: true, lastSeenAt: true },
+      select: {
+        id: true,
+        jti: true,
+        userAgent: true,
+        ip: true,
+        createdAt: true,
+        lastSeenAt: true,
+      },
     });
     return NextResponse.json({
       sessions: sessions.map(s => ({
@@ -43,7 +51,11 @@ export async function DELETE(req: Request) {
 
     if (body.others === true) {
       const r = await prisma.session.updateMany({
-        where: { userId: user.id, revokedAt: null, NOT: { jti: payload?.jti || "" } },
+        where: {
+          userId: user.id,
+          revokedAt: null,
+          NOT: { jti: payload?.jti || "" },
+        },
         data: { revokedAt: new Date() },
       });
       return NextResponse.json({ ok: true, revoked: r.count });
@@ -51,7 +63,10 @@ export async function DELETE(req: Request) {
 
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
     if (!sessionId) {
-      return NextResponse.json({ error: t("auth.err.sessionIdRequired") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("auth.err.sessionIdRequired") },
+        { status: 400 }
+      );
     }
     // userId в where — чужую сессию ревокнуть нельзя.
     const r = await prisma.session.updateMany({
@@ -59,7 +74,10 @@ export async function DELETE(req: Request) {
       data: { revokedAt: new Date() },
     });
     if (r.count === 0) {
-      return NextResponse.json({ error: t("auth.err.sessionNotFound") }, { status: 404 });
+      return NextResponse.json(
+        { error: t("auth.err.sessionNotFound") },
+        { status: 404 }
+      );
     }
     return NextResponse.json({ ok: true });
   } catch (e) {

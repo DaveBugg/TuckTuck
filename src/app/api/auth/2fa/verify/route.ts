@@ -12,15 +12,25 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const code = typeof body.code === "string" ? body.code.trim() : "";
     if (!user.totpSecret) {
-      return NextResponse.json({ error: t("auth.err.setupFirst") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("auth.err.setupFirst") },
+        { status: 400 }
+      );
     }
     if (!code || !authenticator.check(code, user.totpSecret)) {
-      return NextResponse.json({ error: t("auth.err.badCode") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("auth.err.badCode") },
+        { status: 400 }
+      );
     }
-    await prisma.user.update({ where: { id: user.id }, data: { totpEnabled: true } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { totpEnabled: true },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    if (e instanceof AuthError)
+      return NextResponse.json({ error: e.message }, { status: e.status });
     throw e;
   }
 }

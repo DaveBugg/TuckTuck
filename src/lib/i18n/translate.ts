@@ -41,7 +41,8 @@ export function makeT(locale: Locale): TFunc {
     // так одна и та же строка работает и с формами, и без них.
     if (params && typeof params.count === "number") {
       const pk = pluralKey(locale, key, params.count);
-      template = dict[pk] ?? fallback[pluralKey(DEFAULT_LOCALE, key, params.count)];
+      template =
+        dict[pk] ?? fallback[pluralKey(DEFAULT_LOCALE, key, params.count)];
     }
     template ??= dict[key] ?? fallback[key];
 
@@ -62,7 +63,10 @@ export function intlLocale(locale: Locale): string {
 }
 
 /** Дата и время в привычном для языка виде. */
-export function formatDateTime(v: string | number | Date, locale: Locale): string {
+export function formatDateTime(
+  v: string | number | Date,
+  locale: Locale
+): string {
   const d = v instanceof Date ? v : new Date(v);
   if (isNaN(d.getTime())) return "";
   return d.toLocaleString(intlLocale(locale), {
@@ -78,7 +82,10 @@ export function formatDateTime(v: string | number | Date, locale: Locale): strin
 export function formatTime(v: string | number | Date, locale: Locale): string {
   const d = v instanceof Date ? v : new Date(v);
   if (isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString(intlLocale(locale), { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(intlLocale(locale), {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function formatDate(v: string | number | Date, locale: Locale): string {
@@ -91,6 +98,10 @@ export function formatDate(v: string | number | Date, locale: Locale): string {
   });
 }
 
-export function formatNumber(v: number, locale: Locale, opts?: Intl.NumberFormatOptions): string {
+export function formatNumber(
+  v: number,
+  locale: Locale,
+  opts?: Intl.NumberFormatOptions
+): string {
   return v.toLocaleString(intlLocale(locale), opts);
 }

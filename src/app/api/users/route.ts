@@ -16,7 +16,9 @@ export async function GET(req: Request) {
     });
     const role = p.get("role");
     const where = {
-      ...(ROLES.includes(role as any) ? { role: role as (typeof ROLES)[number] } : {}),
+      ...(ROLES.includes(role as any)
+        ? { role: role as (typeof ROLES)[number] }
+        : {}),
       ...(p.search
         ? {
             OR: [
@@ -56,14 +58,21 @@ export async function POST(req: Request) {
   try {
     await requirePermission("users.manage");
     const b = await req.json().catch(() => ({}));
-    const email = typeof b.email === "string" ? b.email.toLowerCase().trim() : "";
+    const email =
+      typeof b.email === "string" ? b.email.toLowerCase().trim() : "";
     const password = typeof b.password === "string" ? b.password : "";
     const role = ROLES.includes(b.role) ? b.role : "USER";
     if (!email || !email.includes("@")) {
-      return NextResponse.json({ error: t("users.err.email") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("users.err.email") },
+        { status: 400 }
+      );
     }
     if (password.length < 8) {
-      return NextResponse.json({ error: t("users.err.password") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("users.err.password") },
+        { status: 400 }
+      );
     }
     const row = await prisma.user.create({
       data: {
@@ -72,7 +81,14 @@ export async function POST(req: Request) {
         name: typeof b.name === "string" ? b.name : "",
         role,
       },
-      select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
     });
     return NextResponse.json({ row }, { status: 201 });
   } catch (e) {

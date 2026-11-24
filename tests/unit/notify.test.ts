@@ -2,7 +2,11 @@
 // Обе функции чистые — проверяются без сети и без БД.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { botMatches, reminderText, reminderButtons } from "../../src/lib/notify";
+import {
+  botMatches,
+  reminderText,
+  reminderButtons,
+} from "../../src/lib/notify";
 import { makeT } from "../../src/lib/i18n/translate";
 import { DEFAULT_REMINDER_DAYS } from "../../src/lib/resources";
 
@@ -39,8 +43,14 @@ test("фильтр по тегам: достаточно одного совпа
 test("тип и теги работают вместе (И, а не ИЛИ)", () => {
   const b = bot(["SERVER"], ["t1"]);
   assert.ok(botMatches(b, res("SERVER", ["t1"])));
-  assert.ok(!botMatches(b, res("SERVER", ["t2"])), "тип совпал, тег нет — не шлём");
-  assert.ok(!botMatches(b, res("DOMAIN", ["t1"])), "тег совпал, тип нет — не шлём");
+  assert.ok(
+    !botMatches(b, res("SERVER", ["t2"])),
+    "тип совпал, тег нет — не шлём"
+  );
+  assert.ok(
+    !botMatches(b, res("DOMAIN", ["t1"])),
+    "тег совпал, тип нет — не шлём"
+  );
 });
 
 const base = {
@@ -58,7 +68,8 @@ test("текст: срок словами, а не числом «через 0 �
   // Язык называем явно: по умолчанию панель говорит по-английски, а формы
   // числа проверяются именно русские — их три, и ошибиться легче всего в них.
   const ru = makeT("ru");
-  const say = (daysBefore: number) => reminderText({ ...base, daysBefore }, ru, "ru");
+  const say = (daysBefore: number) =>
+    reminderText({ ...base, daysBefore }, ru, "ru");
   assert.match(say(0), /сегодня/);
   assert.match(say(1), /завтра/);
   // Именно «5 дней», а не «5 дня»: форму выбирает Intl по числу.
@@ -93,13 +104,26 @@ test("текст: HTML в имени экранируется, разметку 
 });
 
 test("текст: адрес показывается по типу", () => {
-  assert.match(reminderText({ ...base, ip: "10.0.0.1", daysBefore: 1 }), /10\.0\.0\.1/);
   assert.match(
-    reminderText({ ...base, kind: "DOMAIN", domain: "example.com", daysBefore: 1 }),
+    reminderText({ ...base, ip: "10.0.0.1", daysBefore: 1 }),
+    /10\.0\.0\.1/
+  );
+  assert.match(
+    reminderText({
+      ...base,
+      kind: "DOMAIN",
+      domain: "example.com",
+      daysBefore: 1,
+    }),
     /example\.com/
   );
   assert.match(
-    reminderText({ ...base, kind: "SERVICE", url: "https://x.io/bill", daysBefore: 1 }),
+    reminderText({
+      ...base,
+      kind: "SERVICE",
+      url: "https://x.io/bill",
+      daysBefore: 1,
+    }),
     /https:\/\/x\.io\/bill/
   );
 });
@@ -129,7 +153,8 @@ test("кнопки под напоминанием: оплатить, отмен
   assert.equal(flat.length, 3);
   // Ключ сообщения обязан быть в каждой кнопке: по нему вебхук находит, о каком
   // напоминании речь, и без него нажатие некуда отнести.
-  for (const b of flat) assert.ok(b.callback_data.endsWith(":msgkey"), b.callback_data);
+  for (const b of flat)
+    assert.ok(b.callback_data.endsWith(":msgkey"), b.callback_data);
   assert.deepEqual(
     flat.map(b => b.callback_data.split(":")[0]),
     ["paid", "cancel", "del"]

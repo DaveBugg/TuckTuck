@@ -1,0 +1,7 @@
+# Исключения из код-графа codebase-memory-mcp (синтаксис gitignore)
+*.bak
+*.orig
+.next/
+out/
+build/
+public/images/

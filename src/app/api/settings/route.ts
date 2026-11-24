@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
-import { getSettings, validateSettings, invalidateSettingsCache } from "@/lib/settings";
+import {
+  getSettings,
+  validateSettings,
+  invalidateSettingsCache,
+} from "@/lib/settings";
 import { encryptSecret } from "@/lib/secret-crypto";
-import { globalProxyUrl, maskProxyUrl, saveGlobalProxy, validateProxyUrl } from "@/lib/notify-proxy";
+import {
+  globalProxyUrl,
+  maskProxyUrl,
+  saveGlobalProxy,
+  validateProxyUrl,
+} from "@/lib/notify-proxy";
 import { resetProxyCache } from "@/lib/proxy-dispatcher";
 import { tForRequest } from "@/lib/i18n/server";
 
@@ -44,12 +53,18 @@ export async function PUT(req: Request) {
 
     const data: Record<string, unknown> = {};
     if (b.timezone !== undefined) data.timezone = String(b.timezone);
-    if (b.metricsRetentionDays !== undefined) data.metricsRetentionDays = Number(b.metricsRetentionDays);
-    if (b.displayCurrency !== undefined) data.displayCurrency = String(b.displayCurrency).toUpperCase();
-    if (b.notifyLocale !== undefined) data.notifyLocale = String(b.notifyLocale);
-    if (b.notifyFromHour !== undefined) data.notifyFromHour = Number(b.notifyFromHour);
-    if (b.notifyToHour !== undefined) data.notifyToHour = Number(b.notifyToHour);
-    if (b.turnstileSiteKey !== undefined) data.turnstileSiteKey = String(b.turnstileSiteKey).trim();
+    if (b.metricsRetentionDays !== undefined)
+      data.metricsRetentionDays = Number(b.metricsRetentionDays);
+    if (b.displayCurrency !== undefined)
+      data.displayCurrency = String(b.displayCurrency).toUpperCase();
+    if (b.notifyLocale !== undefined)
+      data.notifyLocale = String(b.notifyLocale);
+    if (b.notifyFromHour !== undefined)
+      data.notifyFromHour = Number(b.notifyFromHour);
+    if (b.notifyToHour !== undefined)
+      data.notifyToHour = Number(b.notifyToHour);
+    if (b.turnstileSiteKey !== undefined)
+      data.turnstileSiteKey = String(b.turnstileSiteKey).trim();
     // Пустая строка осмысленна — «выключить капчу», поэтому отличаем её от
     // «поле не прислали».
     if (typeof b.turnstileSecretKey === "string") {

@@ -19,7 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SearchSelect } from "@/components/ui/search-select";
 import { cn } from "@/lib/utils";
 import { apiJson } from "@/lib/client-api";
@@ -36,8 +42,6 @@ import { useI18n } from "@/components/i18n-provider";
 import type { Catalog, ResourceRow } from "./types";
 
 const NONE = "__none__"; // Radix Select не принимает "" как значение пункта
-
-
 
 const empty = {
   kind: "SERVER" as Kind,
@@ -136,11 +140,16 @@ export default function ResourceForm({
 
   const saveProviderUrl = async () => {
     if (!f.providerId) return;
-    const current = catalog.providers.find(x => x.id === f.providerId)?.url || "";
+    const current =
+      catalog.providers.find(x => x.id === f.providerId)?.url || "";
     const next = providerUrl.trim();
     if (next === current) return;
     try {
-      await apiJson("/api/catalog", "PATCH", { type: "provider", id: f.providerId, url: next });
+      await apiJson("/api/catalog", "PATCH", {
+        type: "provider",
+        id: f.providerId,
+        url: next,
+      });
       onCatalogChange();
     } catch (e: any) {
       toast.error(e.message);
@@ -155,7 +164,8 @@ export default function ResourceForm({
       const d = await apiJson("/api/catalog", "POST", { type, name });
       if (type === "tag") {
         setNewTag("");
-        if (!f.tagIds.includes(d.row.id)) set("tagIds", [...f.tagIds, d.row.id]);
+        if (!f.tagIds.includes(d.row.id))
+          set("tagIds", [...f.tagIds, d.row.id]);
       } else {
         setNewProvider("");
         set("providerId", d.row.id);
@@ -190,7 +200,11 @@ export default function ResourceForm({
       <DialogContent className="sm:max-w-2xl">
         <form onSubmit={save} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>{row ? t("res.form.editTitle", { name: row.name }) : t("res.form.newTitle")}</DialogTitle>
+            <DialogTitle>
+              {row
+                ? t("res.form.editTitle", { name: row.name })
+                : t("res.form.newTitle")}
+            </DialogTitle>
             {!row && (
               <DialogDescription>
                 {t("res.form.remindersHint")}
@@ -228,7 +242,11 @@ export default function ResourceForm({
             </div>
 
             {shown.includes("ip") && (
-              <div className={shown.includes("port") ? "sm:col-span-8" : "sm:col-span-12"}>
+              <div
+                className={
+                  shown.includes("port") ? "sm:col-span-8" : "sm:col-span-12"
+                }
+              >
                 <Label htmlFor="rf-ip">IP</Label>
                 <Input
                   id="rf-ip"
@@ -314,7 +332,9 @@ export default function ResourceForm({
               />
             </div>
             <div className="sm:col-span-3">
-              <Label>{f.isCrypto ? t("res.form.coin") : t("res.form.currency")}</Label>
+              <Label>
+                {f.isCrypto ? t("res.form.coin") : t("res.form.currency")}
+              </Label>
               <div className="mt-1.5">
                 <SearchSelect
                   value={f.currency}
@@ -326,7 +346,9 @@ export default function ResourceForm({
                   }))}
                   searchPlaceholder={t("common.search")}
                   emptyText={t("common.nothingFound")}
-                  ariaLabel={f.isCrypto ? t("res.form.coin") : t("res.form.currency")}
+                  ariaLabel={
+                    f.isCrypto ? t("res.form.coin") : t("res.form.currency")
+                  }
                 />
               </div>
             </div>
@@ -359,7 +381,10 @@ export default function ResourceForm({
                   onChange={e => set("periodValue", e.target.value)}
                   aria-label={t("res.form.periodValue")}
                 />
-                <Select value={f.periodUnit} onValueChange={v => set("periodUnit", v)}>
+                <Select
+                  value={f.periodUnit}
+                  onValueChange={v => set("periodUnit", v)}
+                >
                   <SelectTrigger aria-label={t("res.form.periodUnit")}>
                     <SelectValue />
                   </SelectTrigger>
@@ -420,7 +445,12 @@ export default function ResourceForm({
                     }
                   }}
                 />
-                <Button type="button" variant="outline" size="icon-sm" onClick={() => quickAdd("provider")}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => quickAdd("provider")}
+                >
                   <Plus />
                 </Button>
               </div>
@@ -433,7 +463,9 @@ export default function ResourceForm({
                 onBlur={saveProviderUrl}
                 disabled={!f.providerId}
                 placeholder={
-                  f.providerId ? t("res.form.providerUrl") : t("res.form.providerUrlPick")
+                  f.providerId
+                    ? t("res.form.providerUrl")
+                    : t("res.form.providerUrlPick")
                 }
                 aria-label={t("res.form.providerUrl")}
               />
@@ -447,7 +479,10 @@ export default function ResourceForm({
                   onChange={v => set("groupId", v === NONE ? "" : v)}
                   options={[
                     { value: NONE, label: t("res.form.groupNone") },
-                    ...catalog.groups.map(g => ({ value: g.id, label: g.name })),
+                    ...catalog.groups.map(g => ({
+                      value: g.id,
+                      label: g.name,
+                    })),
                   ]}
                   searchPlaceholder={t("common.search")}
                   emptyText={t("common.nothingFound")}
@@ -460,7 +495,9 @@ export default function ResourceForm({
               <Label>{t("res.form.tags")}</Label>
               <div className="mt-1.5 flex flex-wrap gap-2">
                 {catalog.tags.length === 0 && (
-                  <span className="text-sm text-muted-foreground">{t("res.form.noTags")}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("res.form.noTags")}
+                  </span>
                 )}
                 {catalog.tags.map(tag => {
                   const on = f.tagIds.includes(tag.id);
@@ -469,7 +506,12 @@ export default function ResourceForm({
                       key={tag.id}
                       type="button"
                       onClick={() =>
-                        set("tagIds", on ? f.tagIds.filter(x => x !== tag.id) : [...f.tagIds, tag.id])
+                        set(
+                          "tagIds",
+                          on
+                            ? f.tagIds.filter(x => x !== tag.id)
+                            : [...f.tagIds, tag.id]
+                        )
                       }
                       className={cn(
                         "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors",
@@ -497,7 +539,12 @@ export default function ResourceForm({
                     }
                   }}
                 />
-                <Button type="button" variant="outline" size="icon-sm" onClick={() => quickAdd("tag")}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={() => quickAdd("tag")}
+                >
                   <Plus />
                 </Button>
               </div>
@@ -516,7 +563,11 @@ export default function ResourceForm({
             </div>
 
             <div className="flex items-center gap-2 sm:col-span-12">
-              <Switch id="rf-active" checked={f.isActive} onCheckedChange={v => set("isActive", v)} />
+              <Switch
+                id="rf-active"
+                checked={f.isActive}
+                onCheckedChange={v => set("isActive", v)}
+              />
               <Label htmlFor="rf-active" className="font-normal">
                 {t("res.form.active")}
               </Label>

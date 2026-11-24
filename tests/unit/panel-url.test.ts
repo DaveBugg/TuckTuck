@@ -8,7 +8,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { panelBaseUrl } from "../../src/lib/panel-url";
 
-const req = (url: string, headers: Record<string, string> = {}) => new Request(url, { headers });
+const req = (url: string, headers: Record<string, string> = {}) =>
+  new Request(url, { headers });
 
 test("явная настройка важнее всего", () => {
   process.env.TUCKTUCK_PUBLIC_URL = "https://panel.example.com/";
@@ -56,18 +57,25 @@ test("origin запроса — последняя надежда, для зап
   delete process.env.TUCKTUCK_PUBLIC_URL;
   // Ни настройки, ни заголовков прокси — остаётся адрес самого запроса.
   // Схему при этом не выдумываем: без прокси https взяться неоткуда.
-  assert.equal(panelBaseUrl(new Request("http://192.168.1.10:3000/api/x")), "http://192.168.1.10:3000");
+  assert.equal(
+    panelBaseUrl(new Request("http://192.168.1.10:3000/api/x")),
+    "http://192.168.1.10:3000"
+  );
 });
 
 test("мусор в настройке игнорируется, а не уезжает на чужую машину", () => {
   process.env.TUCKTUCK_PUBLIC_URL = "не адрес";
   assert.equal(
-    panelBaseUrl(req("http://0.0.0.0:3000/api/x", { "x-forwarded-host": "ok.example" })),
+    panelBaseUrl(
+      req("http://0.0.0.0:3000/api/x", { "x-forwarded-host": "ok.example" })
+    ),
     "https://ok.example"
   );
   process.env.TUCKTUCK_PUBLIC_URL = "ftp://panel.example.com";
   assert.equal(
-    panelBaseUrl(req("http://0.0.0.0:3000/api/x", { "x-forwarded-host": "ok.example" })),
+    panelBaseUrl(
+      req("http://0.0.0.0:3000/api/x", { "x-forwarded-host": "ok.example" })
+    ),
     "https://ok.example"
   );
   delete process.env.TUCKTUCK_PUBLIC_URL;

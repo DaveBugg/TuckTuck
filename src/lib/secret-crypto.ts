@@ -69,10 +69,15 @@ export function decryptSecret(stored: string): string {
   // Ровно три части и непустые iv/tag. Проверять непустоту DATA нельзя:
   // шифротекст пустой строки сам пуст, и такая проверка ломала бы кейс,
   // который в тестах есть не случайно (пустой секрет — валидное значение).
-  if (parts.length !== 3 || !parts[0] || !parts[1]) throw new Error("secret is corrupted");
+  if (parts.length !== 3 || !parts[0] || !parts[1])
+    throw new Error("secret is corrupted");
   const [ivB, tagB, dataB] = parts;
 
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key(), Buffer.from(ivB, "base64url"));
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    key(),
+    Buffer.from(ivB, "base64url")
+  );
   // Тег проверяется в final(): при подмене шифротекста бросит исключение.
   decipher.setAuthTag(Buffer.from(tagB, "base64url"));
   return Buffer.concat([

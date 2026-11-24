@@ -5,16 +5,34 @@
 // типу, провайдеру и тегу, подсветка ближайших 14/7/3 дней и просрочки.
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, Server, ShieldCheck, Repeat, Globe, AppWindow, CircleCheck } from "lucide-react";
+import {
+  Plus,
+  Server,
+  ShieldCheck,
+  Repeat,
+  Globe,
+  AppWindow,
+  CircleCheck,
+} from "lucide-react";
 import { toast } from "sonner";
-import DataTable, { apiFetcher, type DataTableColumn } from "@/components/data-table";
+import DataTable, {
+  apiFetcher,
+  type DataTableColumn,
+} from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { usePermissions } from "@/lib/use-permissions";
 import { useConfirm } from "@/components/confirm-dialog";
-import { KINDS, kindLabel, daysUntil, dueLevel, periodText, type Kind } from "@/lib/resources";
+import {
+  KINDS,
+  kindLabel,
+  daysUntil,
+  dueLevel,
+  periodText,
+  type Kind,
+} from "@/lib/resources";
 import { MONITORABLE } from "@/lib/monitoring";
 import { useI18n } from "@/components/i18n-provider";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -65,9 +83,17 @@ export default function ResourcesPage() {
     return `${s} ${currency}`;
   };
   const [reloadKey, setReloadKey] = useState(0);
-  const [modal, setModal] = useState<{ open: boolean; row?: ResourceRow }>({ open: false });
-  const [agent, setAgent] = useState<{ open: boolean; row?: ResourceRow }>({ open: false });
-  const [catalog, setCatalog] = useState<Catalog>({ providers: [], tags: [], groups: [] });
+  const [modal, setModal] = useState<{ open: boolean; row?: ResourceRow }>({
+    open: false,
+  });
+  const [agent, setAgent] = useState<{ open: boolean; row?: ResourceRow }>({
+    open: false,
+  });
+  const [catalog, setCatalog] = useState<Catalog>({
+    providers: [],
+    tags: [],
+    groups: [],
+  });
   // Метрики всех машин одним запросом на страницу: значку в колонке нужен цвет
   // сразу, а не по наведению, и сотня строк не должна означать сотню запросов.
   const [systems, setSystems] = useState<Record<string, SystemView>>({});
@@ -118,7 +144,9 @@ export default function ResourcesPage() {
       const d = await apiJson(`/api/resources/${row.id}/pay`, "POST", {});
       setReloadKey(k => k + 1);
       toast.success(t("res.toast.paid"), {
-        description: t("res.toast.nextPayment", { date: fmtDate(asDate(d.nextPaymentAt)) }),
+        description: t("res.toast.nextPayment", {
+          date: fmtDate(asDate(d.nextPaymentAt)),
+        }),
       });
     } catch (e: any) {
       toast.error(e.message);
@@ -141,12 +169,22 @@ export default function ResourcesPage() {
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className={r.isActive ? "font-medium" : "font-medium text-muted-foreground"}>
+                <span
+                  className={
+                    r.isActive
+                      ? "font-medium"
+                      : "font-medium text-muted-foreground"
+                  }
+                >
                   {r.name}
                 </span>
                 {!r.isActive && <Badge variant="muted">{t("res.off")}</Badge>}
               </div>
-              {sub && <div className="truncate text-xs text-muted-foreground">{sub}</div>}
+              {sub && (
+                <div className="truncate text-xs text-muted-foreground">
+                  {sub}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -247,10 +285,10 @@ export default function ResourcesPage() {
     <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{t("res.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t("res.subtitle")}
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {t("res.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("res.subtitle")}</p>
         </div>
       </div>
 
@@ -273,16 +311,26 @@ export default function ResourcesPage() {
                   label: t("res.filter.dueIn", { count: n }),
                 })),
               },
-              { id: "kind", label: t("res.col.kind"), options: KINDS.map(k => ({ value: k, label: kindLabel(k, t) })) },
+              {
+                id: "kind",
+                label: t("res.col.kind"),
+                options: KINDS.map(k => ({ value: k, label: kindLabel(k, t) })),
+              },
               {
                 id: "providerId",
                 label: t("res.filter.provider"),
-                options: catalog.providers.map(p => ({ value: p.id, label: p.name })),
+                options: catalog.providers.map(p => ({
+                  value: p.id,
+                  label: p.name,
+                })),
               },
               {
                 id: "tagId",
                 label: t("res.filter.tag"),
-                options: catalog.tags.map(t => ({ value: t.id, label: t.name })),
+                options: catalog.tags.map(t => ({
+                  value: t.id,
+                  label: t.name,
+                })),
               },
             ]}
             toolbar={

@@ -9,7 +9,13 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Activity, RefreshCw, ArrowRight, ServerCog, Search } from "lucide-react";
+import {
+  Activity,
+  RefreshCw,
+  ArrowRight,
+  ServerCog,
+  Search,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +25,10 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { type Health } from "@/lib/monitoring";
-import { SystemSummary, type SystemView } from "@/components/monitoring/metrics";
+import {
+  SystemSummary,
+  type SystemView,
+} from "@/components/monitoring/metrics";
 import { useI18n } from "@/components/i18n-provider";
 
 type System = SystemView;
@@ -53,7 +62,9 @@ export default function MonitoringCard() {
     return () => clearInterval(id);
   }, [load]);
 
-  const bad = systems?.filter(s => s.health === "down" || s.health === "stale").length ?? 0;
+  const bad =
+    systems?.filter(s => s.health === "down" || s.health === "stale").length ??
+    0;
   const hasSelf = systems?.some(s => s.isSelf) ?? false;
 
   // Поиск на клиенте: машин десятки, а не тысячи, и ходить за этим на сервер
@@ -62,7 +73,9 @@ export default function MonitoringCard() {
     const all = systems?.filter(s => s.agentConnected) ?? [];
     const q = search.trim().toLowerCase();
     if (!q) return all;
-    return all.filter(s => s.name.toLowerCase().includes(q) || (s.ip || "").includes(q));
+    return all.filter(
+      s => s.name.toLowerCase().includes(q) || (s.ip || "").includes(q)
+    );
   }, [systems, search]);
 
   const anyConnected = (systems?.filter(s => s.agentConnected).length ?? 0) > 0;
@@ -70,7 +83,11 @@ export default function MonitoringCard() {
   const enableSelf = async () => {
     try {
       const d = await apiJson("/api/monitoring/self/enable", "POST");
-      toast.success(d.already ? t("monitor.selfAlready") : t("monitor.selfAdded", { name: d.row.name }));
+      toast.success(
+        d.already
+          ? t("monitor.selfAlready")
+          : t("monitor.selfAdded", { name: d.row.name })
+      );
       load();
     } catch (e: any) {
       toast.error(e.message);
@@ -105,7 +122,9 @@ export default function MonitoringCard() {
 
       <CardContent className="flex flex-col gap-4">
         {systems === null &&
-          Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+          Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
 
         {systems?.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -157,7 +176,9 @@ export default function MonitoringCard() {
         )}
 
         {anyConnected && connected.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t("dashboard.nothingFound")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("dashboard.nothingFound")}
+          </p>
         )}
 
         {/* Прокрутка внутри карточки, а не рост карточки вниз: с десятком машин

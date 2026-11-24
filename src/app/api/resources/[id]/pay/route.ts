@@ -34,7 +34,8 @@ export async function POST(req: Request, ctx: Ctx) {
         nextPaymentAt: true,
       },
     });
-    if (!r) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!r)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const b = await req.json().catch(() => ({}));
 
@@ -43,14 +44,21 @@ export async function POST(req: Request, ctx: Ctx) {
     let paidAt = r.nextPaymentAt;
     if (b.paidAt) {
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(b.paidAt));
-      if (!m) return NextResponse.json({ error: t("res.err.payDateFormat") }, { status: 400 });
+      if (!m)
+        return NextResponse.json(
+          { error: t("res.err.payDateFormat") },
+          { status: 400 }
+        );
       paidAt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
     }
     let amount = r.amount.toString();
     if (b.amount !== undefined && b.amount !== "") {
       const a = Number(b.amount);
       if (!isFinite(a) || a < 0) {
-        return NextResponse.json({ error: t("res.err.amountNonNegative") }, { status: 400 });
+        return NextResponse.json(
+          { error: t("res.err.amountNonNegative") },
+          { status: 400 }
+        );
       }
       amount = a.toFixed(2);
     }

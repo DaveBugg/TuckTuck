@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Финансы — Доходы | TuckTuck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-zinc-50 text-zinc-900 antialiased">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 shrink-0 border-r border-zinc-200 bg-white flex flex-col"
+      >
+        <div class="h-16 flex items-center px-6 border-b border-zinc-100">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-bold text-sm"
+            >
+              TT
+            </div>
+            <span class="font-semibold text-lg tracking-tight">TuckTuck</span>
+          </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-6">
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Главное
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-grid-2 w-5 text-center text-zinc-400"
+                  ></i
+                  >Панель</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-server w-5 text-center text-zinc-400"
+                  ></i
+                  >Ресурсы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-heart-pulse w-5 text-center text-zinc-400"
+                  ></i
+                  >Мониторинг</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i class="fa-solid fa-bell w-5 text-center text-zinc-400"></i
+                  >Уведомления</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Управление
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-users w-5 text-center text-zinc-400"
+                  ></i
+                  >Пользователи</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i class="fa-solid fa-gear w-5 text-center text-zinc-400"></i
+                  >Настройки</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Финансы
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="index.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-wallet w-5 text-center text-zinc-400"
+                  ></i
+                  >Доска</a
+                >
+              </li>
+              <li>
+                <a
+                  href="expenses.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-money-bill-transfer w-5 text-center text-zinc-400"
+                  ></i
+                  >Расходы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="income.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-900 bg-zinc-100"
+                  ><i
+                    class="fa-solid fa-hand-holding-dollar w-5 text-center text-zinc-700"
+                  ></i
+                  >Доходы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="projects.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-folder-open w-5 text-center text-zinc-400"
+                  ></i
+                  >Проекты</a
+                >
+              </li>
+              <li>
+                <a
+                  href="team.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-people-group w-5 text-center text-zinc-400"
+                  ></i
+                  >Команда</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="p-4 border-t border-zinc-100">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <div
+              class="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-semibold text-zinc-600"
+            >
+              АК
+            </div>
+            <div class="text-sm">
+              <p class="font-medium text-zinc-900">Алексей К.</p>
+              <p class="text-zinc-500 text-xs">Администратор</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="flex-1 flex flex-col min-w-0">
+        <!-- Header -->
+        <header
+          class="h-16 border-b border-zinc-200 bg-white flex items-center justify-between px-8"
+        >
+          <h1 class="text-xl font-semibold text-zinc-900">Доходы</h1>
+          <button
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm"
+          >
+            <i class="fa-solid fa-plus"></i>Добавить
+          </button>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+          <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Filters -->
+            <div
+              class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+            >
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Период</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Ноябрь 2026</option>
+                    <option>Октябрь 2026</option>
+                    <option>За всё время</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Проект</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все проекты</option>
+                    <option>VPN-сервис</option>
+                    <option>Игровой проект</option>
+                    <option>Команда</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Валюта</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все</option>
+                    <option>₽</option>
+                    <option>$</option>
+                    <option>€</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Статус распределения</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все</option>
+                    <option>Распределён полностью</option>
+                    <option>Есть остаток</option>
+                    <option>Не распределён</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Поиск</label
+                  >
+                  <div class="relative">
+                    <i
+                      class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-400 text-xs"
+                    ></i>
+                    <input
+                      type="text"
+                      placeholder="Название или клиент"
+                      class="w-full rounded-lg border border-zinc-300 pl-8 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div
+              class="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden"
+            >
+              <table class="w-full text-sm">
+                <thead class="bg-zinc-50">
+                  <tr>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Дата
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Название
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Проект / Команда
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Сумма
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Распределено
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Остаток
+                    </th>
+                    <th class="px-5 py-3 text-center font-medium text-zinc-500">
+                      Статус
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Действия
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">22.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Платёж от клиента NordPay
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">VPN-сервис</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $4 200
+                      <span class="text-zinc-500 font-normal">(₽390 000)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">
+                      ₽390 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-500">₽0</td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
+                        >Распределён</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">18.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Платёж от GameStudio LLC
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">Игровой проект</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $1 800
+                      <span class="text-zinc-500 font-normal">(₽167 400)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">
+                      ₽150 000
+                    </td>
+                    <td
+                      class="px-5 py-3.5 text-right text-amber-600 font-medium"
+                    >
+                      ₽17 400
+                    </td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"
+                        >Частично</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">15.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Доход от API-шлюза
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">API-шлюз</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      ₽86 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">₽0</td>
+                    <td class="px-5 py-3.5 text-right text-zinc-500">
+                      ₽86 000
+                    </td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Не распределён</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">10.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Консультация Enterprise
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">Команда</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      ₽120 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">
+                      ₽120 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-500">₽0</td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
+                        >Распределён</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">03.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Платёж от VPN-Reseller
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">VPN-сервис</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $2 100
+                      <span class="text-zinc-500 font-normal">(₽195 000)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">
+                      ₽195 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-500">₽0</td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
+                        >Распределён</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">28.10.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Подписка Premium октябрь
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">VPN-сервис</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $3 500
+                      <span class="text-zinc-500 font-normal">(₽325 000)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-900">
+                      ₽325 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right text-zinc-500">₽0</td>
+                    <td class="px-5 py-3.5 text-center">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700"
+                        >Распределён</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div
+                class="px-5 py-3 border-t border-zinc-100 flex items-center justify-between text-sm text-zinc-500"
+              >
+                <span>Показано 6 из 18</span>
+                <div class="flex gap-2">
+                  <button
+                    class="px-3 py-1 rounded-md border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50"
+                    disabled
+                  >
+                    Назад
+                  </button>
+                  <button
+                    class="px-3 py-1 rounded-md border border-zinc-200 hover:bg-zinc-50"
+                  >
+                    Вперёд
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

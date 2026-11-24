@@ -14,7 +14,11 @@ import * as React from "react";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export type SearchOption = {
   value: string;
@@ -81,7 +85,9 @@ export function SearchSelect({
 
   React.useEffect(() => {
     if (!open) return;
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${active}"]`);
+    const el = listRef.current?.querySelector<HTMLElement>(
+      `[data-idx="${active}"]`
+    );
     el?.scrollIntoView({ block: "nearest" });
   }, [open, active]);
 
@@ -125,7 +131,10 @@ export function SearchSelect({
       </PopoverTrigger>
 
       <PopoverContent
-        className={cn("w-(--radix-popover-trigger-width) min-w-56 p-0", contentClassName)}
+        className={cn(
+          "w-(--radix-popover-trigger-width) min-w-56 p-0",
+          contentClassName
+        )}
         onOpenAutoFocus={e => {
           // Фокус сразу в поле поиска: открыли — печатаем, а не ищем мышью,
           // куда кликнуть.
@@ -144,7 +153,11 @@ export function SearchSelect({
           />
         </div>
 
-        <div ref={listRef} className="max-h-64 overflow-y-auto p-1" role="listbox">
+        <div
+          ref={listRef}
+          className="max-h-64 overflow-y-auto p-1"
+          role="listbox"
+        >
           {filtered.length === 0 && (
             <div className="px-2 py-6 text-center text-sm text-muted-foreground">
               {emptyText || ""}
@@ -171,7 +184,9 @@ export function SearchSelect({
               )}
               <span className="truncate">{o.label}</span>
               {o.hint && (
-                <span className="ml-auto shrink-0 text-xs text-muted-foreground">{o.hint}</span>
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                  {o.hint}
+                </span>
               )}
             </button>
           ))}

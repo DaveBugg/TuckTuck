@@ -41,7 +41,8 @@ export function panelBaseUrl(req: Request): string | null {
   // Caddy и nginx проставляют их сами. Значение приходит из заголовка, то есть
   // от клиента, — но сюда попадают только админы, а худшее последствие ошибки
   // здесь в том, что агент получит неверный адрес и не пришлёт метрику.
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  const host =
+    req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
   const proto = req.headers.get("x-forwarded-proto") || "https";
   if (host && !BAD_HOST.test(host)) {
     const candidate = `${proto.split(",")[0].trim()}://${host.split(",")[0].trim()}`;

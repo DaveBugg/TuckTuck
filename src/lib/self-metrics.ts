@@ -27,7 +27,10 @@ export type SelfSample = {
 /** Прошлый снимок счётчиков CPU — та же схема, что в агенте. */
 let prevCpu: { total: number; idle: number } | null = null;
 
-async function readCpuCounters(): Promise<{ total: number; idle: number } | null> {
+async function readCpuCounters(): Promise<{
+  total: number;
+  idle: number;
+} | null> {
   try {
     const txt = await readFile(`${PROC}/stat`, "utf8");
     const line = txt.split("\n").find(l => l.startsWith("cpu "));
@@ -75,7 +78,10 @@ async function readDiskPct(): Promise<number | null> {
   }
 }
 
-async function readLoadAndUptime(): Promise<{ load1: number | null; uptimeSec: number | null }> {
+async function readLoadAndUptime(): Promise<{
+  load1: number | null;
+  uptimeSec: number | null;
+}> {
   let load1: number | null = null;
   let uptimeSec: number | null = null;
   try {
@@ -99,7 +105,9 @@ async function readLoadAndUptime(): Promise<{ load1: number | null; uptimeSec: n
 }
 
 const clampPct = (v: number | null) =>
-  v == null || !isFinite(v) ? null : Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
+  v == null || !isFinite(v)
+    ? null
+    : Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
 
 /**
  * Снять метрики хоста.

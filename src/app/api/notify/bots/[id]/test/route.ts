@@ -21,10 +21,20 @@ export async function POST(req: Request, ctx: Ctx) {
     await requirePermission("notify.manage");
     const { id } = await ctx.params;
 
-    const bot = await prisma.notifyBot.findUnique({ where: { id }, include: { chats: true } });
-    if (!bot) return NextResponse.json({ error: t("notify.err.botNotFound") }, { status: 404 });
+    const bot = await prisma.notifyBot.findUnique({
+      where: { id },
+      include: { chats: true },
+    });
+    if (!bot)
+      return NextResponse.json(
+        { error: t("notify.err.botNotFound") },
+        { status: 404 }
+      );
     if (bot.chats.length === 0) {
-      return NextResponse.json({ error: t("notify.err.noChats") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("notify.err.noChats") },
+        { status: 400 }
+      );
     }
 
     const token = decryptSecret(bot.tokenEnc);

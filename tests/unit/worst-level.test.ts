@@ -31,8 +31,14 @@ test("критичная метрика важнее предупреждающ�
 
 test("молчащая машина важнее её же цифр", () => {
   // У неё метрики устарели, и зелёный «6% CPU» у мёртвого сервера — обман.
-  assert.equal(worstLevel(s({ health: "stale", cpu: 1, memory: 1, disk: 1 })), "warn");
-  assert.equal(worstLevel(s({ health: "down", cpu: 1, memory: 1, disk: 1 })), "crit");
+  assert.equal(
+    worstLevel(s({ health: "stale", cpu: 1, memory: 1, disk: 1 })),
+    "warn"
+  );
+  assert.equal(
+    worstLevel(s({ health: "down", cpu: 1, memory: 1, disk: 1 })),
+    "crit"
+  );
   assert.equal(worstLevel(s({ health: "unknown" })), "none");
 });
 

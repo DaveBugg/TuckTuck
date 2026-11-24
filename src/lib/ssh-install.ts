@@ -44,7 +44,10 @@ export type InstallResult = {
 export function hostFingerprint(key: Buffer): string {
   // base64 без «=» на конце — так это и выглядит в ssh, и человек может
   // сверить строку глазами с выводом `ssh-keyscan`.
-  return "SHA256:" + crypto.createHash("sha256").update(key).digest("base64").replace(/=+$/, "");
+  return (
+    "SHA256:" +
+    crypto.createHash("sha256").update(key).digest("base64").replace(/=+$/, "")
+  );
 }
 
 /**
@@ -104,9 +107,11 @@ export function normalizeKey(raw: string): string {
  */
 function friendly(err: Error & { level?: string }, t: TFunc): string {
   const m = err.message || String(err);
-  if (/All configured authentication methods failed/i.test(m)) return t("ssh.err.auth");
+  if (/All configured authentication methods failed/i.test(m))
+    return t("ssh.err.auth");
   if (/Encrypted private key detected/i.test(m)) return t("ssh.err.encrypted");
-  if (/Cannot parse privateKey|Unsupported key format/i.test(m)) return t("ssh.err.parse");
+  if (/Cannot parse privateKey|Unsupported key format/i.test(m))
+    return t("ssh.err.parse");
   if (/ETIMEDOUT|Timed out while waiting/i.test(m)) return t("ssh.err.timeout");
   if (/ECONNREFUSED/i.test(m)) return t("ssh.err.refused");
   if (/ENOTFOUND|EAI_AGAIN/i.test(m)) return t("ssh.err.dns");
@@ -192,7 +197,13 @@ export function runInstall(
     });
 
     conn.on("ready", () => {
-      note(t("ssh.connected", { user: target.user, host: target.host, port: target.port }));
+      note(
+        t("ssh.connected", {
+          user: target.user,
+          host: target.host,
+          port: target.port,
+        })
+      );
 
       // Скрипт сначала целиком укладывается во временный файл и только потом
       // исполняется с закрытым stdin. Иначе любая команда внутри, читающая
@@ -200,7 +211,9 @@ export function runInstall(
       // повис бы навсегда.
       const runner =
         'umask 077; f=$(mktemp) || exit 1; cat > "$f"; sh "$f" </dev/null; rc=$?; rm -f "$f"; exit $rc';
-      const cmd = target.useSudo ? `sudo -n -- /bin/sh -c '${runner}'` : `/bin/sh -c '${runner}'`;
+      const cmd = target.useSudo
+        ? `sudo -n -- /bin/sh -c '${runner}'`
+        : `/bin/sh -c '${runner}'`;
 
       conn.exec(cmd, (err, stream) => {
         if (err) {
@@ -213,7 +226,9 @@ export function runInstall(
           finish({ ok: code === 0, fingerprint, code });
         });
         stream.on("data", (d: Buffer) => emit(d.toString("utf8"), "out"));
-        stream.stderr.on("data", (d: Buffer) => emit(d.toString("utf8"), "err"));
+        stream.stderr.on("data", (d: Buffer) =>
+          emit(d.toString("utf8"), "err")
+        );
         stream.end(script);
       });
     });
@@ -240,7 +255,10 @@ export function runInstall(
           return true;
         }
         note(
-          t("ssh.fpMismatch", { expected: target.expectedFingerprint, got: fingerprint }),
+          t("ssh.fpMismatch", {
+            expected: target.expectedFingerprint,
+            got: fingerprint,
+          }),
           "err"
         );
         return false;

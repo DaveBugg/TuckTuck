@@ -8,19 +8,45 @@
 // Клиентской сортировки нет намеренно: она врала бы, показывая порядок в
 // пределах страницы как порядок во всём наборе.
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Loader2, MoreHorizontal, Search } from "lucide-react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
+  Loader2,
+  MoreHorizontal,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePermissions } from "@/lib/use-permissions";
 import { useI18n } from "@/components/i18n-provider";
 import { apiFetch } from "@/lib/client-api";
@@ -126,7 +152,9 @@ export default function DataTable<T>({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(pageSizeOptions[0] ?? 10);
   const [sort, setSort] = useState<string | undefined>(defaultSort?.sort);
-  const [order, setOrder] = useState<"asc" | "desc">(defaultSort?.order ?? "desc");
+  const [order, setOrder] = useState<"asc" | "desc">(
+    defaultSort?.order ?? "desc"
+  );
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
@@ -145,7 +173,6 @@ export default function DataTable<T>({
       setFilterValues(fv => ({ ...fv, [remembered.id]: v }));
       setPage(1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [optionsCount]);
 
   // Дебаунс поиска: без него каждый символ уходил бы запросом на сервер.
@@ -160,7 +187,14 @@ export default function DataTable<T>({
   const reload = useCallback(() => setInnerReload(x => x + 1), []);
 
   useEffect(() => {
-    const q: DataTableQuery = { page, pageSize, sort, order, search, filters: filterValues };
+    const q: DataTableQuery = {
+      page,
+      pageSize,
+      sort,
+      order,
+      search,
+      filters: filterValues,
+    };
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -170,7 +204,9 @@ export default function DataTable<T>({
         setRows(r.rows);
         setTotal(r.total);
       })
-      .catch((e: any) => !cancelled && setError(e?.message || t("table.loadError")))
+      .catch(
+        (e: any) => !cancelled && setError(e?.message || t("table.loadError"))
+      )
       .finally(() => !cancelled && setLoading(false));
     // Отменяем применение ответа, а не сам запрос: пока летит медленный,
     // пользователь мог сменить фильтр, и «догнавший» старый ответ перетёр бы
@@ -178,8 +214,16 @@ export default function DataTable<T>({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, sort, order, search, filterValues, innerReload, reloadKey]);
+  }, [
+    page,
+    pageSize,
+    sort,
+    order,
+    search,
+    filterValues,
+    innerReload,
+    reloadKey,
+  ]);
 
   const toggleSort = (col: DataTableColumn<T>) => {
     if (!col.sortable) return;
@@ -191,7 +235,9 @@ export default function DataTable<T>({
     setPage(1);
   };
 
-  const visibleActions = actions.filter(a => !a.permission || can(a.permission));
+  const visibleActions = actions.filter(
+    a => !a.permission || can(a.permission)
+  );
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   // Оконная пагинация: 1 … (p-1 p p+1) … last
@@ -235,7 +281,9 @@ export default function DataTable<T>({
               <SelectValue placeholder={f.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>{t("table.filterAll", { label: f.label })}</SelectItem>
+              <SelectItem value={ALL}>
+                {t("table.filterAll", { label: f.label })}
+              </SelectItem>
               {f.options.map(o => (
                 <SelectItem key={o.value} value={o.value}>
                   {o.label}
@@ -245,7 +293,9 @@ export default function DataTable<T>({
           </Select>
         ))}
 
-        {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+        {loading && (
+          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+        )}
         <div className="ml-auto">{toolbar}</div>
       </div>
 
@@ -289,7 +339,8 @@ export default function DataTable<T>({
           <TableBody>
             {/* Скелет только на ПЕРВОЙ загрузке. При смене страницы строки
                 остаются на месте, иначе таблица прыгает на каждый клик. */}
-            {loading && rows.length === 0 &&
+            {loading &&
+              rows.length === 0 &&
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`sk-${i}`}>
                   {Array.from({ length: colCount }).map((__, j) => (
@@ -302,7 +353,10 @@ export default function DataTable<T>({
 
             {!loading && rows.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={colCount} className="py-10 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={colCount}
+                  className="py-10 text-center text-muted-foreground"
+                >
                   {emptyText ?? t("table.empty")}
                 </TableCell>
               </TableRow>
@@ -319,7 +373,11 @@ export default function DataTable<T>({
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm" aria-label={t("table.rowActions")}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t("table.rowActions")}
+                        >
                           <MoreHorizontal />
                         </Button>
                       </DropdownMenuTrigger>
@@ -347,7 +405,10 @@ export default function DataTable<T>({
 
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm text-muted-foreground">
-          {t("table.shown", { shown: fmtNum(rows.length), total: fmtNum(total) })}
+          {t("table.shown", {
+            shown: fmtNum(rows.length),
+            total: fmtNum(total),
+          })}
         </span>
 
         <Select
@@ -411,7 +472,10 @@ export default function DataTable<T>({
 }
 
 export function buildListParams(q: DataTableQuery): URLSearchParams {
-  const params = new URLSearchParams({ page: String(q.page), pageSize: String(q.pageSize) });
+  const params = new URLSearchParams({
+    page: String(q.page),
+    pageSize: String(q.pageSize),
+  });
   if (q.sort) params.set("sort", q.sort);
   if (q.order) params.set("order", q.order);
   if (q.search) params.set("search", q.search);

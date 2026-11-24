@@ -7,7 +7,10 @@ export async function POST() {
   const payload = await getCurrentTokenPayload();
   if (payload?.jti) {
     await prisma.session
-      .updateMany({ where: { jti: payload.jti, revokedAt: null }, data: { revokedAt: new Date() } })
+      .updateMany({
+        where: { jti: payload.jti, revokedAt: null },
+        data: { revokedAt: new Date() },
+      })
       .catch(() => {});
   }
   const res = NextResponse.json({ ok: true });

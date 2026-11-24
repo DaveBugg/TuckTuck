@@ -54,7 +54,11 @@ export function addPeriod(date: Date, value: number, unit: PeriodUnit): Date {
  * число ровно на единицу.
  */
 export function daysUntil(target: Date, now: Date = new Date()): number {
-  const a = Date.UTC(target.getUTCFullYear(), target.getUTCMonth(), target.getUTCDate());
+  const a = Date.UTC(
+    target.getUTCFullYear(),
+    target.getUTCMonth(),
+    target.getUTCDate()
+  );
   const b = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   return Math.round((a - b) / 86_400_000);
 }
@@ -117,14 +121,45 @@ export const DEFAULT_REMINDER_DAYS = [2, 1, 0] as const;
 // Дело не в аккуратности: код валюты участвует в пересчёте итога по курсу, и
 // опечатка вроде «USDD» не найдёт курса, из-за чего ресурс молча выпадет из
 // общей суммы. Молча — худшее, что может случиться с деньгами.
-export const FIAT_CURRENCIES = ["USD","EUR","RUB","GBP","KZT","UAH","TRY","CNY","AED","PLN"] as const;
-export const CRYPTO_CURRENCIES = ["USDT","USDC","BTC","ETH","TON","TRX","LTC","BNB","SOL","XMR"] as const;
+export const FIAT_CURRENCIES = [
+  "USD",
+  "EUR",
+  "RUB",
+  "GBP",
+  "KZT",
+  "UAH",
+  "TRY",
+  "CNY",
+  "AED",
+  "PLN",
+] as const;
+export const CRYPTO_CURRENCIES = [
+  "USDT",
+  "USDC",
+  "BTC",
+  "ETH",
+  "TON",
+  "TRX",
+  "LTC",
+  "BNB",
+  "SOL",
+  "XMR",
+] as const;
 export const CURRENCIES = [...FIAT_CURRENCIES, ...CRYPTO_CURRENCIES] as const;
 
 // Одна монета в разных сетях платится на разные адреса и с разной комиссией,
 // поэтому сеть — отдельное поле, а не часть тикера.
 export const CHAINS = [
-  "TRC20", "ERC20", "BEP20", "TON", "SOL", "BTC", "LTC", "XMR", "POLYGON", "ARBITRUM",
+  "TRC20",
+  "ERC20",
+  "BEP20",
+  "TON",
+  "SOL",
+  "BTC",
+  "LTC",
+  "XMR",
+  "POLYGON",
+  "ARBITRUM",
 ] as const;
 
 /** «раз в 3 мес.» / «ежемесячно» — человеческая запись периода. */

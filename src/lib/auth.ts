@@ -7,6 +7,7 @@ import { cookies } from "next/headers";
 import type { User, UserRole } from "@prisma/client";
 import { prisma } from "./prisma";
 import { hasPermission, type Permission } from "./permissions";
+export { hasPermission };
 
 export const AUTH_COOKIE = "tt_token";
 export const USER_COOKIE = "tt_user"; // readable by client JS — display info only, never trusted
@@ -36,7 +37,13 @@ export function jwtSecret(): Uint8Array {
 }
 
 export function publicUser(u: User): PublicUser {
-  return { id: u.id, email: u.email, name: u.name, role: u.role, locale: u.locale };
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role,
+    locale: u.locale,
+  };
 }
 
 export async function signAuthToken(u: User, jti: string): Promise<string> {
@@ -49,7 +56,9 @@ export async function signAuthToken(u: User, jti: string): Promise<string> {
     .sign(jwtSecret());
 }
 
-export async function verifyAuthToken(token: string): Promise<TokenPayload | null> {
+export async function verifyAuthToken(
+  token: string
+): Promise<TokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, jwtSecret());
     return payload as unknown as TokenPayload;
@@ -77,7 +86,8 @@ export async function getAuthUser(): Promise<User | null> {
     where: { jti: payload.jti },
     include: { user: true },
   });
-  if (!session || session.revokedAt || session.userId !== payload.sub) return null;
+  if (!session || session.revokedAt || session.userId !== payload.sub)
+    return null;
   const user = session.user;
   if (!user || !user.isActive) return null;
   if (Date.now() - session.lastSeenAt.getTime() > 60_000) {
@@ -98,7 +108,8 @@ export class AuthError extends Error {
 export async function requireUser(roles?: UserRole[]): Promise<User> {
   const user = await getAuthUser();
   if (!user) throw new AuthError(401);
-  if (roles && roles.length > 0 && !roles.includes(user.role)) throw new AuthError(403);
+  if (roles && roles.length > 0 && !roles.includes(user.role))
+    throw new AuthError(403);
   return user;
 }
 

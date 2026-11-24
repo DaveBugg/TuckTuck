@@ -6,7 +6,10 @@
 import React, { useEffect, useState } from "react";
 import { Plus, ShieldCheck, User } from "lucide-react";
 import { toast } from "sonner";
-import DataTable, { apiFetcher, type DataTableColumn } from "@/components/data-table";
+import DataTable, {
+  apiFetcher,
+  type DataTableColumn,
+} from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +23,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiJson } from "@/lib/client-api";
 import { useCurrentUser, usePermissions } from "@/lib/use-permissions";
 import { useI18n } from "@/components/i18n-provider";
@@ -39,7 +48,13 @@ type UserRow = {
 
 const fetcher = apiFetcher<UserRow>("/api/users");
 const ROLES = ["ADMIN", "USER"] as const;
-const emptyForm = { email: "", name: "", role: "USER", password: "", isActive: true };
+const emptyForm = {
+  email: "",
+  name: "",
+  role: "USER",
+  password: "",
+  isActive: true,
+};
 
 export default function UsersPage() {
   const { can } = usePermissions();
@@ -47,7 +62,9 @@ export default function UsersPage() {
   const { confirm, reveal } = useConfirm();
   const me = useCurrentUser();
   const [reloadKey, setReloadKey] = useState(0);
-  const [modal, setModal] = useState<{ open: boolean; row?: UserRow }>({ open: false });
+  const [modal, setModal] = useState<{ open: boolean; row?: UserRow }>({
+    open: false,
+  });
   const [form, setForm] = useState(emptyForm);
   const [busy, setBusy] = useState(false);
 
@@ -103,11 +120,17 @@ export default function UsersPage() {
                 : "flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
             }
           >
-            {r.role === "ADMIN" ? <ShieldCheck className="size-4" /> : <User className="size-4" />}
+            {r.role === "ADMIN" ? (
+              <ShieldCheck className="size-4" />
+            ) : (
+              <User className="size-4" />
+            )}
           </span>
           <div className="min-w-0">
             <div className="truncate font-medium">{r.name || r.email}</div>
-            <div className="truncate text-xs text-muted-foreground">{r.email}</div>
+            <div className="truncate text-xs text-muted-foreground">
+              {r.email}
+            </div>
           </div>
         </div>
       ),
@@ -116,7 +139,11 @@ export default function UsersPage() {
       id: "role",
       header: t("users.col.role"),
       sortable: true,
-      cell: r => <Badge variant={r.role === "ADMIN" ? "destructive" : "secondary"}>{r.role}</Badge>,
+      cell: r => (
+        <Badge variant={r.role === "ADMIN" ? "destructive" : "secondary"}>
+          {r.role}
+        </Badge>
+      ),
     },
     {
       id: "totp",
@@ -128,13 +155,22 @@ export default function UsersPage() {
           <span className="text-muted-foreground">—</span>
         ),
     },
-    { id: "sessions", header: t("users.col.sessions"), className: "tabular", cell: r => r._count.sessions },
+    {
+      id: "sessions",
+      header: t("users.col.sessions"),
+      className: "tabular",
+      cell: r => r._count.sessions,
+    },
     {
       id: "isActive",
       header: t("users.col.status"),
       sortable: true,
       cell: r =>
-        r.isActive ? <Badge variant="success">{t("users.active")}</Badge> : <Badge variant="muted">{t("res.off")}</Badge>,
+        r.isActive ? (
+          <Badge variant="success">{t("users.active")}</Badge>
+        ) : (
+          <Badge variant="muted">{t("res.off")}</Badge>
+        ),
     },
     {
       id: "createdAt",
@@ -148,10 +184,10 @@ export default function UsersPage() {
   return (
     <div className="mx-auto flex max-w-[1400px] flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t("nav.users")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t("auth.noSignup")}
-        </p>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {t("nav.users")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("auth.noSignup")}</p>
       </div>
 
       <Card>
@@ -163,7 +199,13 @@ export default function UsersPage() {
             defaultSort={{ sort: "createdAt", order: "desc" }}
             searchPlaceholder={t("users.searchPlaceholder")}
             reloadKey={reloadKey}
-            filters={[{ id: "role", label: t("users.col.role"), options: ROLES.map(r => ({ value: r, label: r })) }]}
+            filters={[
+              {
+                id: "role",
+                label: t("users.col.role"),
+                options: ROLES.map(r => ({ value: r, label: r })),
+              },
+            ]}
             toolbar={
               can("users.manage") ? (
                 <Button onClick={() => setModal({ open: true })}>
@@ -190,7 +232,10 @@ export default function UsersPage() {
                   });
                   if (!ok) return;
                   try {
-                    const d = await apiJson(`/api/users/${row.id}/reset-password`, "POST");
+                    const d = await apiJson(
+                      `/api/users/${row.id}/reset-password`,
+                      "POST"
+                    );
                     // prompt, а не toast: пароль показывается один раз, и его
                     // нужно успеть скопировать — всплывашка исчезнет сама.
                     // Своё окно, а не prompt: пароль показывается один раз,
@@ -213,7 +258,9 @@ export default function UsersPage() {
                 onClick: async (row, rl) => {
                   const ok = await confirm({
                     title: t("common.delete"),
-                    description: t("users.confirm.delete", { email: row.email }),
+                    description: t("users.confirm.delete", {
+                      email: row.email,
+                    }),
                     confirmText: t("common.yesDelete"),
                     destructive: true,
                   });
@@ -232,7 +279,10 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={modal.open} onOpenChange={v => !v && setModal({ open: false })}>
+      <Dialog
+        open={modal.open}
+        onOpenChange={v => !v && setModal({ open: false })}
+      >
         <DialogContent>
           <form onSubmit={save} className="flex flex-col gap-4">
             <DialogHeader>
@@ -269,7 +319,10 @@ export default function UsersPage() {
 
             <div>
               <Label>{t("users.col.role")}</Label>
-              <Select value={form.role} onValueChange={v => setForm({ ...form, role: v })}>
+              <Select
+                value={form.role}
+                onValueChange={v => setForm({ ...form, role: v })}
+              >
                 <SelectTrigger className="mt-1.5">
                   <SelectValue />
                 </SelectTrigger>
@@ -295,7 +348,9 @@ export default function UsersPage() {
                   onChange={e => setForm({ ...form, password: e.target.value })}
                   required
                 />
-                <p className="mt-1 text-xs text-muted-foreground">{t("users.form.passwordHint")}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("users.form.passwordHint")}
+                </p>
               </div>
             )}
 
@@ -311,7 +366,11 @@ export default function UsersPage() {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setModal({ open: false })}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setModal({ open: false })}
+              >
                 {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={busy}>

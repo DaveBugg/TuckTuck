@@ -15,7 +15,10 @@ async function readToken(req: NextRequest): Promise<TokenPayload | null> {
   const secret = process.env.TUCKTUCK_JWT_SECRET;
   if (!secret) return null;
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(secret)
+    );
     return payload as TokenPayload;
   } catch {
     return null;

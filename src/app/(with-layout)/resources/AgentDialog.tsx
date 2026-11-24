@@ -7,7 +7,14 @@
 // даёт право писать метрики, а перевыпустить его — одно нажатие.
 
 import React, { useEffect, useState } from "react";
-import { Copy, KeyRound, Power, Check, Plug, TerminalSquare } from "lucide-react";
+import {
+  Copy,
+  KeyRound,
+  Power,
+  Check,
+  Plug,
+  TerminalSquare,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -20,7 +27,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiFetch, apiJson } from "@/lib/client-api";
-import { SystemSummary, type SystemView } from "@/components/monitoring/metrics";
+import {
+  SystemSummary,
+  type SystemView,
+} from "@/components/monitoring/metrics";
 import MetricsHistory from "@/components/monitoring/history";
 import { AGENT_INTERVAL_SEC } from "@/lib/monitoring";
 import SshInstall from "./SshInstall";
@@ -98,7 +108,11 @@ export default function AgentDialog({
     if (!open || !row) return;
     setToken(null);
     setSystem(null);
-    setMode(row.agentConnected && !row.sshFingerprint && !row.sshHost ? "manual" : "ssh");
+    setMode(
+      row.agentConnected && !row.sshFingerprint && !row.sshHost
+        ? "manual"
+        : "ssh"
+    );
     // Метрики грузим при открытии: в попапе они главное, ради чего сюда зашли.
     apiFetch(`/api/monitoring/${row.id}`)
       .then(d => setSystem(d.system))
@@ -247,7 +261,9 @@ export default function AgentDialog({
             ) : (
               <div className="flex flex-col gap-3 text-sm">
                 <p className="text-muted-foreground">
-                  {row.agentConnected ? t("agent.hasToken") : t("agent.needToken")}
+                  {row.agentConnected
+                    ? t("agent.hasToken")
+                    : t("agent.needToken")}
                 </p>
                 <div>
                   <Button onClick={issue} disabled={busy}>
@@ -266,7 +282,9 @@ export default function AgentDialog({
               {t("agent.tokenOnce")}
             </div>
             <div>
-              <div className="mb-1.5 text-sm font-medium">{t("agent.runAsRoot")}</div>
+              <div className="mb-1.5 text-sm font-medium">
+                {t("agent.runAsRoot")}
+              </div>
               <CopyBlock
                 text={install}
                 copyLabel={t("common.copy")}

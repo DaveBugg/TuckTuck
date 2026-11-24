@@ -28,7 +28,11 @@ export function isQuietAlways(fromHour: number, toHour: number): boolean {
  * значит «с 09:00 до 20:59», потому что «до 21» люди читают именно так.
  * Окно через полночь (22–7) поддерживается — для тех, у кого дежурство ночью.
  */
-export function isWithinWindow(hour: number, fromHour: number, toHour: number): boolean {
+export function isWithinWindow(
+  hour: number,
+  fromHour: number,
+  toHour: number
+): boolean {
   if (isQuietAlways(fromHour, toHour)) return true;
   if (fromHour < toHour) return hour >= fromHour && hour < toHour;
   // Через полночь: [from..23] ∪ [0..to)

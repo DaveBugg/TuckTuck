@@ -23,7 +23,10 @@ export async function GET() {
         orderBy: { name: "asc" },
         select: { id: true, name: true, color: true },
       }),
-      prisma.group.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+      prisma.group.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+      }),
     ]);
     return NextResponse.json({ providers, tags, groups });
   } catch (e) {
@@ -67,14 +70,25 @@ export async function POST(req: Request) {
     await requirePermission("catalog.manage");
     const b = await req.json().catch(() => ({}));
     const name = typeof b.name === "string" ? b.name.trim() : "";
-    if (!name) return NextResponse.json({ error: t("catalog.err.nameRequired") }, { status: 400 });
+    if (!name)
+      return NextResponse.json(
+        { error: t("catalog.err.nameRequired") },
+        { status: 400 }
+      );
     if (name.length > 64) {
-      return NextResponse.json({ error: t("catalog.err.nameTooLong") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("catalog.err.nameTooLong") },
+        { status: 400 }
+      );
     }
 
     if (b.type === "provider") {
       const url = normalizeSiteUrl(b.url);
-      if (url === null) return NextResponse.json({ error: t("catalog.err.badUrl") }, { status: 400 });
+      if (url === null)
+        return NextResponse.json(
+          { error: t("catalog.err.badUrl") },
+          { status: 400 }
+        );
       const existing = await prisma.provider.findFirst({
         where: { name },
         select: { id: true, name: true, url: true },
@@ -107,7 +121,10 @@ export async function POST(req: Request) {
         }));
       return NextResponse.json({ row }, { status: 201 });
     }
-    return NextResponse.json({ error: t("catalog.err.unknownKind") }, { status: 400 });
+    return NextResponse.json(
+      { error: t("catalog.err.unknownKind") },
+      { status: 400 }
+    );
   } catch (e) {
     return toApiError(e, t);
   }
@@ -120,10 +137,17 @@ export async function PATCH(req: Request) {
     await requirePermission("catalog.manage");
     const b = await req.json().catch(() => ({}));
     if (b.type !== "provider" || typeof b.id !== "string" || !b.id) {
-      return NextResponse.json({ error: t("catalog.err.unknownKind") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("catalog.err.unknownKind") },
+        { status: 400 }
+      );
     }
     const url = normalizeSiteUrl(b.url);
-    if (url === null) return NextResponse.json({ error: t("catalog.err.badUrl") }, { status: 400 });
+    if (url === null)
+      return NextResponse.json(
+        { error: t("catalog.err.badUrl") },
+        { status: 400 }
+      );
     const row = await prisma.provider.update({
       where: { id: b.id },
       data: { url },

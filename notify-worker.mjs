@@ -23,7 +23,8 @@ const TOKEN = process.env.TUCKTUCK_WORKER_TOKEN || "";
 // Напоминания живут по своему интервалу: рассылать их чаще раза в пять минут
 // незачем, а повторную отправку всё равно отсекает БД.
 const METRICS_EVERY_MS = 60_000;
-const NOTIFY_EVERY_MS = Math.max(30, Number(process.env.NOTIFY_INTERVAL_SEC || 60)) * 1000;
+const NOTIFY_EVERY_MS =
+  Math.max(30, Number(process.env.NOTIFY_INTERVAL_SEC || 60)) * 1000;
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
@@ -79,7 +80,9 @@ async function maybeRollup() {
   try {
     const r = await post("/api/monitoring/rollup");
     if (r.hourly || r.daily || r.rawDeleted || r.oldDeleted) {
-      log(`свёртка: часовых ${r.hourly}, суточных ${r.daily}, удалено сырых ${r.rawDeleted}, старых ${r.oldDeleted}`);
+      log(
+        `свёртка: часовых ${r.hourly}, суточных ${r.daily}, удалено сырых ${r.rawDeleted}, старых ${r.oldDeleted}`
+      );
     }
   } catch (e) {
     log("свёртка не удалась:", e?.message || e);

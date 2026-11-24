@@ -7,7 +7,13 @@ import { QRCodeSVG } from "qrcode.react";
 import { Loader2, LogOut, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -64,7 +70,10 @@ export default function ProfilePage() {
 
   // ── 2FA ──
   const [totpEnabled, setTotpEnabled] = useState<boolean | null>(null);
-  const [setup, setSetup] = useState<{ secret: string; otpauthUrl: string } | null>(null);
+  const [setup, setSetup] = useState<{
+    secret: string;
+    otpauthUrl: string;
+  } | null>(null);
   const [code, setCode] = useState("");
   const [totpBusy, setTotpBusy] = useState(false);
 
@@ -134,12 +143,18 @@ export default function ProfilePage() {
   const revoke = async (sessionId?: string) => {
     const ok = await confirm({
       title: sessionId ? t("profile.revoke") : t("profile.revokeOthers"),
-      description: t(sessionId ? "profile.confirm.revokeOne" : "profile.confirm.revokeAll"),
+      description: t(
+        sessionId ? "profile.confirm.revokeOne" : "profile.confirm.revokeAll"
+      ),
       destructive: true,
     });
     if (!ok) return;
     try {
-      await apiJson("/api/auth/sessions", "DELETE", sessionId ? { sessionId } : { others: true });
+      await apiJson(
+        "/api/auth/sessions",
+        "DELETE",
+        sessionId ? { sessionId } : { others: true }
+      );
       loadSessions();
       toast.success(t("common.done"));
     } catch (e: any) {
@@ -150,7 +165,9 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t("shell.profile")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {t("shell.profile")}
+        </h1>
         <p className="text-sm text-muted-foreground">
           {me.email} · {t("shell.role", { role: me.role || "—" })}
         </p>
@@ -170,7 +187,9 @@ export default function ProfilePage() {
               onClick={() => {
                 // Кука меняется сразу, запись в профиль идёт фоном: выбор
                 // должен сработать, даже если запрос не прошёл.
-                void apiJson("/api/auth/me", "PATCH", { locale: l }).catch(() => null);
+                void apiJson("/api/auth/me", "PATCH", { locale: l }).catch(
+                  () => null
+                );
                 setLocale(l);
               }}
             >
@@ -183,12 +202,13 @@ export default function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>{t("profile.changePassword")}</CardTitle>
-          <CardDescription>
-            {t("profile.changePasswordHint")}
-          </CardDescription>
+          <CardDescription>{t("profile.changePasswordHint")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={changePassword} className="flex max-w-md flex-col gap-3">
+          <form
+            onSubmit={changePassword}
+            className="flex max-w-md flex-col gap-3"
+          >
             <div>
               <Label htmlFor="cur">{t("profile.currentPassword")}</Label>
               <Input
@@ -213,7 +233,9 @@ export default function ProfilePage() {
                 onChange={e => setNext(e.target.value)}
                 required
               />
-              <p className="mt-1 text-xs text-muted-foreground">{t("users.form.passwordHint")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("users.form.passwordHint")}
+              </p>
             </div>
             <div>
               <Label htmlFor="again">{t("profile.repeatPassword")}</Label>
@@ -239,19 +261,30 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {t("profile.totp")}
-            {totpEnabled === true && <Badge variant="success">{t("profile.totpEnabled")}</Badge>}
-            {totpEnabled === false && <Badge variant="muted">{t("profile.totpDisabled")}</Badge>}
+            {totpEnabled === true && (
+              <Badge variant="success">{t("profile.totpEnabled")}</Badge>
+            )}
+            {totpEnabled === false && (
+              <Badge variant="muted">{t("profile.totpDisabled")}</Badge>
+            )}
           </CardTitle>
-          <CardDescription>
-            {t("profile.totpDesc")}
-          </CardDescription>
+          <CardDescription>{t("profile.totpDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {totpEnabled === null && <Skeleton className="h-9 w-40" />}
 
           {totpEnabled === false && !setup && (
-            <Button variant="outline" onClick={startSetup} disabled={totpBusy} className="self-start">
-              {totpBusy ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
+            <Button
+              variant="outline"
+              onClick={startSetup}
+              disabled={totpBusy}
+              className="self-start"
+            >
+              {totpBusy ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <ShieldCheck />
+              )}
               {t("common.enable")}
             </Button>
           )}
@@ -267,8 +300,12 @@ export default function ProfilePage() {
                 <QRCodeSVG value={setup.otpauthUrl} size={180} />
               </div>
               <div className="text-xs">
-                <span className="text-muted-foreground">{t("profile.totpManualKey")} </span>
-                <code className="rounded bg-muted px-1.5 py-0.5">{setup.secret}</code>
+                <span className="text-muted-foreground">
+                  {t("profile.totpManualKey")}{" "}
+                </span>
+                <code className="rounded bg-muted px-1.5 py-0.5">
+                  {setup.secret}
+                </code>
               </div>
               <div className="flex items-end gap-2">
                 <div>
@@ -283,7 +320,10 @@ export default function ProfilePage() {
                     onChange={e => setCode(e.target.value.replace(/\D/g, ""))}
                   />
                 </div>
-                <Button onClick={confirmSetup} disabled={totpBusy || code.length < 6}>
+                <Button
+                  onClick={confirmSetup}
+                  disabled={totpBusy || code.length < 6}
+                >
                   {t("auth.confirm")}
                 </Button>
                 <Button variant="ghost" onClick={() => setSetup(null)}>
@@ -307,7 +347,11 @@ export default function ProfilePage() {
                   onChange={e => setCode(e.target.value.replace(/\D/g, ""))}
                 />
               </div>
-              <Button variant="outline" onClick={disable2fa} disabled={totpBusy || code.length < 6}>
+              <Button
+                variant="outline"
+                onClick={disable2fa}
+                disabled={totpBusy || code.length < 6}
+              >
                 <ShieldOff />
                 {t("common.disable")}
               </Button>
@@ -337,7 +381,11 @@ export default function ProfilePage() {
               ))}
             </div>
           )}
-          {sessions?.length === 0 && <p className="text-sm text-muted-foreground">{t("profile.noSessions")}</p>}
+          {sessions?.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              {t("profile.noSessions")}
+            </p>
+          )}
           {sessions && sessions.length > 0 && (
             <ul className="flex flex-col">
               {sessions.map((s, i) => (
@@ -346,18 +394,30 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3 py-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate text-sm font-medium">{s.ip || "—"}</span>
-                        {s.isCurrent && <Badge variant="success">{t("profile.current")}</Badge>}
+                        <span className="truncate text-sm font-medium">
+                          {s.ip || "—"}
+                        </span>
+                        {s.isCurrent && (
+                          <Badge variant="success">
+                            {t("profile.current")}
+                          </Badge>
+                        )}
                       </div>
                       <div className="truncate text-xs text-muted-foreground">
                         {s.userAgent || t("profile.unknownDevice")}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {t("profile.lastSeen", { at: fmtDateTime(s.lastSeenAt) })}
+                        {t("profile.lastSeen", {
+                          at: fmtDateTime(s.lastSeenAt),
+                        })}
                       </div>
                     </div>
                     {!s.isCurrent && (
-                      <Button variant="ghost" size="sm" onClick={() => revoke(s.id)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => revoke(s.id)}
+                      >
                         {t("profile.revoke")}
                       </Button>
                     )}

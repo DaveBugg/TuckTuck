@@ -11,10 +11,22 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Loader2, Plug, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Plug,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiJson } from "@/lib/client-api";
 import { useI18n } from "@/components/i18n-provider";
@@ -31,22 +43,23 @@ export default function TelegramReachability() {
   const [check, setCheck] = useState<Check | null>(null);
   const [checking, setChecking] = useState(false);
 
-  const runCheck = useCallback(
-    async (proxyUrl?: string) => {
-      setChecking(true);
-      try {
-        const d = await apiJson("/api/notify/check", "POST", proxyUrl !== undefined ? { proxyUrl } : {});
-        setCheck(d);
-        return d as Check;
-      } catch (e: any) {
-        toast.error(e.message);
-        return null;
-      } finally {
-        setChecking(false);
-      }
-    },
-    []
-  );
+  const runCheck = useCallback(async (proxyUrl?: string) => {
+    setChecking(true);
+    try {
+      const d = await apiJson(
+        "/api/notify/check",
+        "POST",
+        proxyUrl !== undefined ? { proxyUrl } : {}
+      );
+      setCheck(d);
+      return d as Check;
+    } catch (e: any) {
+      toast.error(e.message);
+      return null;
+    } finally {
+      setChecking(false);
+    }
+  }, []);
 
   // Проверяем сразу при открытии раздела: если Telegram недоступен, человек
   // должен узнать это до того, как потратит время на заведение бота.
@@ -67,11 +80,14 @@ export default function TelegramReachability() {
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>
-            {t("tg.desc")}
-          </CardDescription>
+          <CardDescription>{t("tg.desc")}</CardDescription>
         </div>
-        <Button variant="outline" size="sm" onClick={() => runCheck()} disabled={checking}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => runCheck()}
+          disabled={checking}
+        >
           {checking ? <Loader2 className="animate-spin" /> : <RefreshCw />}
           {t("tg.check")}
         </Button>
@@ -126,9 +142,7 @@ export default function TelegramReachability() {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground">
-          {t("tg.hint")}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("tg.hint")}</p>
       </CardContent>
     </Card>
   );

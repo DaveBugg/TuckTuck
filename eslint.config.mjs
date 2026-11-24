@@ -1,6 +1,7 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextConfig from "eslint-config-next";
+import prettierConfig from "eslint-config-prettier";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 import prettier from "eslint-plugin-prettier";
@@ -9,15 +10,12 @@ import prettier from "eslint-plugin-prettier";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Compatibility layer for extending old configs
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
 /** @type {import("eslint").Linter.FlatConfig[]} */
 const eslintConfig = [
-  // Next.js recommended configs
-  ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"),
+  // Next.js recommended configs (flat config поставляется самим eslint-config-next)
+  ...nextConfig,
+  // Отключает правила, конфликтующие с Prettier
+  prettierConfig,
 
   // Custom TypeScript & JS rule overrides
   {
@@ -68,8 +66,10 @@ const eslintConfig = [
       "react/jsx-no-duplicate-props": "off", // Allow duplicate props in JSX
       "@next/next/no-html-link-for-pages": "off", // Allow using <a> instead of next/link
       "react-hooks/exhaustive-deps": "off", // Allow skipping useEffect dependencies
-
-      "@next/next/no-html-link-for-pages": "off", // ✅ Allow <a href="/"> for navigation (use with caution)
+      // Новые compiler-правила react-hooks v6: кодовая база писалась до них,
+      // линт в репо был сломан (next lint удалён в Next 16) и ничего не ловил.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/static-components": "off",
 
       // ===== PRETTIER RULES =====
       "prettier/prettier": "error", // Show prettier errors as ESLint errors
@@ -82,6 +82,22 @@ const eslintConfig = [
     languageOptions: {
       parserOptions: {
         project: null, // Ignore type project rules for .d.ts
+      },
+    },
+  },
+
+  // Корневые JS-конфиги и скрипты не входят в tsconfig — type-aware парсер на них падает
+  {
+    files: [
+      "*.js",
+      "*.mjs",
+      "scripts/**/*.mjs",
+      "prisma/**/*.mjs",
+      "notify-worker.mjs",
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: null,
       },
     },
   },

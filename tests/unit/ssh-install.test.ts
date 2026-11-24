@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildScript, hostFingerprint, normalizeKey } from "../../src/lib/ssh-install";
+import {
+  buildScript,
+  hostFingerprint,
+  normalizeKey,
+} from "../../src/lib/ssh-install";
 
 const AGENT = "#!/bin/sh\necho agent\n";
 const INSTALL = "#!/bin/sh\necho install\n";
@@ -22,7 +26,12 @@ test("hostFingerprint совпадает с форматом OpenSSH", () => {
 });
 
 test("buildScript кладёт агент в heredoc и подключает install.sh", () => {
-  const s = buildScript({ url: "https://p.example", token: "tok", agentSh: AGENT, installSh: INSTALL });
+  const s = buildScript({
+    url: "https://p.example",
+    token: "tok",
+    agentSh: AGENT,
+    installSh: INSTALL,
+  });
   assert.ok(s.includes("TUCKTUCK_URL='https://p.example'"));
   assert.ok(s.includes("TUCKTUCK_TOKEN='tok'"));
   assert.ok(s.includes("<<'TUCKTUCK_AGENT_EOF'"));
@@ -42,7 +51,10 @@ test("buildScript экранирует одинарную кавычку в то
     installSh: INSTALL,
   });
   assert.ok(s.includes(`TUCKTUCK_TOKEN='a'\\''b'`));
-  assert.ok(!s.includes("rm -rf /;\n"), "инъекция не должна выйти за пределы строки");
+  assert.ok(
+    !s.includes("rm -rf /;\n"),
+    "инъекция не должна выйти за пределы строки"
+  );
   // Каждая строка присваивания остаётся одной строкой с чётным числом кавычек.
   const line = s.split("\n").find(l => l.startsWith("TUCKTUCK_URL="))!;
   assert.equal((line.match(/'/g) || []).length % 2, 0);

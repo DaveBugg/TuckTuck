@@ -111,7 +111,8 @@ export const en: Record<string, string> = {
   "spend.none": "no payments",
   "spend.byMonths": "By month",
   "spend.byMonthsTitle": "Spend by month, {year}",
-  "spend.byMonthsHint": "The spikes are quarterly, semi-annual and yearly subscriptions.",
+  "spend.byMonthsHint":
+    "The spikes are quarterly, semi-annual and yearly subscriptions.",
   "spend.count_one": "{count} resource",
   "spend.count_other": "{count} resources",
   "spend.crypto": "crypto",
@@ -161,7 +162,8 @@ export const en: Record<string, string> = {
   "period.everyN": "every {n} {unit}",
 
   "res.title": "Resources",
-  "res.subtitle": "Servers, VPNs, proxies, domains and subscriptions — by next payment",
+  "res.subtitle":
+    "Servers, VPNs, proxies, domains and subscriptions — by next payment",
   "res.searchPlaceholder": "Name, IP, domain, link…",
   "res.empty": "No resources yet — add the first one",
   "res.off": "off",
@@ -187,7 +189,8 @@ export const en: Record<string, string> = {
 
   "res.form.newTitle": "New resource",
   "res.form.editTitle": "Edit: {name}",
-  "res.form.remindersHint": "Reminders 2 days and 1 day ahead will be created automatically.",
+  "res.form.remindersHint":
+    "Reminders 2 days and 1 day ahead will be created automatically.",
   "res.form.name": "Name",
   "res.form.namePlaceholder": "e.g. hetzner-web-01",
   "res.form.port": "Port",
@@ -267,7 +270,8 @@ export const en: Record<string, string> = {
   "monitor.loading": "Loading metrics",
   "monitor.unavailable": "Metrics unavailable",
   "monitor.noServers": "No servers, VPNs or proxies yet.",
-  "monitor.selfHint": "This panel's own server can be monitored without an agent or SSH keys",
+  "monitor.selfHint":
+    "This panel's own server can be monitored without an agent or SSH keys",
   "monitor.selfAdded": "Panel added as “{name}”",
   "monitor.selfAlready": "Already enabled",
   "monitor.noAgents": "No machine has an agent connected.",
@@ -277,7 +281,8 @@ export const en: Record<string, string> = {
   "history.day": "24 hours",
   "history.days_one": "{count} day",
   "history.days_other": "{count} days",
-  "history.noData": "No data for this period — the agent has not been running that long.",
+  "history.noData":
+    "No data for this period — the agent has not been running that long.",
   "history.cpuAvg": "CPU average",
   "history.byHour": "Load by hour",
   "history.peak": "peak at {hour}:00",
@@ -300,11 +305,14 @@ export const en: Record<string, string> = {
   "agent.installed": "Agent installed",
   "agent.issue": "Issue token",
   "agent.reissue": "Reissue token",
-  "agent.confirm.reissue": "Reissue the token? The old one stops working immediately.",
-  "agent.confirm.disable": "Disable the agent? Metrics stop being accepted; history is kept.",
+  "agent.confirm.reissue":
+    "Reissue the token? The old one stops working immediately.",
+  "agent.confirm.disable":
+    "Disable the agent? Metrics stop being accepted; history is kept.",
   "agent.hasToken":
     "The agent is already connected. The token is shown only when issued — if it is lost, issue a new one: the old one stops working immediately.",
-  "agent.needToken": "Issue a token and I will show the ready install command for this server.",
+  "agent.needToken":
+    "Issue a token and I will show the ready install command for this server.",
   "agent.tokenOnce":
     "The token is shown once. Copy the command now — it cannot be reassembled later, only replaced by a new token.",
   "agent.runAsRoot": "Run on the server as root",
@@ -331,10 +339,14 @@ export const en: Record<string, string> = {
   "ssh.form.failed": "failed",
   "ssh.form.takesTime": "This takes 10–40 seconds",
   "ssh.form.log": "Installation log",
-  "ssh.form.fileTooBig": "That file is too large for a key — make sure you picked the private key",
-  "ssh.form.publicKey": "That is a public key (.pub) — the private one is needed",
-  "ssh.form.requestFailed": "Could not send the request — the panel is unreachable",
-  "ssh.form.streamBroken": "Connection to the panel broke — installation state is unknown",
+  "ssh.form.fileTooBig":
+    "That file is too large for a key — make sure you picked the private key",
+  "ssh.form.publicKey":
+    "That is a public key (.pub) — the private one is needed",
+  "ssh.form.requestFailed":
+    "Could not send the request — the panel is unreachable",
+  "ssh.form.streamBroken":
+    "Connection to the panel broke — installation state is unknown",
 
   "ssh.connected": "Connected: {user}@{host}:{port}",
   "ssh.fpRemembered": "Host fingerprint: {fp} (remembered)",
@@ -345,15 +357,20 @@ export const en: Record<string, string> = {
   "ssh.err.auth":
     "The server rejected the key: check the user and that the public part is in ~/.ssh/authorized_keys",
   "ssh.err.encrypted": "The key is encrypted — provide its passphrase",
-  "ssh.err.parse": "Could not parse the key: paste the whole private key, BEGIN and END lines included",
-  "ssh.err.timeout": "No answer from the server: the SSH port is closed or a firewall is in the way",
-  "ssh.err.refused": "Connection refused: nothing is listening for SSH on that port",
+  "ssh.err.parse":
+    "Could not parse the key: paste the whole private key, BEGIN and END lines included",
+  "ssh.err.timeout":
+    "No answer from the server: the SSH port is closed or a firewall is in the way",
+  "ssh.err.refused":
+    "Connection refused: nothing is listening for SSH on that port",
   "ssh.err.dns": "Host name does not resolve",
 
   "install.connecting": "Connecting to {user}@{host}:{port}",
   "install.done.ok": "Agent installed. First metrics arrive within a minute.",
-  "install.done.noConnection": "Installation did not run: the connection was not established.",
-  "install.done.failed": "Installation aborted, exit code {code}. Token not saved.",
+  "install.done.noConnection":
+    "Installation did not run: the connection was not established.",
+  "install.done.failed":
+    "Installation aborted, exit code {code}. Token not saved.",
   "install.err.selfServer":
     "This is the panel's own server: metrics are read from inside, no agent needed",
   "install.err.noHost": "Server address is missing",
@@ -363,13 +380,15 @@ export const en: Record<string, string> = {
   "install.err.noPublicUrl":
     "The panel does not know its public address — the agent would have nowhere to post. Set TUCKTUCK_PUBLIC_URL.",
 
-  "self.note": "The server TuckTuck runs on. Metrics are collected internally, no agent needed.",
+  "self.note":
+    "The server TuckTuck runs on. Metrics are collected internally, no agent needed.",
   "self.err.notEnabled": "self-monitoring is not enabled",
 
   // ── catalogs ─────────────────────────────────────────────────────────────
   "catalog.err.nameRequired": "Name is required",
   "catalog.err.nameTooLong": "Name is longer than 64 characters",
-  "catalog.err.badUrl": "The link must be a website address: example.com or https://example.com",
+  "catalog.err.badUrl":
+    "The link must be a website address: example.com or https://example.com",
   "catalog.err.unknownKind": "Unknown catalog type",
 
   // ── notifications ────────────────────────────────────────────────────────
@@ -397,7 +416,8 @@ export const en: Record<string, string> = {
   "notify.toast.sentTo_one": "Sent to {count} chat",
   "notify.toast.sentTo_other": "Sent to {count} chats",
   "notify.toast.notDelivered": "Not delivered: {list}",
-  "notify.toast.runResult": "Checked {checked}, sent {sent}, skipped {skipped}, failed {failed}",
+  "notify.toast.runResult":
+    "Checked {checked}, sent {sent}, skipped {skipped}, failed {failed}",
 
   "notify.form.newTitle": "New bot",
   "notify.form.editTitle": "Bot: {name}",
@@ -406,10 +426,12 @@ export const en: Record<string, string> = {
   "notify.form.namePlaceholder": "e.g. production servers",
   "notify.form.token": "Token",
   "notify.form.tokenKeep": "leave empty to keep the current one",
-  "notify.form.tokenHint": "Stored encrypted and never returned. Verified on save.",
+  "notify.form.tokenHint":
+    "Stored encrypted and never returned. Verified on save.",
   "notify.form.removeChat": "Remove chat",
   "notify.form.chatLabel": "label (optional)",
-  "notify.form.allowedIds": "who may press buttons: telegram ids, comma separated",
+  "notify.form.allowedIds":
+    "who may press buttons: telegram ids, comma separated",
   "notify.form.chatIdHint":
     "You can get your chat_id from @userinfobot. Groups and channels have negative ids.",
   "notify.form.allowedHint":
@@ -425,9 +447,11 @@ export const en: Record<string, string> = {
     "Empty means the shared proxy from system settings is used. A proxy set here takes precedence.",
   "notify.form.enabled": "Enabled",
   "notify.form.chatExists": "That chat is already added",
-  "notify.form.needChat": "Add at least one chat — otherwise there is nowhere to send",
+  "notify.form.needChat":
+    "Add at least one chat — otherwise there is nowhere to send",
   "notify.form.botAdded": "Bot @{username} added",
-  "notify.form.webhookFailed": "Webhook not set — buttons will not work. {detail}",
+  "notify.form.webhookFailed":
+    "Webhook not set — buttons will not work. {detail}",
 
   "notify.err.nameRequired": "Name is required",
   "notify.err.tokenRequired": "Bot token is required",
@@ -437,7 +461,8 @@ export const en: Record<string, string> = {
   "notify.err.unreachable":
     "Could not reach Telegram: {error}. Check access to api.telegram.org from the server — if it is blocked, set a proxy.",
   "notify.err.tokenRejected": "Telegram rejected the token: {error}",
-  "notify.webhook.noPublicUrl": "not configured: TUCKTUCK_PUBLIC_URL is unset or not https",
+  "notify.webhook.noPublicUrl":
+    "not configured: TUCKTUCK_PUBLIC_URL is unset or not https",
   "notify.webhook.failed": "error: {error}",
   "notify.proxy.unreadable": "set (unreadable)",
   "notify.test.message": "🔔 TuckTuck here — the bot is configured correctly.",
@@ -464,7 +489,8 @@ export const en: Record<string, string> = {
   "bot.already.cancelled": "already dismissed",
   "bot.already.deleted": "already deleted",
   "bot.already.other": "already handled",
-  "bot.cancelled.text": "✖️ Dismissed — reminder closed, the resource is untouched",
+  "bot.cancelled.text":
+    "✖️ Dismissed — reminder closed, the resource is untouched",
   "bot.cancelled.toast": "Dismissed",
   "bot.paid.note": "marked from Telegram",
   "bot.paid.text": "✅ Paid. Next payment — {date}",
@@ -484,18 +510,22 @@ export const en: Record<string, string> = {
   "tg.title": "Telegram access",
   "tg.reachable": "reachable",
   "tg.unreachable": "unreachable",
-  "tg.desc": "Some hosting providers block api.telegram.org — then a proxy is required",
+  "tg.desc":
+    "Some hosting providers block api.telegram.org — then a proxy is required",
   "tg.check": "Check",
   "tg.direct": "Direct: {status}",
   "tg.viaProxy": "Via proxy: {status}",
   "tg.warn.title": "Telegram is unreachable from this server.",
-  "tg.warn.text": "Bots will not be created and reminders will not go out. A SOCKS5 or HTTP proxy will do.",
+  "tg.warn.text":
+    "Bots will not be created and reminders will not go out. A SOCKS5 or HTTP proxy will do.",
   "tg.setupProxy": "Configure proxy",
   "tg.hint":
     "The proxy is configured in system settings; a bot can override it in its own card — the per-bot one wins.",
 
-  "proxy.err.notUrl": "That does not look like an address. Format: socks5://user:pass@host:port",
-  "proxy.err.scheme": "Scheme {scheme} is not supported. Use one of: socks5, socks4, http, https",
+  "proxy.err.notUrl":
+    "That does not look like an address. Format: socks5://user:pass@host:port",
+  "proxy.err.scheme":
+    "Scheme {scheme} is not supported. Use one of: socks5, socks4, http, https",
   "proxy.err.noHost": "The address has no host",
   "proxy.err.port": "The address has no port, or it is outside 1–65535",
 
@@ -503,7 +533,8 @@ export const en: Record<string, string> = {
   "settings.title": "System settings",
   "settings.subtitle": "Installation-wide options",
   "settings.proxy.title": "Proxy to Telegram",
-  "settings.proxy.desc": "Shared by all bots. A bot can define its own — the per-bot one wins",
+  "settings.proxy.desc":
+    "Shared by all bots. A bot can define its own — the per-bot one wins",
   "settings.proxy.fromEnv": "set via environment variable",
   "settings.proxy.none": "not set — connecting directly",
   "settings.proxy.hint":
@@ -516,7 +547,8 @@ export const en: Record<string, string> = {
   "settings.quiet.to": "To",
   "settings.quiet.always": "Around the clock",
   "settings.quiet.stateAlways": "No restriction: messages go out at any hour.",
-  "settings.quiet.stateWindow": "Sending from {from} to {to} in {tz}. Outside those hours reminders wait.",
+  "settings.quiet.stateWindow":
+    "Sending from {from} to {to} in {tz}. Outside those hours reminders wait.",
   "settings.captcha.title": "Sign-in captcha",
   "settings.captcha.desc":
     "Cloudflare Turnstile. Both halves of the key come from the Cloudflare panel; with no secret half the captcha is off.",
@@ -548,11 +580,13 @@ export const en: Record<string, string> = {
   "settings.notifyLocale.desc":
     "The language the bot writes in. Separate from the interface language: a message goes to a chat, not to one person",
   "settings.err.unknownTimezone": "Unknown time zone",
-  "settings.err.retentionRange": "Retention must be a whole number of days from {min} to {max}",
+  "settings.err.retentionRange":
+    "Retention must be a whole number of days from {min} to {max}",
   "settings.err.currencyFormat": "Currency code must be 2–10 Latin letters",
   "settings.err.unknownLocale": "Unknown language",
   "settings.err.hourRange": "The hour must be a number from 0 to 23",
-  "settings.err.siteKeyFormat": "That site key looks wrong — copy the whole value",
+  "settings.err.siteKeyFormat":
+    "That site key looks wrong — copy the whole value",
 
   // ── users ────────────────────────────────────────────────────────────────
   "users.col.user": "User",
@@ -564,7 +598,8 @@ export const en: Record<string, string> = {
   "users.created": "User created",
   "users.searchPlaceholder": "Email or name…",
   "users.resetPassword": "Reset password",
-  "users.confirm.reset": "Reset the password for {email}? All their sessions will be signed out.",
+  "users.confirm.reset":
+    "Reset the password for {email}? All their sessions will be signed out.",
   "users.confirm.delete": "Delete user {email}?",
   "users.tempPassword": "Temporary password (copy it, shown once):",
   "users.form.newTitle": "New user",
@@ -573,15 +608,18 @@ export const en: Record<string, string> = {
   "users.form.passwordHint": "At least 8 characters",
   "users.err.email": "A valid email is required",
   "users.err.password": "Password must be at least 8 characters",
-  "users.err.selfRole": "You cannot change the role or status of your own account",
+  "users.err.selfRole":
+    "You cannot change the role or status of your own account",
   "users.err.lastAdmin": "This is the last active admin",
   "users.err.selfDelete": "You cannot delete your own account",
 
   // ── profile ──────────────────────────────────────────────────────────────
   "profile.language": "Interface language",
-  "profile.languageDesc": "Stored in your profile — the choice survives signing in from another device",
+  "profile.languageDesc":
+    "Stored in your profile — the choice survives signing in from another device",
   "profile.changePassword": "Change password",
-  "profile.changePasswordHint": "All other sessions will be signed out afterwards",
+  "profile.changePasswordHint":
+    "All other sessions will be signed out afterwards",
   "profile.currentPassword": "Current password",
   "profile.newPassword": "New password",
   "profile.repeatPassword": "Repeat the new one",
@@ -590,7 +628,8 @@ export const en: Record<string, string> = {
   "profile.totp": "Two-factor authentication",
   "profile.totpEnabled": "enabled",
   "profile.totpDisabled": "disabled",
-  "profile.totpDesc": "A one-time code from an app (Google Authenticator, 1Password and similar)",
+  "profile.totpDesc":
+    "A one-time code from an app (Google Authenticator, 1Password and similar)",
   "profile.totpSetup":
     "Scan the QR code in the app or enter the key manually, then confirm with a code.",
   "profile.totpManualKey": "Manual key:",
@@ -608,4 +647,201 @@ export const en: Record<string, string> = {
   "profile.revokeOthers": "End the others",
   "profile.confirm.revokeOne": "End this session?",
   "profile.confirm.revokeAll": "End all sessions except the current one?",
+
+  // ── Finance Board ─────────────────────────────────────────────────────────
+  "finance.err.titleRequired": "Title is required",
+  "finance.err.amountRequired": "Amount is required",
+  "finance.err.currencyRequired": "Currency is required",
+  "finance.err.unknownScope": "Unknown expense scope",
+  "finance.err.unknownKind": "Unknown expense kind",
+  "finance.err.dateInvalid": "Invalid operation date",
+  "finance.err.scopeValidation": "Invalid scope and related id combination",
+  "finance.err.noRate": "Could not get a rate for conversion",
+  "finance.err.insufficientBalance": "Insufficient balance for distribution",
+  "finance.err.projectIdRequired": "Project is required",
+  "finance.err.memberIdRequired": "Member is required",
+  "finance.err.percentInvalid": "Percent must be a number from 0 to 100",
+  "finance.err.distributionTotal":
+    "Distribution total exceeds available balance",
+  "finance.err.cannotEditApproved":
+    "Only a finance manager can edit an approved operation",
+  "finance.err.cannotTransition": "Invalid status transition",
+  "finance.err.alreadyApproved": "Expense is already processed",
+  "finance.err.userAlreadyLinked": "User is already linked to another member",
+
+  // ── Finance Board UI ─────────────────────────────────────────────────────
+  "nav.finance": "Finance",
+  "nav.financeBoard": "Board",
+  "nav.financeExpenses": "Expenses",
+  "nav.financeIncome": "Income",
+  "nav.financeProjects": "Projects",
+  "nav.financeTeam": "Team",
+  "nav.financeAudit": "Audit",
+
+  "finance.all": "All",
+  "finance.active": "Active",
+  "finance.inactive": "Inactive",
+  "finance.archived": "Archived",
+  "finance.none": "—",
+
+  "finance.status.PENDING": "Pending approval",
+  "finance.status.APPROVED": "Approved",
+  "finance.status.REJECTED": "Rejected",
+  "finance.kind.EXPENSE": "Expense",
+  "finance.kind.PAYOUT": "Payout",
+  "finance.scope.TEAM": "Team",
+  "finance.scope.PROJECT": "Project",
+  "finance.scope.MEMBER": "Member",
+
+  "finance.board.title": "Finance — Board",
+  "finance.board.subtitle": "Balances, operations and upcoming charges",
+  "finance.board.teamBalance": "Team balance",
+  "finance.board.payable": "Payable to members",
+  "finance.board.monthExpense": "Monthly expenses",
+  "finance.board.monthIncome": "Monthly income",
+  "finance.board.memberBalances": "Member balances",
+  "finance.board.projectBalances": "Project balances",
+  "finance.board.recentOperations": "Recent operations",
+  "finance.board.upcomingRecurring": "Upcoming recurring charges",
+  "finance.board.allTeam": "All team",
+  "finance.board.allProjects": "All projects",
+  "finance.board.add": "Add",
+
+  "finance.expenses.title": "Expenses and payouts",
+  "finance.expenses.add": "Add expense",
+  "finance.expenses.searchPlaceholder": "Title, amount…",
+  "finance.expenses.empty": "No expenses yet",
+  "finance.expenses.col.date": "Date",
+  "finance.expenses.col.title": "Title",
+  "finance.expenses.col.kind": "Kind",
+  "finance.expenses.col.scope": "Scope",
+  "finance.expenses.col.target": "Project / Member",
+  "finance.expenses.col.amount": "Amount",
+  "finance.expenses.col.status": "Status",
+  "finance.expenses.filter.period": "Period",
+  "finance.expenses.period.thisMonth": "This month",
+  "finance.expenses.period.lastMonth": "Last month",
+  "finance.expenses.period.allTime": "All time",
+  "finance.expenses.filter.kind": "Kind",
+  "finance.expenses.filter.status": "Status",
+  "finance.expenses.filter.scope": "Scope",
+  "finance.expenses.filter.project": "Project",
+  "finance.expenses.filter.member": "Member",
+  "finance.expenses.confirm.delete": "Delete expense «{title}»?",
+  "finance.expenses.action.approve": "Approve",
+  "finance.expenses.action.reject": "Reject",
+  "finance.expenses.confirm.approve": "Approve expense «{title}»?",
+  "finance.expenses.confirm.reject": "Reject expense «{title}»?",
+  "finance.expenses.toast.approved": "Expense approved",
+  "finance.expenses.toast.rejected": "Expense rejected",
+
+  "finance.income.title": "Income",
+  "finance.income.add": "Add income",
+  "finance.income.searchPlaceholder": "Title, client…",
+  "finance.income.empty": "No income yet",
+  "finance.income.col.date": "Date",
+  "finance.income.col.title": "Title",
+  "finance.income.col.project": "Project / Team",
+  "finance.income.col.amount": "Amount",
+  "finance.income.col.distributed": "Distributed",
+  "finance.income.col.remaining": "Remaining",
+  "finance.income.col.status": "Status",
+  "finance.income.status.full": "Distributed",
+  "finance.income.status.partial": "Partial",
+  "finance.income.status.none": "Undistributed",
+  "finance.income.filter.project": "Project",
+  "finance.income.filter.currency": "Currency",
+  "finance.income.filter.distribution": "Distribution",
+  "finance.income.distribution.all": "All",
+  "finance.income.distribution.full": "Fully distributed",
+  "finance.income.distribution.partial": "Has remainder",
+  "finance.income.distribution.none": "Undistributed",
+
+  "finance.projects.title": "Projects",
+  "finance.projects.add": "Add project",
+  "finance.projects.searchPlaceholder": "Project name…",
+  "finance.projects.empty": "No projects yet",
+  "finance.projects.balance": "Project balance",
+  "finance.projects.monthIncome": "Income this month",
+  "finance.projects.monthExpense": "Expenses this month",
+  "finance.projects.membersShares": "Members and shares",
+  "finance.projects.col.members": "Members",
+  "finance.projects.membersTotal": "{percent}% total · {rest}% left on project",
+  "finance.projects.action.addMember": "Add member",
+  "finance.projects.action.distribute": "Distribute balance",
+  "finance.projects.action.archive": "Archive",
+  "finance.projects.confirm.archive": "Archive project «{name}»?",
+  "finance.projects.distribute.title": "Distribute balance",
+  "finance.projects.distribute.available": "Available: {amount}",
+  "finance.projects.distribute.tabPercent": "By shares",
+  "finance.projects.distribute.tabAmount": "Fixed amounts",
+  "finance.projects.distribute.preview": "Preview",
+  "finance.projects.distribute.note": "Note",
+  "finance.projects.form.newTitle": "New project",
+  "finance.projects.form.editTitle": "Edit project",
+  "finance.projects.form.name": "Name",
+  "finance.projects.form.description": "Description",
+
+  "finance.team.title": "Team",
+  "finance.team.add": "Add member",
+  "finance.team.searchPlaceholder": "Name or role…",
+  "finance.team.empty": "No team members yet",
+  "finance.team.col.member": "Member",
+  "finance.team.col.role": "Role",
+  "finance.team.col.account": "Account",
+  "finance.team.col.earned": "Earned",
+  "finance.team.col.paid": "Paid out",
+  "finance.team.col.balance": "Balance",
+  "finance.team.col.active": "Active",
+  "finance.team.status.active": "Active",
+  "finance.team.status.inactive": "Inactive",
+  "finance.team.action.linkUser": "Link account",
+  "finance.team.action.unlink": "Unlink",
+  "finance.team.action.deactivate": "Deactivate",
+  "finance.team.confirm.deactivate": "Deactivate member «{name}»?",
+  "finance.team.account.none": "No account",
+  "finance.team.account.linked": "@{email}",
+  "finance.team.link.title": "Link user account",
+  "finance.team.link.empty": "No free accounts",
+  "finance.team.form.newTitle": "New member",
+  "finance.team.form.editTitle": "Edit member",
+  "finance.team.form.name": "Name",
+  "finance.team.form.position": "Role / position",
+
+  "finance.audit.title": "Change log",
+  "finance.audit.searchPlaceholder": "Entity, id…",
+  "finance.audit.empty": "No audit records",
+  "finance.audit.col.date": "Date",
+  "finance.audit.col.actor": "Actor",
+  "finance.audit.col.action": "Action",
+  "finance.audit.col.entity": "Entity",
+  "finance.audit.col.entityId": "ID",
+  "finance.audit.filter.entity": "Entity",
+  "finance.audit.filter.action": "Action",
+  "finance.audit.diff.before": "Before",
+  "finance.audit.diff.after": "After",
+  "finance.audit.action.view": "View details",
+
+  "finance.operation.title": "New operation",
+  "finance.operation.type.expense": "Expense",
+  "finance.operation.type.payout": "Payout",
+  "finance.operation.type.income": "Income",
+  "finance.operation.name": "Title",
+  "finance.operation.amount": "Amount",
+  "finance.operation.currency": "Currency",
+  "finance.operation.scope": "Scope",
+  "finance.operation.scope.team": "Team",
+  "finance.operation.scope.project": "Project",
+  "finance.operation.scope.member": "Member",
+  "finance.operation.project": "Project",
+  "finance.operation.member": "Member",
+  "finance.operation.date": "Date",
+  "finance.operation.description": "Description",
+  "finance.operation.tags": "Tags",
+  "finance.operation.tagsHint": "Comma or Enter separated",
+  "finance.operation.distribute": "Distribute immediately by project shares",
+  "finance.operation.distributeHint": "Remainder stays on project balance",
+  "finance.operation.save": "Save operation",
+  "finance.operation.savedExpense": "Expense added",
+  "finance.operation.savedIncome": "Income added",
 };

@@ -12,7 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Turnstile, type TurnstileHandle } from "@/components/captcha/turnstile";
+import {
+  Turnstile,
+  type TurnstileHandle,
+} from "@/components/captcha/turnstile";
 import { useI18n } from "@/components/i18n-provider";
 import { LOCALES, LOCALE_LABEL } from "@/lib/i18n/config";
 
@@ -43,7 +46,10 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Turnstile-Token": turnstileToken },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Turnstile-Token": turnstileToken,
+        },
         body: JSON.stringify({ email, password, totp }),
       });
       const data = await res.json().catch(() => ({}));
@@ -74,7 +80,14 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Image src="/images/logo-sm.png" alt="" width={48} height={48} className="rounded-xl" priority />
+          <Image
+            src="/images/logo-sm.png"
+            alt=""
+            width={48}
+            height={48}
+            className="rounded-xl"
+            priority
+          />
           <div className="text-center">
             <h1 className="text-lg font-semibold tracking-tight">
               Tuck<span className="text-primary">Tuck</span>
@@ -127,9 +140,15 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPass(v => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPass ? t("auth.hidePassword") : t("auth.showPassword")}
+                    aria-label={
+                      showPass ? t("auth.hidePassword") : t("auth.showPassword")
+                    }
                   >
-                    {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showPass ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
                   </button>
                 </div>
               </div>

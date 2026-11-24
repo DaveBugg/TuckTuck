@@ -1,28 +1,28 @@
 # TuckTuck
 
-*[Русская версия](README.ru.md)*
+_[Русская версия](README.ru.md)_
 
-Self-hosted panel for tracking what you pay for and when. Servers, VPNs,
-proxies, domains and SaaS subscriptions in one list, sorted by the next payment
-date, with Telegram reminders before the money is due.
+Self-hosted panel for tracking what you pay for and when. Servers, VPNs, proxies, domains and SaaS
+subscriptions in one list, sorted by the next payment date, with Telegram reminders before the money
+is due.
 
-Built for one person or a small team. No SaaS, no accounts anywhere else — one
-command on your own machine.
+Built for one person or a small team. No SaaS, no accounts anywhere else — one command on your own
+machine.
 
 ---
 
 ## Quick start
 
-One command on a fresh server. Docker gets installed if it isn't there, secrets
-are generated, the database migrates, HTTPS turns itself on:
+One command on a fresh server. Docker gets installed if it isn't there, secrets are generated, the
+database migrates, HTTPS turns itself on:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | TUCKTUCK_DOMAIN=panel.example.com sh
 ```
 
-That is the whole minimum — one variable. Point the domain's A record at the
-server first: the certificate is issued on the spot and needs the name to
-resolve. The script prints the admin password once, at the end.
+That is the whole minimum — one variable. Point the domain's A record at the server first: the
+certificate is issued on the spot and needs the name to resolve. The script prints the admin
+password once, at the end.
 
 With a captcha and a proxy to Telegram:
 
@@ -35,195 +35,180 @@ TELEGRAM_PROXY_URL=socks5://user:pass@host:1080 \
 sh setup.sh
 ```
 
-Re-running the script updates the stack and **keeps the existing secrets** —
-rotating the encryption key would make every stored bot token and credential
-unreadable.
+Re-running the script updates the stack and **keeps the existing secrets** — rotating the encryption
+key would make every stored bot token and credential unreadable.
 
-Behind your own nginx or Traefik, pass `TUCKTUCK_SKIP_PROXY=1` and point your
-web server at `127.0.0.1:3000`.
+Behind your own nginx or Traefik, pass `TUCKTUCK_SKIP_PROXY=1` and point your web server at
+`127.0.0.1:3000`.
 
 ### Everything the script accepts
 
-| Variable | Default | What it is |
-|---|---|---|
-| `TUCKTUCK_DOMAIN` | — | **Required.** Panel domain, host name only |
-| `TUCKTUCK_DIR` | `/opt/tucktuck` | Where to install |
-| `TUCKTUCK_PORT` | `3000` | App port on loopback |
-| `TUCKTUCK_TAG` | `latest` | Image tag; a specific one pins the build |
-| `TUCKTUCK_SKIP_PROXY` | `0` | `1` — don't start Caddy, you already have a reverse proxy |
-| `TUCKTUCK_PREFIX` | `tucktuck` | Container name prefix; change it only to run a second panel on the same host |
-| `TUCKTUCK_TLS` | `auto` | `auto` — Let's Encrypt, for a server facing the internet directly; `cert.pem,key.pem` — your own certificate, for Cloudflare Full (strict) |
-| `TUCKTUCK_SKIP_DOCKER` | `0` | `1` — don't install Docker, do it yourself |
-| `TURNSTILE_SITE_KEY` | empty | Cloudflare Turnstile, public half |
-| `TURNSTILE_SECRET_KEY` | empty | Turnstile, secret half. Both empty = no captcha |
-| `TELEGRAM_PROXY_URL` | empty | `socks5://` or `http://`, when Telegram is blocked from the server |
-| `SEED_ADMIN_EMAIL` | `admin@tucktuck.local` | First administrator's login |
-| `NOTIFY_INTERVAL_SEC` | `300` | How often the worker checks for due reminders |
+| Variable               | Default                | What it is                                                                                                                                 |
+| ---------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `TUCKTUCK_DOMAIN`      | —                      | **Required.** Panel domain, host name only                                                                                                 |
+| `TUCKTUCK_DIR`         | `/opt/tucktuck`        | Where to install                                                                                                                           |
+| `TUCKTUCK_PORT`        | `3000`                 | App port on loopback                                                                                                                       |
+| `TUCKTUCK_TAG`         | `latest`               | Image tag; a specific one pins the build                                                                                                   |
+| `TUCKTUCK_SKIP_PROXY`  | `0`                    | `1` — don't start Caddy, you already have a reverse proxy                                                                                  |
+| `TUCKTUCK_PREFIX`      | `tucktuck`             | Container name prefix; change it only to run a second panel on the same host                                                               |
+| `TUCKTUCK_TLS`         | `auto`                 | `auto` — Let's Encrypt, for a server facing the internet directly; `cert.pem,key.pem` — your own certificate, for Cloudflare Full (strict) |
+| `TUCKTUCK_SKIP_DOCKER` | `0`                    | `1` — don't install Docker, do it yourself                                                                                                 |
+| `TURNSTILE_SITE_KEY`   | empty                  | Cloudflare Turnstile, public half                                                                                                          |
+| `TURNSTILE_SECRET_KEY` | empty                  | Turnstile, secret half. Both empty = no captcha                                                                                            |
+| `TELEGRAM_PROXY_URL`   | empty                  | `socks5://` or `http://`, when Telegram is blocked from the server                                                                         |
+| `SEED_ADMIN_EMAIL`     | `admin@tucktuck.local` | First administrator's login                                                                                                                |
+| `NOTIFY_INTERVAL_SEC`  | `300`                  | How often the worker checks for due reminders                                                                                              |
 
-Secrets — the database password, `TUCKTUCK_JWT_SECRET`,
-`TUCKTUCK_ENCRYPTION_KEY`, `TUCKTUCK_WORKER_TOKEN` — are generated by the script
-and written to `<dir>/.env` with mode 600. Pass them yourself only when moving an
-existing installation to another machine: the encryption key must match the data,
-otherwise saved secrets stop decrypting.
+Secrets — the database password, `TUCKTUCK_JWT_SECRET`, `TUCKTUCK_ENCRYPTION_KEY`,
+`TUCKTUCK_WORKER_TOKEN` — are generated by the script and written to `<dir>/.env` with mode 600.
+Pass them yourself only when moving an existing installation to another machine: the encryption key
+must match the data, otherwise saved secrets stop decrypting.
 
 ---
 
 ## What this is
 
-A single place that answers two questions about your infrastructure: **what do I
-pay for and when**, and **is it still alive**.
+A single place that answers two questions about your infrastructure: **what do I pay for and when**,
+and **is it still alive**.
 
-Payments are easy to miss. A domain expires on a Tuesday, a VPS is suspended over
-a weekend, a subscription renews at a price you meant to review months ago. Every
-provider has its own panel and its own reminder email, and none of them know
-about each other. TuckTuck is the list none of them can give you.
+Payments are easy to miss. A domain expires on a Tuesday, a VPS is suspended over a weekend, a
+subscription renews at a price you meant to review months ago. Every provider has its own panel and
+its own reminder email, and none of them know about each other. TuckTuck is the list none of them
+can give you.
 
-It is built for one person or a small team, on your own machine: no SaaS, no
-account anywhere else, no telemetry, no outbound traffic except to Telegram and
-the currency rate APIs.
+It is built for one person or a small team, on your own machine: no SaaS, no account anywhere else,
+no telemetry, no outbound traffic except to Telegram and the currency rate APIs.
 
 ## What's in it
 
 ### Payments
 
-Everything you pay for lives in one table — servers, VPNs, proxies, domains and
-SaaS subscriptions — sorted by the next payment date, so the top of the screen is
-always what's due soonest. Filter by "due in 3 / 7 / 14 days", by type, provider
-or tag; search by name, IP, domain or link.
+Everything you pay for lives in one table — servers, VPNs, proxies, domains and SaaS subscriptions —
+sorted by the next payment date, so the top of the screen is always what's due soonest. Filter by
+"due in 3 / 7 / 14 days", by type, provider or tag; search by name, IP, domain or link.
 
-A billing period is a number plus a unit: every 30 days, every 3 months, once a
-year. Days and months are not the same thing here — 30 days is always 30 days,
-while a calendar month moves 31 January to 28 February.
+A billing period is a number plus a unit: every 30 days, every 3 months, once a year. Days and
+months are not the same thing here — 30 days is always 30 days, while a calendar month moves 31
+January to 28 February.
 
-Press **Mark as paid** and the payment goes into history while the date rolls
-forward by one period. Each provider can hold a link to its billing page, shown
-right next to the payment on the dashboard.
+Press **Mark as paid** and the payment goes into history while the date rolls forward by one period.
+Each provider can hold a link to its billing page, shown right next to the payment on the dashboard.
 
 ### Money
 
-Amounts are kept per currency and never mixed. Fiat and crypto both work; crypto
-carries the network alongside the coin, because the same coin in a different
-network is a different address and a different fee.
+Amounts are kept per currency and never mixed. Fiat and crypto both work; crypto carries the network
+alongside the coin, because the same coin in a different network is a different address and a
+different fee.
 
-The dashboard shows the **current month**, the **next month** and the **whole
-year** — counted from the real payment schedule, not by averaging. A yearly
-subscription does not contribute one twelfth every month; it lands once, in full,
-in its own month. A chart button opens the year broken down by month, where the
-spikes are exactly your quarterly, semi-annual and yearly bills.
+The dashboard shows the **current month**, the **next month** and the **whole year** — counted from
+the real payment schedule, not by averaging. A yearly subscription does not contribute one twelfth
+every month; it lands once, in full, in its own month. A chart button opens the year broken down by
+month, where the spikes are exactly your quarterly, semi-annual and yearly bills.
 
-Per-currency sums are exact. Under them is a total converted into the one
-currency you pick in the settings, at rates taken from four free sources and
-cached for an hour. When a rate is missing, the currency is listed as
-unconverted instead of silently dropping out of the sum.
+Per-currency sums are exact. Under them is a total converted into the one currency you pick in the
+settings, at rates taken from four free sources and cached for an hour. When a rate is missing, the
+currency is listed as unconverted instead of silently dropping out of the sum.
 
 ### Telegram reminders
 
-Reminders are sent by bots you create yourself in @BotFather — two days and one
-day ahead by default, adjustable per resource.
+Reminders are sent by bots you create yourself in @BotFather — two days and one day ahead by
+default, adjustable per resource.
 
-You can have several bots, each with its own filter by resource type and tags:
-production servers into one chat, domains and subscriptions into another. Under
-every message are three buttons — **paid**, **dismiss**, **delete from the
-panel** — so the usual case never requires opening the panel at all. Deletion
-takes a second press to confirm, and pressing a button twice repeats nothing.
+You can have several bots, each with its own filter by resource type and tags: production servers
+into one chat, domains and subscriptions into another. Under every message are three buttons —
+**paid**, **dismiss**, **delete from the panel** — so the usual case never requires opening the
+panel at all. Deletion takes a second press to confirm, and pressing a button twice repeats nothing.
 
-**Quiet hours** keep the bot from writing at night: set the window in the panel's
-time zone, globally or per bot. A reminder that falls outside the window is not
-lost — it goes out when the window opens.
+**Quiet hours** keep the bot from writing at night: set the window in the panel's time zone,
+globally or per bot. A reminder that falls outside the window is not lost — it goes out when the
+window opens.
 
-If Telegram is blocked from your server (it is, on some hosts), set a SOCKS5 or
-HTTP proxy — globally or for one bot. The panel checks reachability and says
-plainly which path works.
+If Telegram is blocked from your server (it is, on some hosts), set a SOCKS5 or HTTP proxy —
+globally or for one bot. The panel checks reachability and says plainly which path works.
 
 ### Monitoring
 
-CPU, memory, disk, load average and uptime from every machine, once a minute. The
-agent is a POSIX shell script: no Node, no Python, no Docker on the target. The
-panel's own server needs no agent at all.
+CPU, memory, disk, load average and uptime from every machine, once a minute. The agent is a POSIX
+shell script: no Node, no Python, no Docker on the target. The panel's own server needs no agent at
+all.
 
-Installation is either **one command** or **over SSH from the panel** — paste a
-key, watch the log stream in live. See [how the agent works](#how-the-agent-works)
-below for what is stored and what isn't.
+Installation is either **one command** or **over SSH from the panel** — paste a key, watch the log
+stream in live. See [how the agent works](#how-the-agent-works) below for what is stored and what
+isn't.
 
-In the resources table the monitoring icon is coloured by the machine's worst
-indicator: amber when something is loaded, red when it is critical or the machine
-has gone quiet. You see trouble without hovering over a single row.
+In the resources table the monitoring icon is coloured by the machine's worst indicator: amber when
+something is loaded, red when it is critical or the machine has gone quiet. You see trouble without
+hovering over a single row.
 
-History covers 1, 7, 14 and 30 days and includes a breakdown by hour of day —
-which hours a machine is busy is a question about local time, so the time zone is
-a setting. Old points are rolled up automatically: a year of history for one
-machine is a couple of thousand rows instead of half a million.
+History covers 1, 7, 14 and 30 days and includes a breakdown by hour of day — which hours a machine
+is busy is a question about local time, so the time zone is a setting. Old points are rolled up
+automatically: a year of history for one machine is a couple of thousand rows instead of half a
+million.
 
 ### Access and security
 
-Accounts are created by an administrator; there is no sign-up. Roles are `ADMIN`
-and `USER`, and groups decide who sees which resource — a resource with no group
-is visible to admins only.
+Accounts are created by an administrator; there is no sign-up. Roles are `ADMIN` and `USER`, and
+groups decide who sees which resource — a resource with no group is visible to admins only.
 
-Sign-in is protected by a rate limit (per account and per address) and,
-optionally, by a Cloudflare Turnstile captcha configured in the panel. Two-factor
-auth is TOTP, turned on by the user. Sessions are listed in the profile and can
-be revoked one by one. Bot tokens, proxy passwords and the captcha secret are
-encrypted at rest; the panel is closed to search engines by three independent
-layers.
+Sign-in is protected by a rate limit (per account and per address) and, optionally, by a Cloudflare
+Turnstile captcha configured in the panel. Two-factor auth is TOTP, turned on by the user. Sessions
+are listed in the profile and can be revoked one by one. Bot tokens, proxy passwords and the captcha
+secret are encrypted at rest; the panel is closed to search engines by three independent layers.
 
 ### The interface
 
-English and Russian, chosen per user; the bot's language is separate, because a
-chat has more than one reader. Light and dark themes. Long lists — currencies,
-time zones, providers — are searchable rather than scrollable.
+English and Russian, chosen per user; the bot's language is separate, because a chat has more than
+one reader. Light and dark themes. Long lists — currencies, time zones, providers — are searchable
+rather than scrollable.
 
 ### Not built yet
 
-Credential storage with a reveal log (the schema and the encryption are in
-place, the screen is not), alerts when a server goes down, scheduled backup
-pulls.
+Credential storage with a reveal log (the schema and the encryption are in place, the screen is
+not), alerts when a server goes down, scheduled backup pulls.
 
 ## Screens
 
-| Screen | What's there |
-|---|---|
-| `/dashboard` | Spend for the month and the year, what's due soon, server health |
-| `/resources` | The main table: everything you pay for, with filters and search |
-| `/notifications` | Telegram bots, their chats and filters, reachability check |
-| `/settings` | Time zone, quiet hours, captcha, proxy, metric retention, total currency, bot language |
-| `/users` | Accounts, roles, password resets |
-| `/profile` | Language, password, two-factor, active sessions |
+| Screen           | What's there                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| `/dashboard`     | Spend for the month and the year, what's due soon, server health                       |
+| `/resources`     | The main table: everything you pay for, with filters and search                        |
+| `/notifications` | Telegram bots, their chats and filters, reachability check                             |
+| `/settings`      | Time zone, quiet hours, captcha, proxy, metric retention, total currency, bot language |
+| `/users`         | Accounts, roles, password resets                                                       |
+| `/profile`       | Language, password, two-factor, active sessions                                        |
 
 ## How the agent works
 
-The agent is a POSIX shell script that reads `/proc` and `df` and posts a
-snapshot once a minute. Requiring Node, Python or Docker on someone else's
-server would mean not installing on half of them.
+The agent is a POSIX shell script that reads `/proc` and `df` and posts a snapshot once a minute.
+Requiring Node, Python or Docker on someone else's server would mean not installing on half of them.
 
 Two ways to install it:
 
-- **Over SSH from the panel.** Paste the private key or upload the key file; the
-  installation runs on the target and streams its log into the dialog. The key
-  lives in memory for the duration and is never written anywhere — only host,
-  port, user and the host key fingerprint are stored. The fingerprint is pinned
-  on first connect and checked afterwards, the same way `ssh` does it.
-- **One command**, copied from the same dialog and run as root. It is
-  idempotent: re-running it updates the agent without duplicating the schedule.
+- **Over SSH from the panel.** Paste the private key or upload the key file; the installation runs
+  on the target and streams its log into the dialog. The key lives in memory for the duration and is
+  never written anywhere — only host, port, user and the host key fingerprint are stored. The
+  fingerprint is pinned on first connect and checked afterwards, the same way `ssh` does it.
+- **One command**, copied from the same dialog and run as root. It is idempotent: re-running it
+  updates the agent without duplicating the schedule.
 
-Updating an agent that is already installed needs no variables at all — the
-address and the token are taken from its own settings file:
+Updating an agent that is already installed needs no variables at all — the address and the token
+are taken from its own settings file:
 
 ```bash
 curl -fsSL https://panel.example.com/install.sh | sh
 ```
 
-The panel's own server needs neither: metrics are read from the host `/proc` and
-`/` mounted read-only into the container.
+The panel's own server needs neither: metrics are read from the host `/proc` and `/` mounted
+read-only into the container.
 
-Raw minute points are kept for a day, then rolled up into hourly averages, and
-after a month into daily ones. A year of history for one machine is a couple of
-thousand rows instead of half a million.
+Raw minute points are kept for a day, then rolled up into hourly averages, and after a month into
+daily ones. A year of history for one machine is a couple of thousand rows instead of half a
+million.
 
 ## Stack
 
-Next.js 16 · TypeScript · Prisma · PostgreSQL 17 · Redis (rate cache) ·
-Tailwind CSS v4 · shadcn/ui (Radix) · Caddy for automatic HTTPS.
+Next.js 16 · TypeScript · Prisma · PostgreSQL 17 · Redis (rate cache) · Tailwind CSS v4 · shadcn/ui
+(Radix) · Caddy for automatic HTTPS.
 
 ## Running locally
 
@@ -238,43 +223,40 @@ npm run dev                   # http://localhost:3000
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | dev server |
-| `npm run build` | production build (`output: standalone`) |
-| `npm test` | unit tests |
-| `npm run type-check` | `tsc --noEmit` — expected to be clean |
+| Command              | What it does                             |
+| -------------------- | ---------------------------------------- |
+| `npm run dev`        | dev server                               |
+| `npm run build`      | production build (`output: standalone`)  |
+| `npm test`           | unit tests                               |
+| `npm run type-check` | `tsc --noEmit` — expected to be clean    |
 | `npm run db:migrate` | create a migration from a changed schema |
-| `npm run db:deploy` | apply migrations |
-| `npm run db:seed` | create the first admin (idempotent) |
+| `npm run db:deploy`  | apply migrations                         |
+| `npm run db:seed`    | create the first admin (idempotent)      |
 
 ## Deploying
 
-The server needs nothing but Docker — no Node, no build step, images come
-prebuilt from GHCR. [Quick start](#quick-start) above sets all of it up;
-`setup.sh` leaves behind a directory with `docker-compose.yml`, `.env` and
-`deploy.sh`.
+The server needs nothing but Docker — no Node, no build step, images come prebuilt from GHCR.
+[Quick start](#quick-start) above sets all of it up; `setup.sh` leaves behind a directory with
+`docker-compose.yml`, `.env` and `deploy.sh`.
 
-Updating is one command, from anywhere on the server and with no variables at
-all — the domain and every secret are read from the installation's own `.env`:
+Updating is one command, from anywhere on the server and with no variables at all — the domain and
+every secret are read from the installation's own `.env`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | sh
 ```
 
-It pulls fresh images, applies migrations and restarts the stack, and unlike
-`deploy.sh` it also updates `docker-compose.yml` and the Caddy config — so new
-services and settings arrive too.
+It pulls fresh images, applies migrations and restarts the stack, and unlike `deploy.sh` it also
+updates `docker-compose.yml` and the Caddy config — so new services and settings arrive too.
 
-From inside the installation directory `./deploy.sh` does the same for the app
-alone, and `./deploy.sh sha-a1b2c3d` rolls back to a specific build.
+From inside the installation directory `./deploy.sh` does the same for the app alone, and
+`./deploy.sh sha-a1b2c3d` rolls back to a specific build.
 
-After a successful update the images left over from previous builds are removed.
-Each update moves the `latest` tag to a new image and the old one stays behind
-untagged — nothing ever deletes those on its own, and a few dozen updates add up
-to tens of gigabytes. Only untagged images are removed, and only once the new
-version has answered its health check: until then a rollback is still possible.
-`TUCKTUCK_KEEP_IMAGES=1` turns the cleanup off.
+After a successful update the images left over from previous builds are removed. Each update moves
+the `latest` tag to a new image and the old one stays behind untagged — nothing ever deletes those
+on its own, and a few dozen updates add up to tens of gigabytes. Only untagged images are removed,
+and only once the new version has answered its health check: until then a rollback is still
+possible. `TUCKTUCK_KEEP_IMAGES=1` turns the cleanup off.
 
 Setting it up by hand instead, from a clone:
 
@@ -285,70 +267,65 @@ cp .env.example .env && nano .env    # domain, DB password, secrets
 docker compose exec tucktuck node prisma/seed.mjs   # first admin
 ```
 
-`deploy.sh` pulls images, runs migrations in a separate container, updates the
-app, then waits for `/api/health` and compares the reported build version. If
-the new version does not come up it prints the logs and rolls back to the
-previous tag.
+`deploy.sh` pulls images, runs migrations in a separate container, updates the app, then waits for
+`/api/health` and compares the reported build version. If the new version does not come up it prints
+the logs and rolls back to the previous tag.
 
-> The rollback restores the image but **does not revert migrations**. Split
-> breaking schema changes into compatible steps.
+> The rollback restores the image but **does not revert migrations**. Split breaking schema changes
+> into compatible steps.
 
-HTTPS is automatic: Caddy holds 80/443 and issues a Let's Encrypt certificate
-for `TUCKTUCK_DOMAIN`. The domain's A record must already point at the server.
+HTTPS is automatic: Caddy holds 80/443 and issues a Let's Encrypt certificate for `TUCKTUCK_DOMAIN`.
+The domain's A record must already point at the server.
 
 ### HTTPS: two supported modes
 
-**1. Server directly on the internet, no Cloudflare.** This is the default and
-needs no options at all:
+**1. Server directly on the internet, no Cloudflare.** This is the default and needs no options at
+all:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | TUCKTUCK_DOMAIN=panel.example.com sh
 ```
 
-Caddy holds 80/443, issues a Let's Encrypt certificate for `TUCKTUCK_DOMAIN` on
-first start and renews it on its own, well before expiry. No cron, no certbot,
-no second container. Certificates live in a named volume, so recreating the
-container doesn't send you back to Let's Encrypt — that is how you stay clear of
-their rate limits.
+Caddy holds 80/443, issues a Let's Encrypt certificate for `TUCKTUCK_DOMAIN` on first start and
+renews it on its own, well before expiry. No cron, no certbot, no second container. Certificates
+live in a named volume, so recreating the container doesn't send you back to Let's Encrypt — that is
+how you stay clear of their rate limits.
 
-Two requirements, both about reachability: the domain's A record already points
-at this server, and ports 80 and 443 are open to the world. The ACME challenge
-arrives over them, and a closed port 80 is the usual reason issuance fails.
+Two requirements, both about reachability: the domain's A record already points at this server, and
+ports 80 and 443 are open to the world. The ACME challenge arrives over them, and a closed port 80
+is the usual reason issuance fails.
 
-**2. Behind Cloudflare, SSL/TLS mode Full (strict).** Visitors get Cloudflare's
-certificate; the one on your server protects the hop between Cloudflare and you,
-and in strict mode Cloudflare verifies it. Issue a free Origin Certificate in
-the Cloudflare panel (SSL/TLS → Origin Server → Create Certificate), put both
-files on the server and point at them:
+**2. Behind Cloudflare, SSL/TLS mode Full (strict).** Visitors get Cloudflare's certificate; the one
+on your server protects the hop between Cloudflare and you, and in strict mode Cloudflare verifies
+it. Issue a free Origin Certificate in the Cloudflare panel (SSL/TLS → Origin Server → Create
+Certificate), put both files on the server and point at them:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh -o setup.sh
 TUCKTUCK_DOMAIN=panel.example.com TUCKTUCK_TLS=/root/origin.pem,/root/origin.key sh setup.sh
 ```
 
-The files are copied into the installation directory, the key gets mode 600, and
-Caddy stops going to Let's Encrypt entirely — sensible, since that certificate
-would never be shown to anyone. An Origin Certificate is valid for 15 years;
-renewing it is a manual job on that day, and the same command with new files is
-all it takes.
+The files are copied into the installation directory, the key gets mode 600, and Caddy stops going
+to Let's Encrypt entirely — sensible, since that certificate would never be shown to anyone. An
+Origin Certificate is valid for 15 years; renewing it is a manual job on that day, and the same
+command with new files is all it takes.
 
-Re-running `setup.sh` without `TUCKTUCK_TLS` keeps whatever was chosen before,
-so an update never silently drops you back to Let's Encrypt.
+Re-running `setup.sh` without `TUCKTUCK_TLS` keeps whatever was chosen before, so an update never
+silently drops you back to Let's Encrypt.
 
-> Cloudflare's **Flexible** mode is not supported, deliberately. Cloudflare
-> would talk plain HTTP to your server while the panel redirects everything to
-> HTTPS — that is a redirect loop, and the traffic between Cloudflare and you
-> would travel unencrypted. Use Full (strict).
+> Cloudflare's **Flexible** mode is not supported, deliberately. Cloudflare would talk plain HTTP to
+> your server while the panel redirects everything to HTTPS — that is a redirect loop, and the
+> traffic between Cloudflare and you would travel unencrypted. Use Full (strict).
 
 <details>
 <summary>Two more cases that work but are rarely what you want</summary>
 
-`TUCKTUCK_TLS=internal` gives Caddy a self-signed certificate — enough for
-Cloudflare's **Full** (non-strict) mode, where the origin certificate isn't
-verified. Simpler than an Origin Certificate, and nothing expires.
+`TUCKTUCK_TLS=internal` gives Caddy a self-signed certificate — enough for Cloudflare's **Full**
+(non-strict) mode, where the origin certificate isn't verified. Simpler than an Origin Certificate,
+and nothing expires.
 
-Leaving `auto` behind Cloudflare also works as long as port 80 reaches the
-origin: Let's Encrypt just issues a real certificate for a hop nobody ever sees.
+Leaving `auto` behind Cloudflare also works as long as port 80 reaches the origin: Let's Encrypt
+just issues a real certificate for a hop nobody ever sees.
 
 </details>
 
@@ -358,9 +335,9 @@ origin: Let's Encrypt just issues a real certificate for a hop nobody ever sees.
 ... TUCKTUCK_SKIP_PROXY=1 sh setup.sh
 ```
 
-The app then listens on `127.0.0.1:3000` and nothing else is published.
-Certificates and their renewal are certbot's business as usual — its systemd
-timer keeps working, TuckTuck neither knows nor interferes.
+The app then listens on `127.0.0.1:3000` and nothing else is published. Certificates and their
+renewal are certbot's business as usual — its systemd timer keeps working, TuckTuck neither knows
+nor interferes.
 
 ```nginx
 server {
@@ -386,10 +363,10 @@ server {
 }
 ```
 
-The headers are not decoration. `X-Forwarded-For` is what ends up in the session
-list, and `X-Forwarded-Proto`/`X-Forwarded-Host` are how the panel works out the
-address to hand to a monitoring agent. Set `TUCKTUCK_PUBLIC_URL` in `.env` and
-it wins over both — worth doing when the panel sits behind two proxies.
+The headers are not decoration. `X-Forwarded-For` is what ends up in the session list, and
+`X-Forwarded-Proto`/`X-Forwarded-Host` are how the panel works out the address to hand to a
+monitoring agent. Set `TUCKTUCK_PUBLIC_URL` in `.env` and it wins over both — worth doing when the
+panel sits behind two proxies.
 
 ### The reminder worker
 
@@ -399,53 +376,50 @@ The worker is a separate container from the same image:
 docker compose --profile workers up -d tucktuck-notify
 ```
 
-It calls the app over the internal network every `NOTIFY_INTERVAL_SEC` seconds.
-Waking it more often than daily is safe — repeat sends are blocked at the
-database level.
+It calls the app over the internal network every `NOTIFY_INTERVAL_SEC` seconds. Waking it more often
+than daily is safe — repeat sends are blocked at the database level.
 
-For the buttons under Telegram messages to work, `TUCKTUCK_PUBLIC_URL` must be
-set to an https address Telegram can reach. Without it reminders are still sent,
-just without buttons; the panel says so.
+For the buttons under Telegram messages to work, `TUCKTUCK_PUBLIC_URL` must be set to an https
+address Telegram can reach. Without it reminders are still sent, just without buttons; the panel
+says so.
 
 ## CI
 
-`.github/workflows/ci.yml` runs unit tests on every push, and on `main` builds
-and publishes two images to GHCR: the app and a migrator. Tags are `latest`,
-`sha-<short>` and semver from git tags.
+`.github/workflows/ci.yml` runs unit tests on every push, and on `main` builds and publishes two
+images to GHCR: the app and a migrator. Tags are `latest`, `sha-<short>` and semver from git tags.
 
-`NEXT_PUBLIC_*` values are baked in at build time, so they live in repository
-variables rather than the server's `.env`.
+`NEXT_PUBLIC_*` values are baked in at build time, so they live in repository variables rather than
+the server's `.env`.
 
 ## Notes on the code
 
-| Path | What's there |
-|---|---|
-| `src/lib/permissions.ts` | the permission map. Isomorphic: edge middleware, API and UI share it |
-| `src/lib/auth.ts` | JWT signing and verification, `requirePermission`, DB revalidation |
-| `src/lib/resources.ts` | visibility rule, billing period arithmetic, due-date levels |
-| `src/lib/notify.ts` | reminder selection, bot filters, message text |
-| `src/lib/telegram.ts` | thin Bot API client |
-| `src/lib/ssh-install.ts` | SSH transport for agent installation: TOFU fingerprint, script over stdin |
-| `src/lib/monitoring.ts` | health from snapshot freshness, parsing of what the agent sent |
-| `src/lib/i18n/` | dictionaries and the translation engine (Intl-based plurals) |
-| `public/agent.sh` | the agent itself |
-| `public/install.sh` | idempotent installer, systemd timer or cron |
-| `src/components/data-table.tsx` | server-driven tables: search, sort, filters, row actions |
-| `src/components/ui/` | shadcn components, owned by this repository |
+| Path                            | What's there                                                              |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| `src/lib/permissions.ts`        | the permission map. Isomorphic: edge middleware, API and UI share it      |
+| `src/lib/auth.ts`               | JWT signing and verification, `requirePermission`, DB revalidation        |
+| `src/lib/resources.ts`          | visibility rule, billing period arithmetic, due-date levels               |
+| `src/lib/notify.ts`             | reminder selection, bot filters, message text                             |
+| `src/lib/telegram.ts`           | thin Bot API client                                                       |
+| `src/lib/ssh-install.ts`        | SSH transport for agent installation: TOFU fingerprint, script over stdin |
+| `src/lib/monitoring.ts`         | health from snapshot freshness, parsing of what the agent sent            |
+| `src/lib/i18n/`                 | dictionaries and the translation engine (Intl-based plurals)              |
+| `public/agent.sh`               | the agent itself                                                          |
+| `public/install.sh`             | idempotent installer, systemd timer or cron                               |
+| `src/components/data-table.tsx` | server-driven tables: search, sort, filters, row actions                  |
+| `src/components/ui/`            | shadcn components, owned by this repository                               |
 
-Code checks a **permission**, never a role. Roles only hand out permission sets,
-so adding one is a single line in `ROLE_PERMISSIONS`.
+Code checks a **permission**, never a role. Roles only hand out permission sets, so adding one is a
+single line in `ROLE_PERMISSIONS`.
 
-Anything paid for is one `Resource` row with a `kind`, not five separate models
-— the main screen is a single list across all types, and five tables would mean
-a five-way union plus five copies of payments, reminders, credentials and tags.
+Anything paid for is one `Resource` row with a `kind`, not five separate models — the main screen is
+a single list across all types, and five tables would mean a five-way union plus five copies of
+payments, reminders, credentials and tags.
 
-The interface language comes from a cookie first and only falls back to the
-database. Language is needed by every screen; reading it from the database would
-make it the most frequent query in the system. It is read from there once, at
-sign-in, and written into the cookie.
+The interface language comes from a cookie first and only falls back to the database. Language is
+needed by every screen; reading it from the database would make it the most frequent query in the
+system. It is read from there once, at sign-in, and written into the cookie.
 
 ## License
 
-[MIT](LICENSE). The UI is built on shadcn/ui components (MIT) copied into this
-repository, so there is no third-party theme licence to worry about.
+[MIT](LICENSE). The UI is built on shadcn/ui components (MIT) copied into this repository, so there
+is no third-party theme licence to worry about.

@@ -7,7 +7,12 @@ process.env.TUCKTUCK_ENCRYPTION_KEY =
 import { encryptSecret, decryptSecret } from "../../src/lib/secret-crypto";
 
 test("roundtrip: encrypt → decrypt возвращает исходную строку", () => {
-  for (const s of ["X-Api-Key: abc123", "простой секрет", "", "a".repeat(500)]) {
+  for (const s of [
+    "X-Api-Key: abc123",
+    "простой секрет",
+    "",
+    "a".repeat(500),
+  ]) {
     const enc = encryptSecret(s);
     assert.equal(decryptSecret(enc), s);
   }
@@ -26,7 +31,10 @@ test("два шифрования одного значения различаю
 test("незашифрованное значение отвергается, а не возвращается как есть", () => {
   // Раньше строка без префикса молча отдавалась наружу как «легаси-плейнтекст».
   // Это опасно: подменённое в БД значение ушло бы в Telegram как токен бота.
-  assert.throws(() => decryptSecret("просто строка"), /not encrypted|corrupted/);
+  assert.throws(
+    () => decryptSecret("просто строка"),
+    /not encrypted|corrupted/
+  );
   assert.throws(() => decryptSecret(""), /not encrypted|corrupted/);
   assert.throws(() => decryptSecret("enc:v1:мусор"), /corrupted/);
 });

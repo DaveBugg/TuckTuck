@@ -44,7 +44,11 @@ async function call<T>(
   } catch (e) {
     const cause = (e as { cause?: { code?: string } })?.cause?.code;
     const msg = e instanceof Error ? e.message : "network unreachable";
-    return { ok: false, error: cause ? `${msg} (${cause})` : msg, network: true };
+    return {
+      ok: false,
+      error: cause ? `${msg} (${cause})` : msg,
+      network: true,
+    };
   }
 }
 
@@ -66,7 +70,9 @@ export function sendMessage(
       parse_mode: "HTML",
       // Превью ссылок в напоминании об оплате только мешает.
       link_preview_options: { is_disabled: true },
-      ...(buttons?.length ? { reply_markup: { inline_keyboard: buttons } } : {}),
+      ...(buttons?.length
+        ? { reply_markup: { inline_keyboard: buttons } }
+        : {}),
     },
     proxyUrl
   );
@@ -114,10 +120,20 @@ export function answerCallbackQuery(
 
 /** Проверка токена при сохранении бота — заодно узнаём его @username. */
 export function getMe(token: string, proxyUrl = "") {
-  return call<{ id: number; username: string; first_name: string }>(token, "getMe", {}, proxyUrl);
+  return call<{ id: number; username: string; first_name: string }>(
+    token,
+    "getMe",
+    {},
+    proxyUrl
+  );
 }
 
-export function setWebhook(token: string, url: string, secret: string, proxyUrl = "") {
+export function setWebhook(
+  token: string,
+  url: string,
+  secret: string,
+  proxyUrl = ""
+) {
   return call(
     token,
     "setWebhook",
@@ -155,7 +171,9 @@ export function deleteWebhook(token: string, proxyUrl = "") {
  * нужно — подтверждение, что до API мы дошли. Отказ API означает, что связь
  * ЕСТЬ; её отсутствие приходит как network:true.
  */
-export async function checkReachable(proxyUrl = ""): Promise<{ ok: boolean; error?: string }> {
+export async function checkReachable(
+  proxyUrl = ""
+): Promise<{ ok: boolean; error?: string }> {
   const r = await call("0:ping", "getMe", {}, proxyUrl);
   if (r.ok) return { ok: true };
   return r.network ? { ok: false, error: r.error } : { ok: true };

@@ -4,7 +4,11 @@ import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import { visibilityWhere } from "@/lib/resources";
 import { getSettings } from "@/lib/settings";
-import { PERIODS, metricsHistory, type PeriodDays } from "@/lib/metrics-history";
+import {
+  PERIODS,
+  metricsHistory,
+  type PeriodDays,
+} from "@/lib/metrics-history";
 import { tForRequest } from "@/lib/i18n/server";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -22,7 +26,8 @@ export async function GET(req: Request, ctx: Ctx) {
       where: { id, ...visibilityWhere(me) },
       select: { id: true },
     });
-    if (!r) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!r)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const raw = Number(new URL(req.url).searchParams.get("days"));
     // Whitelist, а не clamp: период уходит в вычисление границы, и принимать

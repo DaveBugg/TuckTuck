@@ -64,18 +64,30 @@ test("часы разбираются строго", () => {
 
 test("окно бота важнее общего, но только если задано целиком", () => {
   const global = { notifyFromHour: 9, notifyToHour: 21 };
-  assert.deepEqual(windowFor({ notifyFromHour: 0, notifyToHour: 0 }, global), { from: 0, to: 0 });
-  assert.deepEqual(windowFor({ notifyFromHour: 10, notifyToHour: 20 }, global), {
-    from: 10,
-    to: 20,
+  assert.deepEqual(windowFor({ notifyFromHour: 0, notifyToHour: 0 }, global), {
+    from: 0,
+    to: 0,
   });
+  assert.deepEqual(
+    windowFor({ notifyFromHour: 10, notifyToHour: 20 }, global),
+    {
+      from: 10,
+      to: 20,
+    }
+  );
   // Половина окна — это не окно: гадать за пользователя не нужно.
-  assert.deepEqual(windowFor({ notifyFromHour: 10, notifyToHour: null }, global), {
-    from: 9,
-    to: 21,
-  });
-  assert.deepEqual(windowFor({ notifyFromHour: null, notifyToHour: null }, global), {
-    from: 9,
-    to: 21,
-  });
+  assert.deepEqual(
+    windowFor({ notifyFromHour: 10, notifyToHour: null }, global),
+    {
+      from: 9,
+      to: 21,
+    }
+  );
+  assert.deepEqual(
+    windowFor({ notifyFromHour: null, notifyToHour: null }, global),
+    {
+      from: 9,
+      to: 21,
+    }
+  );
 });

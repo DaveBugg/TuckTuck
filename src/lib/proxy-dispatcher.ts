@@ -86,7 +86,11 @@ export function dispatcherFor(raw: string): Dispatcher | null {
   let d: Dispatcher | null = null;
   try {
     const url = new URL(key);
-    if (url.protocol === "socks5:" || url.protocol === "socks4:" || url.protocol === "socks:") {
+    if (
+      url.protocol === "socks5:" ||
+      url.protocol === "socks4:" ||
+      url.protocol === "socks:"
+    ) {
       d = socksDispatcher(parseSocks(url));
     } else if (url.protocol === "http:" || url.protocol === "https:") {
       d = new ProxyAgent(key);

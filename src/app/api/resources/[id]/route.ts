@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
-import { visibilityWhere, KINDS, PERIOD_UNITS, CURRENCIES, CHAINS } from "@/lib/resources";
+import {
+  visibilityWhere,
+  KINDS,
+  PERIOD_UNITS,
+  CURRENCIES,
+  CHAINS,
+} from "@/lib/resources";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
 
@@ -17,7 +23,10 @@ type Ctx = { params: Promise<{ id: string }> };
  * проверка превратится в «правлю по угаданному id».
  */
 async function visible(id: string, me: { id: string; role: any }) {
-  return prisma.resource.findFirst({ where: { id, ...visibilityWhere(me) }, select: { id: true } });
+  return prisma.resource.findFirst({
+    where: { id, ...visibilityWhere(me) },
+    select: { id: true },
+  });
 }
 
 function parsePatch(b: any, t: TFunc) {
@@ -39,12 +48,14 @@ function parsePatch(b: any, t: TFunc) {
   if (b.isCrypto !== undefined) out.isCrypto = !!b.isCrypto;
   if (b.currency !== undefined) {
     const c = String(b.currency).trim().toUpperCase();
-    if (c && !CURRENCIES.includes(c as any)) return { error: t("res.err.unknownCurrency", { code: c }) };
+    if (c && !CURRENCIES.includes(c as any))
+      return { error: t("res.err.unknownCurrency", { code: c }) };
     if (c) out.currency = c;
   }
   if (b.chain !== undefined) {
     const c = String(b.chain).trim().toUpperCase();
-    if (c && !CHAINS.includes(c as any)) return { error: t("res.err.unknownChain", { code: c }) };
+    if (c && !CHAINS.includes(c as any))
+      return { error: t("res.err.unknownChain", { code: c }) };
     out.chain = c;
   }
   if (b.nextPaymentAt !== undefined) {
@@ -58,17 +69,20 @@ function parsePatch(b: any, t: TFunc) {
     out.periodValue = v;
   }
   if (b.periodUnit !== undefined) {
-    if (!PERIOD_UNITS.includes(b.periodUnit)) return { error: t("res.err.periodUnit") };
+    if (!PERIOD_UNITS.includes(b.periodUnit))
+      return { error: t("res.err.periodUnit") };
     out.periodUnit = b.periodUnit;
   }
   for (const f of ["note", "ip", "url", "domain"] as const) {
-    if (b[f] !== undefined) out[f] = typeof b[f] === "string" ? b[f].trim() : "";
+    if (b[f] !== undefined)
+      out[f] = typeof b[f] === "string" ? b[f].trim() : "";
   }
   if (b.port !== undefined) {
     if (b.port === null || b.port === "") out.port = null;
     else {
       const p = parseInt(b.port, 10);
-      if (!isFinite(p) || p < 1 || p > 65535) return { error: t("res.err.portRange") };
+      if (!isFinite(p) || p < 1 || p > 65535)
+        return { error: t("res.err.portRange") };
       out.port = p;
     }
   }
@@ -93,13 +107,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     // Теги приходят полным набором, а не дельтой: форма всегда знает итоговый
     // список, и «удалить всё, записать присланное» не оставляет расхождений.
-    const tagIds: string[] | null = Array.isArray(b.tagIds) ? b.tagIds.filter(Boolean) : null;
+    const tagIds: string[] | null = Array.isArray(b.tagIds)
+      ? b.tagIds.filter(Boolean)
+      : null;
 
     const row = await prisma.$transaction(async tx => {
       if (tagIds) {
         await tx.resourceTag.deleteMany({ where: { resourceId: id } });
         if (tagIds.length) {
-          await tx.resourceTag.createMany({ data: tagIds.map(tagId => ({ resourceId: id, tagId })) });
+          await tx.resourceTag.createMany({
+            data: tagIds.map(tagId => ({ resourceId: id, tagId })),
+          });
         }
       }
       return tx.resource.update({

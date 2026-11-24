@@ -169,7 +169,8 @@ export const ru: Record<string, string> = {
   "period.everyN": "раз в {n} {unit}",
 
   "res.title": "Ресурсы",
-  "res.subtitle": "Серверы, VPN, прокси, домены и подписки — по ближайшей оплате",
+  "res.subtitle":
+    "Серверы, VPN, прокси, домены и подписки — по ближайшей оплате",
   "res.searchPlaceholder": "Название, IP, домен, ссылка…",
   "res.empty": "Ресурсов пока нет — добавьте первый",
   "res.off": "выкл",
@@ -197,7 +198,8 @@ export const ru: Record<string, string> = {
 
   "res.form.newTitle": "Новый ресурс",
   "res.form.editTitle": "Изменить: {name}",
-  "res.form.remindersHint": "Напоминания за 2 суток и за сутки поставятся автоматически.",
+  "res.form.remindersHint":
+    "Напоминания за 2 суток и за сутки поставятся автоматически.",
   "res.form.name": "Название",
   "res.form.namePlaceholder": "Например, hetzner-web-01",
   "res.form.port": "Порт",
@@ -295,7 +297,8 @@ export const ru: Record<string, string> = {
   "history.days_few": "{count} дня",
   "history.days_many": "{count} дней",
   "history.days_other": "{count} дня",
-  "history.noData": "За этот период данных нет — агент столько ещё не проработал.",
+  "history.noData":
+    "За этот период данных нет — агент столько ещё не проработал.",
   "history.cpuAvg": "CPU в среднем",
   "history.byHour": "Нагрузка по часам",
   "history.peak": "пик в {hour}:00",
@@ -318,11 +321,14 @@ export const ru: Record<string, string> = {
   "agent.installed": "Агент установлен",
   "agent.issue": "Выпустить токен",
   "agent.reissue": "Перевыпустить токен",
-  "agent.confirm.reissue": "Перевыпустить токен? Старый перестанет работать сразу.",
-  "agent.confirm.disable": "Отключить агент? Метрики перестанут приниматься, история останется.",
+  "agent.confirm.reissue":
+    "Перевыпустить токен? Старый перестанет работать сразу.",
+  "agent.confirm.disable":
+    "Отключить агент? Метрики перестанут приниматься, история останется.",
   "agent.hasToken":
     "Агент уже подключён. Токен показывается только в момент выпуска — если он потерян, выпустите новый: старый перестанет работать сразу.",
-  "agent.needToken": "Выпустите токен — покажу готовую команду установки для этого сервера.",
+  "agent.needToken":
+    "Выпустите токен — покажу готовую команду установки для этого сервера.",
   "agent.tokenOnce":
     "Токен показывается один раз. Скопируйте команду сейчас — заново её собрать будет нельзя, только выпустить новый токен.",
   "agent.runAsRoot": "Выполните на сервере под root",
@@ -349,10 +355,13 @@ export const ru: Record<string, string> = {
   "ssh.form.failed": "не удалось",
   "ssh.form.takesTime": "Это занимает 10–40 секунд",
   "ssh.form.log": "Лог установки",
-  "ssh.form.fileTooBig": "Файл великоват для ключа — проверьте, что выбран приватный ключ",
-  "ssh.form.publicKey": "Это публичный ключ (.pub) — нужен приватный, без расширения",
+  "ssh.form.fileTooBig":
+    "Файл великоват для ключа — проверьте, что выбран приватный ключ",
+  "ssh.form.publicKey":
+    "Это публичный ключ (.pub) — нужен приватный, без расширения",
   "ssh.form.requestFailed": "Не удалось отправить запрос — панель недоступна",
-  "ssh.form.streamBroken": "Соединение с панелью прервалось — состояние установки неизвестно",
+  "ssh.form.streamBroken":
+    "Соединение с панелью прервалось — состояние установки неизвестно",
 
   "ssh.connected": "Подключено: {user}@{host}:{port}",
   "ssh.fpRemembered": "Отпечаток хоста: {fp} (запомнен)",
@@ -365,14 +374,18 @@ export const ru: Record<string, string> = {
   "ssh.err.encrypted": "Ключ зашифрован — укажите пароль от ключа",
   "ssh.err.parse":
     "Не удалось разобрать ключ: нужен приватный ключ целиком, вместе со строками BEGIN и END",
-  "ssh.err.timeout": "Сервер не ответил: недоступен порт SSH или мешает фаервол",
+  "ssh.err.timeout":
+    "Сервер не ответил: недоступен порт SSH или мешает фаервол",
   "ssh.err.refused": "Соединение отклонено: на этом порту не слушает SSH",
   "ssh.err.dns": "Имя хоста не разрешается в адрес",
 
   "install.connecting": "Подключаюсь к {user}@{host}:{port}",
-  "install.done.ok": "Агент установлен. Первые метрики придут в течение минуты.",
-  "install.done.noConnection": "Установка не выполнена: соединение не состоялось.",
-  "install.done.failed": "Установка прервана, код выхода {code}. Токен не сохранён.",
+  "install.done.ok":
+    "Агент установлен. Первые метрики придут в течение минуты.",
+  "install.done.noConnection":
+    "Установка не выполнена: соединение не состоялось.",
+  "install.done.failed":
+    "Установка прервана, код выхода {code}. Токен не сохранён.",
   "install.err.selfServer":
     "Это сервер самой панели: метрики снимаются изнутри, агент ему не нужен",
   "install.err.noHost": "Не указан адрес сервера",
@@ -382,13 +395,15 @@ export const ru: Record<string, string> = {
   "install.err.noPublicUrl":
     "Панель не знает своего внешнего адреса — агенту некуда слать метрики. Задайте TUCKTUCK_PUBLIC_URL.",
 
-  "self.note": "Сервер, на котором работает TuckTuck. Метрики снимаются сами, агент не нужен.",
+  "self.note":
+    "Сервер, на котором работает TuckTuck. Метрики снимаются сами, агент не нужен.",
   "self.err.notEnabled": "самомониторинг не включён",
 
   // ── справочники ──────────────────────────────────────────────────────────
   "catalog.err.nameRequired": "Название обязательно",
   "catalog.err.nameTooLong": "Название длиннее 64 символов",
-  "catalog.err.badUrl": "Ссылка должна быть адресом сайта: example.com или https://example.com",
+  "catalog.err.badUrl":
+    "Ссылка должна быть адресом сайта: example.com или https://example.com",
   "catalog.err.unknownKind": "Неизвестный тип справочника",
 
   // ── оповещения ───────────────────────────────────────────────────────────
@@ -425,11 +440,13 @@ export const ru: Record<string, string> = {
 
   "notify.form.newTitle": "Новый бот",
   "notify.form.editTitle": "Бот: {name}",
-  "notify.form.hint": "Токен выдаёт @BotFather. Бота нужно добавить в чат и дать право писать.",
+  "notify.form.hint":
+    "Токен выдаёт @BotFather. Бота нужно добавить в чат и дать право писать.",
   "notify.form.namePlaceholder": "Например, боевые серверы",
   "notify.form.token": "Токен",
   "notify.form.tokenKeep": "оставьте пустым, чтобы не менять",
-  "notify.form.tokenHint": "Хранится зашифрованным и наружу не отдаётся. Проверяется при сохранении.",
+  "notify.form.tokenHint":
+    "Хранится зашифрованным и наружу не отдаётся. Проверяется при сохранении.",
   "notify.form.removeChat": "Убрать чат",
   "notify.form.chatLabel": "подпись (необязательно)",
   "notify.form.allowedIds": "кому можно жать кнопки: telegram id через запятую",
@@ -450,7 +467,8 @@ export const ru: Record<string, string> = {
   "notify.form.chatExists": "Такой чат уже добавлен",
   "notify.form.needChat": "Добавьте хотя бы один чат — иначе слать некуда",
   "notify.form.botAdded": "Бот @{username} добавлен",
-  "notify.form.webhookFailed": "Вебхук не установлен — кнопки не заработают. {detail}",
+  "notify.form.webhookFailed":
+    "Вебхук не установлен — кнопки не заработают. {detail}",
 
   "notify.err.nameRequired": "Название обязательно",
   "notify.err.tokenRequired": "Токен бота обязателен",
@@ -460,7 +478,8 @@ export const ru: Record<string, string> = {
   "notify.err.unreachable":
     "Не удалось связаться с Telegram: {error}. Проверьте доступ с сервера к api.telegram.org — если он закрыт, задайте прокси.",
   "notify.err.tokenRejected": "Телеграм не принял токен: {error}",
-  "notify.webhook.noPublicUrl": "не настроен: TUCKTUCK_PUBLIC_URL не задан или не https",
+  "notify.webhook.noPublicUrl":
+    "не настроен: TUCKTUCK_PUBLIC_URL не задан или не https",
   "notify.webhook.failed": "ошибка: {error}",
   "notify.proxy.unreadable": "задан (не читается)",
   "notify.test.message": "🔔 TuckTuck на связи — бот настроен верно.",
@@ -509,7 +528,8 @@ export const ru: Record<string, string> = {
   "tg.title": "Доступ к Telegram",
   "tg.reachable": "доступен",
   "tg.unreachable": "недоступен",
-  "tg.desc": "С некоторых хостингов api.telegram.org закрыт — тогда нужен прокси",
+  "tg.desc":
+    "С некоторых хостингов api.telegram.org закрыт — тогда нужен прокси",
   "tg.check": "Проверить",
   "tg.direct": "Напрямую: {status}",
   "tg.viaProxy": "Через прокси: {status}",
@@ -520,8 +540,10 @@ export const ru: Record<string, string> = {
   "tg.hint":
     "Прокси задаётся в настройках системы; отдельному боту можно указать свой в его карточке — он важнее общего.",
 
-  "proxy.err.notUrl": "Не похоже на адрес. Формат: socks5://user:pass@host:port",
-  "proxy.err.scheme": "Схема {scheme} не поддерживается. Нужна одна из: socks5, socks4, http, https",
+  "proxy.err.notUrl":
+    "Не похоже на адрес. Формат: socks5://user:pass@host:port",
+  "proxy.err.scheme":
+    "Схема {scheme} не поддерживается. Нужна одна из: socks5, socks4, http, https",
   "proxy.err.noHost": "В адресе нет хоста",
   "proxy.err.port": "В адресе нет порта или он вне диапазона 1–65535",
 
@@ -529,7 +551,8 @@ export const ru: Record<string, string> = {
   "settings.title": "Настройки системы",
   "settings.subtitle": "Общие параметры установки",
   "settings.proxy.title": "Прокси до Telegram",
-  "settings.proxy.desc": "Общий для всех ботов. Отдельному боту можно задать свой — он важнее этого",
+  "settings.proxy.desc":
+    "Общий для всех ботов. Отдельному боту можно задать свой — он важнее этого",
   "settings.proxy.fromEnv": "задан переменной окружения",
   "settings.proxy.none": "не задан — ходим напрямую",
   "settings.proxy.hint":
@@ -542,13 +565,15 @@ export const ru: Record<string, string> = {
   "settings.quiet.to": "До",
   "settings.quiet.always": "Круглосуточно",
   "settings.quiet.stateAlways": "Ограничения нет: пишем в любое время суток.",
-  "settings.quiet.stateWindow": "Пишем с {from} до {to} по {tz}. В остальное время напоминания ждут.",
+  "settings.quiet.stateWindow":
+    "Пишем с {from} до {to} по {tz}. В остальное время напоминания ждут.",
   "settings.captcha.title": "Капча на входе",
   "settings.captcha.desc":
     "Cloudflare Turnstile. Обе половины ключа берутся в панели Cloudflare; без секретной половины капча выключена.",
   "settings.captcha.siteKey": "Ключ сайта (публичный)",
   "settings.captcha.secretKey": "Секретный ключ",
-  "settings.captcha.secretSet": "секрет сохранён — введите новый, чтобы заменить",
+  "settings.captcha.secretSet":
+    "секрет сохранён — введите новый, чтобы заменить",
   "settings.captcha.secretEmpty": "не задан — капча выключена",
   "settings.captcha.saved": "Секрет капчи сохранён",
   "settings.captcha.disable": "Выключить капчу",
@@ -580,11 +605,13 @@ export const ru: Record<string, string> = {
   "settings.notifyLocale.desc":
     "На нём бот пишет в Telegram. Отдельно от языка интерфейса: сообщение уходит в чат, а не конкретному человеку",
   "settings.err.unknownTimezone": "Неизвестный часовой пояс",
-  "settings.err.retentionRange": "Срок хранения — целое число от {min} до {max} дней",
+  "settings.err.retentionRange":
+    "Срок хранения — целое число от {min} до {max} дней",
   "settings.err.currencyFormat": "Код валюты — 2–10 латинских букв",
   "settings.err.unknownLocale": "Неизвестный язык",
   "settings.err.hourRange": "Час должен быть числом от 0 до 23",
-  "settings.err.siteKeyFormat": "Ключ сайта выглядит неверно — скопируйте его целиком",
+  "settings.err.siteKeyFormat":
+    "Ключ сайта выглядит неверно — скопируйте его целиком",
 
   // ── пользователи ─────────────────────────────────────────────────────────
   "users.col.user": "Пользователь",
@@ -596,7 +623,8 @@ export const ru: Record<string, string> = {
   "users.created": "Пользователь создан",
   "users.searchPlaceholder": "Email или имя…",
   "users.resetPassword": "Сбросить пароль",
-  "users.confirm.reset": "Сбросить пароль {email}? Все его сессии будут разлогинены.",
+  "users.confirm.reset":
+    "Сбросить пароль {email}? Все его сессии будут разлогинены.",
   "users.confirm.delete": "Удалить пользователя {email}?",
   "users.tempPassword": "Временный пароль (скопируйте, показывается один раз):",
   "users.form.newTitle": "Новый пользователь",
@@ -611,9 +639,11 @@ export const ru: Record<string, string> = {
 
   // ── профиль ──────────────────────────────────────────────────────────────
   "profile.language": "Язык интерфейса",
-  "profile.languageDesc": "Сохраняется в профиле — выбор переживёт вход с другого устройства",
+  "profile.languageDesc":
+    "Сохраняется в профиле — выбор переживёт вход с другого устройства",
   "profile.changePassword": "Смена пароля",
-  "profile.changePasswordHint": "После смены все остальные сессии будут завершены",
+  "profile.changePasswordHint":
+    "После смены все остальные сессии будут завершены",
   "profile.currentPassword": "Текущий пароль",
   "profile.newPassword": "Новый пароль",
   "profile.repeatPassword": "Повторите новый",
@@ -622,7 +652,8 @@ export const ru: Record<string, string> = {
   "profile.totp": "Двухфакторная аутентификация",
   "profile.totpEnabled": "включена",
   "profile.totpDisabled": "выключена",
-  "profile.totpDesc": "Одноразовый код из приложения (Google Authenticator, 1Password и подобные)",
+  "profile.totpDesc":
+    "Одноразовый код из приложения (Google Authenticator, 1Password и подобные)",
   "profile.totpSetup":
     "Отсканируйте QR-код в приложении или введите ключ вручную, затем подтвердите кодом.",
   "profile.totpManualKey": "Ключ вручную:",
@@ -640,4 +671,203 @@ export const ru: Record<string, string> = {
   "profile.revokeOthers": "Завершить остальные",
   "profile.confirm.revokeOne": "Завершить эту сессию?",
   "profile.confirm.revokeAll": "Завершить все сессии, кроме текущей?",
+
+  // ── Finance Board ─────────────────────────────────────────────────────────
+  "finance.err.titleRequired": "Название обязательно",
+  "finance.err.amountRequired": "Сумма обязательна",
+  "finance.err.currencyRequired": "Валюта обязательна",
+  "finance.err.unknownScope": "Неизвестная область расхода",
+  "finance.err.unknownKind": "Неизвестный вид расхода",
+  "finance.err.dateInvalid": "Некорректная дата операции",
+  "finance.err.scopeValidation": "Неверное сочетание области и связанных id",
+  "finance.err.noRate": "Не удалось получить курс для пересчёта",
+  "finance.err.insufficientBalance": "Недостаточно средств для распределения",
+  "finance.err.projectIdRequired": "Укажите проект",
+  "finance.err.memberIdRequired": "Укажите участника",
+  "finance.err.percentInvalid": "Доля должна быть числом от 0 до 100",
+  "finance.err.distributionTotal":
+    "Сумма распределения превышает доступный остаток",
+  "finance.err.cannotEditApproved":
+    "Утверждённую операцию может править только управляющий финансами",
+  "finance.err.cannotTransition": "Недопустимый переход статуса",
+  "finance.err.alreadyApproved": "Расход уже обработан",
+  "finance.err.userAlreadyLinked":
+    "Пользователь уже привязан к другому участнику",
+
+  // ── Finance Board UI ─────────────────────────────────────────────────────
+  "nav.finance": "Финансы",
+  "nav.financeBoard": "Доска",
+  "nav.financeExpenses": "Расходы",
+  "nav.financeIncome": "Доходы",
+  "nav.financeProjects": "Проекты",
+  "nav.financeTeam": "Команда",
+  "nav.financeAudit": "Журнал",
+
+  "finance.all": "Все",
+  "finance.active": "Активные",
+  "finance.inactive": "Неактивные",
+  "finance.archived": "В архиве",
+  "finance.none": "—",
+
+  "finance.status.PENDING": "На утверждении",
+  "finance.status.APPROVED": "Утверждён",
+  "finance.status.REJECTED": "Отклонён",
+  "finance.kind.EXPENSE": "Расход",
+  "finance.kind.PAYOUT": "Выплата",
+  "finance.scope.TEAM": "Команда",
+  "finance.scope.PROJECT": "Проект",
+  "finance.scope.MEMBER": "Участник",
+
+  "finance.board.title": "Финансы — Доска",
+  "finance.board.subtitle": "Балансы, операции и предстоящие списания",
+  "finance.board.teamBalance": "Баланс команды",
+  "finance.board.payable": "К выплате участникам",
+  "finance.board.monthExpense": "Расходы за месяц",
+  "finance.board.monthIncome": "Доходы за месяц",
+  "finance.board.memberBalances": "Балансы участников",
+  "finance.board.projectBalances": "Балансы проектов",
+  "finance.board.recentOperations": "Последние операции",
+  "finance.board.upcomingRecurring": "Предстоящие периодические списания",
+  "finance.board.allTeam": "Вся команда",
+  "finance.board.allProjects": "Все проекты",
+  "finance.board.add": "Добавить",
+
+  "finance.expenses.title": "Расходы и выплаты",
+  "finance.expenses.add": "Добавить расход",
+  "finance.expenses.searchPlaceholder": "Название, сумма…",
+  "finance.expenses.empty": "Расходов пока нет",
+  "finance.expenses.col.date": "Дата",
+  "finance.expenses.col.title": "Название",
+  "finance.expenses.col.kind": "Вид",
+  "finance.expenses.col.scope": "Куда",
+  "finance.expenses.col.target": "Проект / Участник",
+  "finance.expenses.col.amount": "Сумма",
+  "finance.expenses.col.status": "Статус",
+  "finance.expenses.filter.period": "Период",
+  "finance.expenses.period.thisMonth": "Текущий месяц",
+  "finance.expenses.period.lastMonth": "Прошлый месяц",
+  "finance.expenses.period.allTime": "За всё время",
+  "finance.expenses.filter.kind": "Вид",
+  "finance.expenses.filter.status": "Статус",
+  "finance.expenses.filter.scope": "Куда",
+  "finance.expenses.filter.project": "Проект",
+  "finance.expenses.filter.member": "Участник",
+  "finance.expenses.confirm.delete": "Удалить расход «{title}»?",
+  "finance.expenses.action.approve": "Утвердить",
+  "finance.expenses.action.reject": "Отклонить",
+  "finance.expenses.confirm.approve": "Утвердить расход «{title}»?",
+  "finance.expenses.confirm.reject": "Отклонить расход «{title}»?",
+  "finance.expenses.toast.approved": "Расход утверждён",
+  "finance.expenses.toast.rejected": "Расход отклонён",
+
+  "finance.income.title": "Доходы",
+  "finance.income.add": "Добавить доход",
+  "finance.income.searchPlaceholder": "Название, клиент…",
+  "finance.income.empty": "Доходов пока нет",
+  "finance.income.col.date": "Дата",
+  "finance.income.col.title": "Название",
+  "finance.income.col.project": "Проект / Команда",
+  "finance.income.col.amount": "Сумма",
+  "finance.income.col.distributed": "Распределено",
+  "finance.income.col.remaining": "Остаток",
+  "finance.income.col.status": "Статус",
+  "finance.income.status.full": "Распределён",
+  "finance.income.status.partial": "Частично",
+  "finance.income.status.none": "Не распределён",
+  "finance.income.filter.project": "Проект",
+  "finance.income.filter.currency": "Валюта",
+  "finance.income.filter.distribution": "Распределение",
+  "finance.income.distribution.all": "Все",
+  "finance.income.distribution.full": "Распределён полностью",
+  "finance.income.distribution.partial": "Есть остаток",
+  "finance.income.distribution.none": "Не распределён",
+
+  "finance.projects.title": "Проекты",
+  "finance.projects.add": "Добавить проект",
+  "finance.projects.searchPlaceholder": "Название проекта…",
+  "finance.projects.empty": "Проектов пока нет",
+  "finance.projects.balance": "Баланс проекта",
+  "finance.projects.monthIncome": "Доходы за месяц",
+  "finance.projects.monthExpense": "Расходы за месяц",
+  "finance.projects.membersShares": "Участники и доли",
+  "finance.projects.col.members": "Участники",
+  "finance.projects.membersTotal":
+    "Всего {percent}% · остаток на проекте {rest}%",
+  "finance.projects.action.addMember": "Добавить участника",
+  "finance.projects.action.distribute": "Распределить баланс",
+  "finance.projects.action.archive": "В архив",
+  "finance.projects.confirm.archive": "Убрать проект «{name}» в архив?",
+  "finance.projects.distribute.title": "Распределить баланс",
+  "finance.projects.distribute.available": "Доступно: {amount}",
+  "finance.projects.distribute.tabPercent": "По долям",
+  "finance.projects.distribute.tabAmount": "Суммы",
+  "finance.projects.distribute.preview": "Превью",
+  "finance.projects.distribute.note": "Примечание",
+  "finance.projects.form.newTitle": "Новый проект",
+  "finance.projects.form.editTitle": "Изменить проект",
+  "finance.projects.form.name": "Название",
+  "finance.projects.form.description": "Описание",
+
+  "finance.team.title": "Команда",
+  "finance.team.add": "Добавить участника",
+  "finance.team.searchPlaceholder": "Имя или роль…",
+  "finance.team.empty": "Участников пока нет",
+  "finance.team.col.member": "Участник",
+  "finance.team.col.role": "Роль",
+  "finance.team.col.account": "Учётка",
+  "finance.team.col.earned": "Начислено",
+  "finance.team.col.paid": "Выплачено",
+  "finance.team.col.balance": "Баланс",
+  "finance.team.col.active": "Активность",
+  "finance.team.status.active": "Активен",
+  "finance.team.status.inactive": "Неактивен",
+  "finance.team.action.linkUser": "Привязать",
+  "finance.team.action.unlink": "Отвязать",
+  "finance.team.action.deactivate": "Деактивировать",
+  "finance.team.confirm.deactivate": "Деактивировать участника «{name}»?",
+  "finance.team.account.none": "Нет учётки",
+  "finance.team.account.linked": "@{email}",
+  "finance.team.link.title": "Привязать учётную запись",
+  "finance.team.link.empty": "Нет свободных учётных записей",
+  "finance.team.form.newTitle": "Новый участник",
+  "finance.team.form.editTitle": "Изменить участника",
+  "finance.team.form.name": "Имя",
+  "finance.team.form.position": "Роль / должность",
+
+  "finance.audit.title": "Журнал изменений",
+  "finance.audit.searchPlaceholder": "Сущность, id…",
+  "finance.audit.empty": "Записей в журнале нет",
+  "finance.audit.col.date": "Дата",
+  "finance.audit.col.actor": "Кто",
+  "finance.audit.col.action": "Действие",
+  "finance.audit.col.entity": "Сущность",
+  "finance.audit.col.entityId": "ID",
+  "finance.audit.filter.entity": "Сущность",
+  "finance.audit.filter.action": "Действие",
+  "finance.audit.diff.before": "Было",
+  "finance.audit.diff.after": "Стало",
+  "finance.audit.action.view": "Подробнее",
+
+  "finance.operation.title": "Новая операция",
+  "finance.operation.type.expense": "Расход",
+  "finance.operation.type.payout": "Выплата",
+  "finance.operation.type.income": "Доход",
+  "finance.operation.name": "Название",
+  "finance.operation.amount": "Сумма",
+  "finance.operation.currency": "Валюта",
+  "finance.operation.scope": "Куда",
+  "finance.operation.scope.team": "Команда",
+  "finance.operation.scope.project": "Проект",
+  "finance.operation.scope.member": "Участник",
+  "finance.operation.project": "Проект",
+  "finance.operation.member": "Участник",
+  "finance.operation.date": "Дата",
+  "finance.operation.description": "Описание",
+  "finance.operation.tags": "Теги",
+  "finance.operation.tagsHint": "Через запятую или Enter",
+  "finance.operation.distribute": "Распределить сразу по долям проекта",
+  "finance.operation.distributeHint": "Остаток останется на балансе проекта",
+  "finance.operation.save": "Сохранить операцию",
+  "finance.operation.savedExpense": "Расход добавлен",
+  "finance.operation.savedIncome": "Доход добавлен",
 };

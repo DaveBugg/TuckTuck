@@ -35,8 +35,14 @@ test("в каждом языке у форм числа есть все нужн
   // Русскому мало one/other: 2 и 5 требуют разных слов. Английскому хватает
   // двух. Проверяем, что для каждого «множественного» ключа набор форм полон
   // именно для своего языка.
-  const need: Record<string, string[]> = { ru: ["one", "few", "many"], en: ["one", "other"] };
-  for (const [lang, dict] of [["ru", ru], ["en", en]] as const) {
+  const need: Record<string, string[]> = {
+    ru: ["one", "few", "many"],
+    en: ["one", "other"],
+  };
+  for (const [lang, dict] of [
+    ["ru", ru],
+    ["en", en],
+  ] as const) {
     const plurals = new Set(
       Object.keys(dict)
         .filter(k => PLURAL.test(k))
@@ -91,8 +97,16 @@ test("неизвестный ключ возвращается сам собой
 // Названия монет — имена собственные: Bitcoin называется так на любом языке,
 // и требовать здесь расхождения значило бы требовать выдуманного перевода.
 const PROPER_NOUNS = new Set([
-  "currency.USDT", "currency.USDC", "currency.BTC", "currency.ETH", "currency.TON",
-  "currency.TRX", "currency.LTC", "currency.BNB", "currency.SOL", "currency.XMR",
+  "currency.USDT",
+  "currency.USDC",
+  "currency.BTC",
+  "currency.ETH",
+  "currency.TON",
+  "currency.TRX",
+  "currency.LTC",
+  "currency.BNB",
+  "currency.SOL",
+  "currency.XMR",
 ]);
 
 test("оба словаря реально переводят, а не повторяют друг друга", () => {
@@ -102,7 +116,10 @@ test("оба словаря реально переводят, а не повт�
     k => en[k] === ru[k] && !/^[\W\d]*$/.test(ru[k]) && !PROPER_NOUNS.has(k)
   );
   // Совпадения законны там, где переводить нечего: «VPN», коды, эмодзи.
-  assert.ok(same.length < 10, `подозрительно много одинаковых строк: ${same.join(", ")}`);
+  assert.ok(
+    same.length < 10,
+    `подозрительно много одинаковых строк: ${same.join(", ")}`
+  );
 });
 
 test("язык из Accept-Language", () => {
@@ -128,9 +145,15 @@ test("resolveLocale не пропускает мусор", () => {
 test("числа форматируются по языку", () => {
   // Разделители разные, и это не косметика: «12.00» русскому читается как
   // двенадцать целых, а «12,00» англоязычному — как двенадцать сотен.
-  assert.equal(formatNumber(1234.5, "en", { minimumFractionDigits: 2 }), "1,234.50");
   assert.equal(
-    formatNumber(1234.5, "ru", { minimumFractionDigits: 2 }).replace(/ | /g, " "),
+    formatNumber(1234.5, "en", { minimumFractionDigits: 2 }),
+    "1,234.50"
+  );
+  assert.equal(
+    formatNumber(1234.5, "ru", { minimumFractionDigits: 2 }).replace(
+      / | /g,
+      " "
+    ),
     "1 234,50"
   );
 });

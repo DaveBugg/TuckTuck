@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { parseListParams, toApiError } from "@/lib/list-query";
-import { visibilityWhere, DEFAULT_REMINDER_DAYS, KINDS, PERIOD_UNITS, CURRENCIES, CHAINS } from "@/lib/resources";
+import {
+  visibilityWhere,
+  DEFAULT_REMINDER_DAYS,
+  KINDS,
+  PERIOD_UNITS,
+  CURRENCIES,
+  CHAINS,
+} from "@/lib/resources";
 import type { Prisma } from "@prisma/client";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -23,7 +30,8 @@ function parseBody(b: any, t: TFunc, partial = false) {
   }
   if (!partial || b.amount !== undefined) {
     const amount = Number(b.amount);
-    if (!isFinite(amount) || amount < 0) return err(t("res.err.amountNegative"));
+    if (!isFinite(amount) || amount < 0)
+      return err(t("res.err.amountNegative"));
     // 8 знаков, а не 2: 0.00042 BTC — обычная сумма, округление до копеек
     // превратило бы её в ноль.
     out.amount = amount.toFixed(8);
@@ -33,12 +41,14 @@ function parseBody(b: any, t: TFunc, partial = false) {
     const c = String(b.currency).trim().toUpperCase();
     // Whitelist: опечатка в коде валюты тихо ломает пересчёт итога — курса для
     // «USDD» не найдётся, и ресурс молча выпал бы из общей суммы.
-    if (c && !CURRENCIES.includes(c as any)) return err(t("res.err.unknownCurrency", { code: c }));
+    if (c && !CURRENCIES.includes(c as any))
+      return err(t("res.err.unknownCurrency", { code: c }));
     if (c) out.currency = c;
   }
   if (b.chain !== undefined) {
     const c = String(b.chain).trim().toUpperCase();
-    if (c && !CHAINS.includes(c as any)) return err(t("res.err.unknownChain", { code: c }));
+    if (c && !CHAINS.includes(c as any))
+      return err(t("res.err.unknownChain", { code: c }));
     out.chain = c;
   }
   if (!partial || b.nextPaymentAt !== undefined) {
@@ -57,18 +67,21 @@ function parseBody(b: any, t: TFunc, partial = false) {
     out.periodValue = v;
   }
   if (!partial || b.periodUnit !== undefined) {
-    if (!PERIOD_UNITS.includes(b.periodUnit)) return err(t("res.err.periodUnit"));
+    if (!PERIOD_UNITS.includes(b.periodUnit))
+      return err(t("res.err.periodUnit"));
     out.periodUnit = b.periodUnit;
   }
 
   for (const f of ["note", "ip", "url", "domain"] as const) {
-    if (b[f] !== undefined) out[f] = typeof b[f] === "string" ? b[f].trim() : "";
+    if (b[f] !== undefined)
+      out[f] = typeof b[f] === "string" ? b[f].trim() : "";
   }
   if (b.port !== undefined) {
     if (b.port === null || b.port === "") out.port = null;
     else {
       const p = parseInt(b.port, 10);
-      if (!isFinite(p) || p < 1 || p > 65535) return err(t("res.err.portRange"));
+      if (!isFinite(p) || p < 1 || p > 65535)
+        return err(t("res.err.portRange"));
       out.port = p;
     }
   }
@@ -154,7 +167,9 @@ export async function GET(req: Request) {
           sshFingerprint: true,
           provider: { select: { id: true, name: true, url: true } },
           group: { select: { id: true, name: true } },
-          tags: { select: { tag: { select: { id: true, name: true, color: true } } } },
+          tags: {
+            select: { tag: { select: { id: true, name: true, color: true } } },
+          },
         },
       }),
       prisma.resource.count({ where }),
@@ -188,13 +203,19 @@ export async function POST(req: Request) {
     const data = parseBody(b, t);
     if ((data as any).error) return NextResponse.json(data, { status: 400 });
 
-    const tagIds: string[] = Array.isArray(b.tagIds) ? b.tagIds.filter(Boolean) : [];
+    const tagIds: string[] = Array.isArray(b.tagIds)
+      ? b.tagIds.filter(Boolean)
+      : [];
     // При заведении ресурса напоминания ставятся сразу: за 2 суток, за сутки и
     // в день оплаты. Форма может прислать свой набор — тогда берём его.
     const days: number[] = Array.isArray(b.reminderDays)
       ? b.reminderDays
       : [...DEFAULT_REMINDER_DAYS];
-    const uniqueDays = [...new Set(days.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 365))];
+    const uniqueDays = [
+      ...new Set(
+        days.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 365)
+      ),
+    ];
 
     const row = await prisma.resource.create({
       data: {

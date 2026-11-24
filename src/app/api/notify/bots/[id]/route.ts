@@ -6,7 +6,11 @@ import { encryptSecret, decryptSecret } from "@/lib/secret-crypto";
 import { deleteWebhook, getMe, setWebhook } from "@/lib/telegram";
 import { publicBaseUrl, webhookSecret } from "@/lib/notify-webhook";
 import { KINDS } from "@/lib/resources";
-import { maskProxyUrl, proxyForBot, validateProxyUrl } from "@/lib/notify-proxy";
+import {
+  maskProxyUrl,
+  proxyForBot,
+  validateProxyUrl,
+} from "@/lib/notify-proxy";
 import { parseChats } from "../route";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
@@ -20,7 +24,9 @@ const SELECT = {
   kinds: true,
   createdAt: true,
   proxyUrlEnc: true,
-  chats: { select: { id: true, chatId: true, label: true, allowedUserIds: true } },
+  chats: {
+    select: { id: true, chatId: true, label: true, allowedUserIds: true },
+  },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const;
 
@@ -48,11 +54,16 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const data: Record<string, unknown> = {};
     if (typeof b.name === "string") {
       const n = b.name.trim();
-      if (!n) return NextResponse.json({ error: t("notify.err.nameRequired") }, { status: 400 });
+      if (!n)
+        return NextResponse.json(
+          { error: t("notify.err.nameRequired") },
+          { status: 400 }
+        );
       data.name = n;
     }
     if (typeof b.isActive === "boolean") data.isActive = b.isActive;
-    if (Array.isArray(b.kinds)) data.kinds = b.kinds.filter((k: string) => KINDS.includes(k as any));
+    if (Array.isArray(b.kinds))
+      data.kinds = b.kinds.filter((k: string) => KINDS.includes(k as any));
 
     // Прокси: пустая строка — осознанное «ходить напрямую», поэтому
     // отличаем «не прислали поле» от «прислали пустым».
@@ -92,7 +103,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
       data.tokenEnc = encryptSecret(newToken);
     }
 
-    const tagIds: string[] | null = Array.isArray(b.tagIds) ? b.tagIds.filter(Boolean) : null;
+    const tagIds: string[] | null = Array.isArray(b.tagIds)
+      ? b.tagIds.filter(Boolean)
+      : null;
     const chats = Array.isArray(b.chats) ? parseChats(b.chats) : null;
 
     const row = await prisma.$transaction(async tx => {
@@ -101,13 +114,17 @@ export async function PATCH(req: Request, ctx: Ctx) {
       if (tagIds) {
         await tx.notifyBotTag.deleteMany({ where: { botId: id } });
         if (tagIds.length) {
-          await tx.notifyBotTag.createMany({ data: tagIds.map(tagId => ({ botId: id, tagId })) });
+          await tx.notifyBotTag.createMany({
+            data: tagIds.map(tagId => ({ botId: id, tagId })),
+          });
         }
       }
       if (chats) {
         await tx.notifyBotChat.deleteMany({ where: { botId: id } });
         if (chats.length) {
-          await tx.notifyBotChat.createMany({ data: chats.map(c => ({ botId: id, ...c })) });
+          await tx.notifyBotChat.createMany({
+            data: chats.map(c => ({ botId: id, ...c })),
+          });
         }
       }
       return tx.notifyBot.update({ where: { id }, data, select: SELECT });
@@ -126,7 +143,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
       webhook = r.ok ? "ok" : t("notify.webhook.failed", { error: r.error });
     }
 
-    return NextResponse.json({ row: shape(row, t), ...(webhook ? { webhook } : {}) });
+    return NextResponse.json({
+      row: shape(row, t),
+      ...(webhook ? { webhook } : {}),
+    });
   } catch (e) {
     return toApiError(e, t);
   }
@@ -146,7 +166,10 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     // не страшно, наш роут ответит 200 и проигнорирует.
     if (bot) {
       try {
-        await deleteWebhook(decryptSecret(bot.tokenEnc), await proxyForBot(bot.proxyUrlEnc));
+        await deleteWebhook(
+          decryptSecret(bot.tokenEnc),
+          await proxyForBot(bot.proxyUrlEnc)
+        );
       } catch {
         /* токен мог быть нечитаем — удаляем всё равно */
       }

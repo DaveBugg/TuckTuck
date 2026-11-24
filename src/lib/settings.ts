@@ -23,7 +23,11 @@ export type AppSettingsView = {
 };
 
 import { RETENTION_MIN, RETENTION_MAX } from "./settings-config";
-export { RETENTION_PRESETS, RETENTION_MIN, RETENTION_MAX } from "./settings-config";
+export {
+  RETENTION_PRESETS,
+  RETENTION_MIN,
+  RETENTION_MAX,
+} from "./settings-config";
 
 /**
  * Часовой пояс ХОСТА, а не контейнера.
@@ -99,15 +103,17 @@ const MEMORY_TTL_MS = 30_000;
 let memory: AppSettingsView | null = null;
 let memoryUntil = 0;
 
-function shape(s: {
-  timezone?: string | null;
-  metricsRetentionDays?: number | null;
-  displayCurrency?: string | null;
-  notifyLocale?: string | null;
-  notifyFromHour?: number | null;
-  notifyToHour?: number | null;
-  turnstileSiteKey?: string | null;
-} | null): AppSettingsView {
+function shape(
+  s: {
+    timezone?: string | null;
+    metricsRetentionDays?: number | null;
+    displayCurrency?: string | null;
+    notifyLocale?: string | null;
+    notifyFromHour?: number | null;
+    notifyToHour?: number | null;
+    turnstileSiteKey?: string | null;
+  } | null
+): AppSettingsView {
   return {
     timezone: safeTimezone(s?.timezone) ?? serverTimezone(),
     metricsRetentionDays: s?.metricsRetentionDays ?? 90,
@@ -149,13 +155,20 @@ export async function getSettings(): Promise<AppSettingsView> {
     // Redis недоступен — не повод падать: ниже обычный запрос к базе.
   }
 
-  const row = await prisma.appSettings.findUnique({ where: { id: "singleton" } });
+  const row = await prisma.appSettings.findUnique({
+    where: { id: "singleton" },
+  });
   const view = shape(row);
   memory = view;
   memoryUntil = Date.now() + MEMORY_TTL_MS;
   try {
     if (await redisReady(1000)) {
-      await getRedis().set(CACHE_KEY, JSON.stringify(view), "EX", CACHE_TTL_SEC);
+      await getRedis().set(
+        CACHE_KEY,
+        JSON.stringify(view),
+        "EX",
+        CACHE_TTL_SEC
+      );
     }
   } catch {
     // Кеш не обязателен.
@@ -180,15 +193,18 @@ export async function invalidateSettingsCache(): Promise<void> {
 }
 
 /** Проверка перед сохранением. Возвращает текст ошибки или null. */
-export function validateSettings(b: {
-  timezone?: unknown;
-  metricsRetentionDays?: unknown;
-  displayCurrency?: unknown;
-  notifyLocale?: unknown;
-  notifyFromHour?: unknown;
-  notifyToHour?: unknown;
-  turnstileSiteKey?: unknown;
-}, t: TFunc): string | null {
+export function validateSettings(
+  b: {
+    timezone?: unknown;
+    metricsRetentionDays?: unknown;
+    displayCurrency?: unknown;
+    notifyLocale?: unknown;
+    notifyFromHour?: unknown;
+    notifyToHour?: unknown;
+    turnstileSiteKey?: unknown;
+  },
+  t: TFunc
+): string | null {
   if (b.timezone !== undefined) {
     // safeTimezone проверяет по системному списку Intl: свой перечень пришлось
     // бы поддерживать вручную, и он всё равно отстал бы от tzdata.
@@ -197,7 +213,10 @@ export function validateSettings(b: {
   if (b.metricsRetentionDays !== undefined) {
     const n = Number(b.metricsRetentionDays);
     if (!Number.isInteger(n) || n < RETENTION_MIN || n > RETENTION_MAX) {
-      return t("settings.err.retentionRange", { min: RETENTION_MIN, max: RETENTION_MAX });
+      return t("settings.err.retentionRange", {
+        min: RETENTION_MIN,
+        max: RETENTION_MAX,
+      });
     }
   }
   if (b.displayCurrency !== undefined) {
@@ -208,7 +227,8 @@ export function validateSettings(b: {
     return t("settings.err.unknownLocale");
   }
   for (const k of ["notifyFromHour", "notifyToHour"] as const) {
-    if (b[k] !== undefined && parseHour(b[k]) === null) return t("settings.err.hourRange");
+    if (b[k] !== undefined && parseHour(b[k]) === null)
+      return t("settings.err.hourRange");
   }
   if (b.turnstileSiteKey !== undefined) {
     const v = String(b.turnstileSiteKey).trim();

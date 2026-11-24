@@ -10,7 +10,10 @@ import { safeTimezone, pgDayExpr } from "../../src/lib/timezone";
 
 test("настоящие пояса проходят", () => {
   assert.equal(safeTimezone("Europe/Moscow"), "Europe/Moscow");
-  assert.equal(safeTimezone("America/Argentina/Buenos_Aires"), "America/Argentina/Buenos_Aires");
+  assert.equal(
+    safeTimezone("America/Argentina/Buenos_Aires"),
+    "America/Argentina/Buenos_Aires"
+  );
   assert.equal(safeTimezone("UTC"), "UTC");
   assert.equal(safeTimezone("  Asia/Almaty  "), "Asia/Almaty");
 });
@@ -43,5 +46,8 @@ test("выражения дня: с поясом и без", () => {
     pgDayExpr("Europe/Moscow", '"occurredAt"'),
     `date_trunc('day', "occurredAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow')`
   );
-  assert.equal(pgDayExpr(null, '"occurredAt"'), `date_trunc('day', "occurredAt")`);
+  assert.equal(
+    pgDayExpr(null, '"occurredAt"'),
+    `date_trunc('day', "occurredAt")`
+  );
 });

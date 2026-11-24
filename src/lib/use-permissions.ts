@@ -6,7 +6,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Cookies from "js-cookie";
 import { hasPermission, type Permission, type Role } from "./permissions";
 
-export type CurrentUser = { id?: string; name?: string; email?: string; role?: Role };
+export type CurrentUser = {
+  id?: string;
+  name?: string;
+  email?: string;
+  role?: Role;
+};
 
 export function useCurrentUser(): CurrentUser {
   const [user, setUser] = useState<CurrentUser>({});
@@ -32,11 +37,17 @@ export function useCurrentUser(): CurrentUser {
  * Держать стабильность на стороне хука, а не просить каждого потребителя
  * помнить про это, — единственный способ не наступить снова.
  */
-export function usePermissions(): { role?: Role; can: (perm: Permission) => boolean } {
+export function usePermissions(): {
+  role?: Role;
+  can: (perm: Permission) => boolean;
+} {
   const user = useCurrentUser();
   const role = user.role;
 
-  const can = useCallback((perm: Permission) => hasPermission(role, perm), [role]);
+  const can = useCallback(
+    (perm: Permission) => hasPermission(role, perm),
+    [role]
+  );
 
   return useMemo(() => ({ role, can }), [role, can]);
 }

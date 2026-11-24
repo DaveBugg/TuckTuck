@@ -9,7 +9,15 @@
 // незачем.
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Play, Upload, ShieldCheck, Terminal, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Loader2,
+  Play,
+  Upload,
+  ShieldCheck,
+  Terminal,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +75,10 @@ export default function SshInstall({
         return;
       }
       const text = await f.text();
-      if (/^-----BEGIN .*PUBLIC KEY-----/m.test(text) || /^ssh-(rsa|ed25519|dss) /.test(text.trim())) {
+      if (
+        /^-----BEGIN .*PUBLIC KEY-----/m.test(text) ||
+        /^ssh-(rsa|ed25519|dss) /.test(text.trim())
+      ) {
         // Самая частая ошибка: подсовывают .pub. Ошибка ssh2 в этом случае
         // невнятная, а причина простая и называется одним словом.
         toast.error(t("ssh.form.publicKey"));
@@ -105,7 +116,12 @@ export default function SshInstall({
 
     if (!res.ok || !res.body) {
       const d = await res.json().catch(() => ({}));
-      setLines([{ text: d?.error || t("err.http", { status: res.status }), stream: "err" }]);
+      setLines([
+        {
+          text: d?.error || t("err.http", { status: res.status }),
+          stream: "err",
+        },
+      ]);
       setState("fail");
       return;
     }
@@ -118,10 +134,15 @@ export default function SshInstall({
     let done = false;
 
     const handle = (obj: any) => {
-      if (obj.type === "log") setLines(p => [...p, { text: obj.text, stream: obj.stream }]);
-      else if (obj.type === "status") setLines(p => [...p, { text: obj.text, stream: "sys" }]);
+      if (obj.type === "log")
+        setLines(p => [...p, { text: obj.text, stream: obj.stream }]);
+      else if (obj.type === "status")
+        setLines(p => [...p, { text: obj.text, stream: "sys" }]);
       else if (obj.type === "done") {
-        setLines(p => [...p, { text: obj.text, stream: obj.ok ? "sys" : "err" }]);
+        setLines(p => [
+          ...p,
+          { text: obj.text, stream: obj.ok ? "sys" : "err" },
+        ]);
         setState(obj.ok ? "ok" : "fail");
         done = true;
         if (obj.ok) {
@@ -152,10 +173,24 @@ export default function SshInstall({
 
     // Поток кончился, а «done» не пришёл: соединение оборвали на середине.
     if (!done) {
-      setLines(p => [...p, { text: t("ssh.form.streamBroken"), stream: "err" }]);
+      setLines(p => [
+        ...p,
+        { text: t("ssh.form.streamBroken"), stream: "err" },
+      ]);
       setState("fail");
     }
-  }, [row.id, host, port, user, privateKey, passphrase, useSudo, resetFp, onInstalled, t]);
+  }, [
+    row.id,
+    host,
+    port,
+    user,
+    privateKey,
+    passphrase,
+    useSudo,
+    resetFp,
+    onInstalled,
+    t,
+  ]);
 
   const busy = state === "running";
   const canRun = !!host.trim() && !!user.trim() && !!privateKey.trim() && !busy;
@@ -185,7 +220,12 @@ export default function SshInstall({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="ssh-user">{t("ssh.form.user")}</Label>
-          <Input id="ssh-user" value={user} onChange={e => setUser(e.target.value)} disabled={busy} />
+          <Input
+            id="ssh-user"
+            value={user}
+            onChange={e => setUser(e.target.value)}
+            disabled={busy}
+          />
         </div>
       </div>
 
@@ -220,7 +260,9 @@ export default function SshInstall({
           id="ssh-key"
           value={privateKey}
           onChange={e => setPrivateKey(e.target.value)}
-          placeholder={"-----BEGIN OPENSSH PRIVATE KEY-----\n…\n-----END OPENSSH PRIVATE KEY-----"}
+          placeholder={
+            "-----BEGIN OPENSSH PRIVATE KEY-----\n…\n-----END OPENSSH PRIVATE KEY-----"
+          }
           spellCheck={false}
           autoComplete="off"
           className="h-32 font-mono text-xs"
@@ -247,7 +289,11 @@ export default function SshInstall({
         </div>
         <div className="flex flex-col justify-end gap-2 pb-1">
           <label className="flex items-center gap-2 text-sm">
-            <Switch checked={useSudo} onCheckedChange={setUseSudo} disabled={busy} />
+            <Switch
+              checked={useSudo}
+              onCheckedChange={setUseSudo}
+              disabled={busy}
+            />
             {t("ssh.form.sudo")}
           </label>
           {!!row.sshFingerprint && (
@@ -255,7 +301,11 @@ export default function SshInstall({
               className="flex items-center gap-2 text-sm"
               title={t("ssh.form.knownFingerprint", { fp: row.sshFingerprint })}
             >
-              <Switch checked={resetFp} onCheckedChange={setResetFp} disabled={busy} />
+              <Switch
+                checked={resetFp}
+                onCheckedChange={setResetFp}
+                disabled={busy}
+              />
               {t("ssh.form.resetFingerprint")}
             </label>
           )}
@@ -279,7 +329,11 @@ export default function SshInstall({
             {t("ssh.form.failed")}
           </Badge>
         )}
-        {busy && <span className="text-sm text-muted-foreground">{t("ssh.form.takesTime")}</span>}
+        {busy && (
+          <span className="text-sm text-muted-foreground">
+            {t("ssh.form.takesTime")}
+          </span>
+        )}
       </div>
 
       {lines.length > 0 && (

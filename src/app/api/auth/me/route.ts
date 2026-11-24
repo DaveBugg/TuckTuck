@@ -1,13 +1,26 @@
 import { NextResponse } from "next/server";
-import { AuthError, publicUser, requireUser, USER_COOKIE, TOKEN_TTL_SEC } from "@/lib/auth";
+import {
+  AuthError,
+  publicUser,
+  requireUser,
+  USER_COOKIE,
+  TOKEN_TTL_SEC,
+} from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isLocale, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE } from "@/lib/i18n/config";
+import {
+  isLocale,
+  LOCALE_COOKIE,
+  LOCALE_COOKIE_MAX_AGE,
+} from "@/lib/i18n/config";
 import { tForRequest } from "@/lib/i18n/server";
 
 export async function GET() {
   try {
     const user = await requireUser();
-    return NextResponse.json({ user: publicUser(user), totpEnabled: user.totpEnabled });
+    return NextResponse.json({
+      user: publicUser(user),
+      totpEnabled: user.totpEnabled,
+    });
   } catch (e) {
     if (e instanceof AuthError) {
       return NextResponse.json({ error: e.message }, { status: e.status });
@@ -30,7 +43,10 @@ export async function PATCH(req: Request) {
     const b = await req.json().catch(() => ({}));
 
     if (!isLocale(b.locale)) {
-      return NextResponse.json({ error: t("settings.err.unknownLocale") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("settings.err.unknownLocale") },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.user.update({

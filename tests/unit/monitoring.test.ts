@@ -98,7 +98,8 @@ test("аптайм и на английском — те же числа, дру
 test("«столько-то назад» выбирает форму по числу, а не сравнением с единицей", () => {
   const ru = makeT("ru");
   const now = new Date("2026-08-09T12:00:00Z");
-  const ago = (min: number) => agoText(new Date(now.getTime() - min * 60_000), ru, now);
+  const ago = (min: number) =>
+    agoText(new Date(now.getTime() - min * 60_000), ru, now);
   assert.equal(ago(0), "только что");
   assert.equal(ago(1), "1 минуту назад");
   // 2 и 5 — разные формы; наивное «n===1 ? … : …» дало бы «2 минут назад».
@@ -113,7 +114,8 @@ test("«столько-то назад» выбирает форму по чис
 test("английский обходится двумя формами", () => {
   const en = makeT("en");
   const now = new Date("2026-08-09T12:00:00Z");
-  const ago = (min: number) => agoText(new Date(now.getTime() - min * 60_000), en, now);
+  const ago = (min: number) =>
+    agoText(new Date(now.getTime() - min * 60_000), en, now);
   assert.equal(ago(1), "1 minute ago");
   assert.equal(ago(5), "5 minutes ago");
   assert.equal(ago(21), "21 minutes ago");

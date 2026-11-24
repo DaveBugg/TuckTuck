@@ -42,7 +42,9 @@ export async function rollupMetrics(now = new Date()): Promise<RollupResult> {
 
   const rawBefore = new Date(now.getTime() - RAW_KEEP_HOURS * 3600_000);
   const hourlyBefore = new Date(now.getTime() - HOURLY_KEEP_DAYS * 86400_000);
-  const retentionBefore = new Date(now.getTime() - metricsRetentionDays * 86400_000);
+  const retentionBefore = new Date(
+    now.getTime() - metricsRetentionDays * 86400_000
+  );
 
   // ── часовые из сырых ──
   // date_trunc в UTC: местный час считается на чтении, по настройке пояса.

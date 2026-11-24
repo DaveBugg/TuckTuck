@@ -79,9 +79,14 @@ async function writeIco(out, sizes) {
   const pngs = [];
   for (const s of sizes) {
     pngs.push(
-      await sharp(Buffer.from(iconSvg(s, s >= 64 ? 26 : 20, s <= 16 ? 15 : s <= 32 ? 12 : 11)), {
-        density: 72 * 4,
-      })
+      await sharp(
+        Buffer.from(
+          iconSvg(s, s >= 64 ? 26 : 20, s <= 16 ? 15 : s <= 32 ? 12 : 11)
+        ),
+        {
+          density: 72 * 4,
+        }
+      )
         .resize(s, s, { fit: "fill" })
         .png({ compressionLevel: 9 })
         .toBuffer()

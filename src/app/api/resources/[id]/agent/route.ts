@@ -28,10 +28,14 @@ export async function POST(req: Request, ctx: Ctx) {
       where: { id, ...visibilityWhere(me) },
       select: { id: true },
     });
-    if (!found) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!found)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const token = crypto.randomBytes(24).toString("hex");
-    await prisma.resource.update({ where: { id }, data: { agentToken: token } });
+    await prisma.resource.update({
+      where: { id },
+      data: { agentToken: token },
+    });
 
     return NextResponse.json({ token });
   } catch (e) {
@@ -50,7 +54,8 @@ export async function DELETE(req: Request, ctx: Ctx) {
       where: { id, ...visibilityWhere(me) },
       select: { id: true },
     });
-    if (!found) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!found)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     await prisma.resource.update({ where: { id }, data: { agentToken: "" } });
     return NextResponse.json({ ok: true });

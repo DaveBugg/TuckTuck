@@ -5,7 +5,13 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { occurrencesBetween, amountBetween, monthRange, sumByCurrency, byMonth } from "../../src/lib/spend";
+import {
+  occurrencesBetween,
+  amountBetween,
+  monthRange,
+  sumByCurrency,
+  byMonth,
+} from "../../src/lib/spend";
 
 const res = (over: Partial<Parameters<typeof amountBetween>[0]> = {}) => ({
   amount: "100",
@@ -33,7 +39,11 @@ test("годовая подписка попадает ровно в свой м
   });
   assert.equal(monthAmount(r, 2026, 2), 1200, "в марте платёж есть");
   for (const m of [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
-    assert.equal(monthAmount(r, 2026, m), 0, `в месяце ${m} платежа быть не должно`);
+    assert.equal(
+      monthAmount(r, 2026, m),
+      0,
+      `в месяце ${m} платежа быть не должно`
+    );
   }
 });
 
@@ -41,7 +51,8 @@ test("прошлые месяцы года считаются так же, ка�
   // Якорь — в августе, но январский платёж по ежемесячной подписке был, и
   // динамика за год не должна обрываться на сегодняшнем дне.
   const r = res();
-  for (let m = 0; m < 12; m++) assert.equal(monthAmount(r, 2026, m), 100, `месяц ${m}`);
+  for (let m = 0; m < 12; m++)
+    assert.equal(monthAmount(r, 2026, m), 100, `месяц ${m}`);
 });
 
 test("квартальная подписка даёт четыре пика в году", () => {
@@ -72,7 +83,9 @@ test("интервал полуоткрытый: платёж первого ч�
   const r = res({ nextPaymentAt: new Date(Date.UTC(2026, 5, 1)) });
   assert.equal(monthAmount(r, 2026, 5), 100);
   const june = monthRange(2026, 5);
-  const dates = occurrencesBetween(r, june.from, june.to).map(d => d.toISOString().slice(0, 10));
+  const dates = occurrencesBetween(r, june.from, june.to).map(d =>
+    d.toISOString().slice(0, 10)
+  );
   assert.deepEqual(dates, ["2026-06-01"]);
 });
 
@@ -108,9 +121,16 @@ test("год целиком: двенадцать месяцев, у каждо�
   assert.equal(months.length, 12);
   assert.equal(months[0].find(c => c.currency === "EUR")?.amount, 600);
   assert.equal(months[6].find(c => c.currency === "EUR")?.amount, 600);
-  assert.equal(months[3].find(c => c.currency === "EUR"), undefined);
+  assert.equal(
+    months[3].find(c => c.currency === "EUR"),
+    undefined
+  );
   for (let m = 0; m < 12; m++) {
-    assert.equal(months[m].find(c => c.currency === "USD")?.amount, 10, `USD в месяце ${m}`);
+    assert.equal(
+      months[m].find(c => c.currency === "USD")?.amount,
+      10,
+      `USD в месяце ${m}`
+    );
   }
 });
 

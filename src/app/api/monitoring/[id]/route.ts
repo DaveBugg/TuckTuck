@@ -38,7 +38,8 @@ export async function GET(req: Request, ctx: Ctx) {
         },
       },
     });
-    if (!r) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!r)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const m = r.metrics[0] ?? null;
     return NextResponse.json({

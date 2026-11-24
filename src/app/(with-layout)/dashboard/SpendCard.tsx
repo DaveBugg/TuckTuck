@@ -17,12 +17,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/client-api";
 import { useI18n } from "@/components/i18n-provider";
 
-type Sum = { currency: string; isCrypto: boolean; count: number; amount: number };
+type Sum = {
+  currency: string;
+  isCrypto: boolean;
+  count: number;
+  amount: number;
+};
 type Period = {
   index?: number;
   byCurrency: Sum[];
@@ -63,9 +72,12 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
   // Названия месяцев берём у движка, а не списком в словаре: их двенадцать на
   // язык, и Intl уже знает и формы, и сокращения.
   const monthName = (i: number, short = false) =>
-    new Date(Date.UTC(2000, i, 1)).toLocaleDateString(locale === "ru" ? "ru-RU" : "en-US", {
-      month: short ? "short" : "long",
-    });
+    new Date(Date.UTC(2000, i, 1)).toLocaleDateString(
+      locale === "ru" ? "ru-RU" : "en-US",
+      {
+        month: short ? "short" : "long",
+      }
+    );
 
   /**
    * Нужен ли пересчитанный итог.
@@ -77,11 +89,14 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
    */
   const showTotal = (p: Period) =>
     p.byCurrency.length > 1 ||
-    (p.byCurrency.length === 1 && p.byCurrency[0].currency !== d?.displayCurrency);
+    (p.byCurrency.length === 1 &&
+      p.byCurrency[0].currency !== d?.displayCurrency);
 
   /** Точные суммы одной строкой: «7 858,88 RUB + 12,00 EUR». */
   const exactLine = (p: Period) =>
-    p.byCurrency.map(c => `${fmt(c.amount, c.isCrypto)} ${c.currency}`).join(" + ");
+    p.byCurrency
+      .map(c => `${fmt(c.amount, c.isCrypto)} ${c.currency}`)
+      .join(" + ");
 
   /** Колонка периода: точные суммы по валютам плюс подпись с общим итогом. */
   const Column = ({
@@ -94,7 +109,9 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
     extra?: React.ReactNode;
   }) => (
     <div className="flex min-w-0 flex-col gap-2">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">{title}</div>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {title}
+      </div>
 
       {p.byCurrency.length === 0 && (
         <span className="text-sm text-muted-foreground">{t("spend.none")}</span>
@@ -157,7 +174,9 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
                 title={
                   <>
                     <Wallet className="size-4" />
-                    {t("spend.thisMonth", { month: monthName(d.month.index ?? 0) })}
+                    {t("spend.thisMonth", {
+                      month: monthName(d.month.index ?? 0),
+                    })}
                   </>
                 }
                 p={d.month}
@@ -206,7 +225,10 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
                         </div>
                         <div className="flex flex-col gap-1">
                           {d.months.map(m => (
-                            <div key={m.month} className="flex items-center gap-2 text-xs">
+                            <div
+                              key={m.month}
+                              className="flex items-center gap-2 text-xs"
+                            >
                               <span className="w-9 shrink-0 text-muted-foreground">
                                 {monthName(m.month, true)}
                               </span>
@@ -216,10 +238,15 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
                                 <span
                                   className={cn(
                                     "block h-full rounded-full",
-                                    m.month === d.month.index ? "bg-primary" : "bg-primary/45"
+                                    m.month === d.month.index
+                                      ? "bg-primary"
+                                      : "bg-primary/45"
                                   )}
                                   style={{
-                                    width: maxMonth > 0 ? `${(m.total / maxMonth) * 100}%` : "0%",
+                                    width:
+                                      maxMonth > 0
+                                        ? `${(m.total / maxMonth) * 100}%`
+                                        : "0%",
                                   }}
                                 />
                               </span>
@@ -244,11 +271,13 @@ export default function SpendCard({ reloadKey = 0 }: { reloadKey?: number }) {
           </div>
         )}
 
-        {d && (d.month.byCurrency.length > 1 || d.yearTotal.byCurrency.length > 1) && (
-          <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
-            {t("spend.ratesAt", { at: fmtDateTime(d.ratesAt) })}
-          </p>
-        )}
+        {d &&
+          (d.month.byCurrency.length > 1 ||
+            d.yearTotal.byCurrency.length > 1) && (
+            <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">
+              {t("spend.ratesAt", { at: fmtDateTime(d.ratesAt) })}
+            </p>
+          )}
       </CardContent>
     </Card>
   );

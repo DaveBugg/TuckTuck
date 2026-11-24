@@ -7,10 +7,26 @@
 // трогают раз в жизни, и разносить их по разделам значило бы заставлять искать.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { BellOff, Clock, Coins, Database, Languages, Loader2, Plug, Save, ShieldCheck } from "lucide-react";
+import {
+  BellOff,
+  Clock,
+  Coins,
+  Database,
+  Languages,
+  Loader2,
+  Plug,
+  Save,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -45,7 +61,9 @@ const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
 // Список поясов берём у самого движка: свой перечень пришлось бы поддерживать
 // вручную, и он всё равно отстал бы от tzdata.
 function zones(): string[] {
-  const anyIntl = Intl as unknown as { supportedValuesOf?: (k: string) => string[] };
+  const anyIntl = Intl as unknown as {
+    supportedValuesOf?: (k: string) => string[];
+  };
   try {
     return anyIntl.supportedValuesOf?.("timeZone") ?? [];
   } catch {
@@ -115,8 +133,12 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">{t("settings.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {t("settings.title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {t("settings.subtitle")}
+        </p>
       </div>
 
       <Card>
@@ -125,9 +147,7 @@ export default function SettingsPage() {
             <Plug className="size-4 text-muted-foreground" />
             {t("settings.proxy.title")}
           </CardTitle>
-          <CardDescription>
-            {t("settings.proxy.desc")}
-          </CardDescription>
+          <CardDescription>{t("settings.proxy.desc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           {!editProxy && (
@@ -139,7 +159,11 @@ export default function SettingsPage() {
                     ? t("settings.proxy.fromEnv")
                     : t("settings.proxy.none")}
               </code>
-              <Button variant="outline" size="sm" onClick={() => setEditProxy(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditProxy(true)}
+              >
                 {t("common.edit")}
               </Button>
             </div>
@@ -161,7 +185,10 @@ export default function SettingsPage() {
                   size="sm"
                   disabled={saving}
                   onClick={async () => {
-                    await patch({ proxyUrl: proxyDraft.trim() }, t("settings.proxy.saved"));
+                    await patch(
+                      { proxyUrl: proxyDraft.trim() },
+                      t("settings.proxy.saved")
+                    );
                     setEditProxy(false);
                     setProxyDraft("");
                   }}
@@ -191,9 +218,7 @@ export default function SettingsPage() {
             <Clock className="size-4 text-muted-foreground" />
             {t("settings.tz.title")}
           </CardTitle>
-          <CardDescription>
-            {t("settings.tz.desc")}
-          </CardDescription>
+          <CardDescription>{t("settings.tz.desc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-w-sm">
@@ -278,9 +303,7 @@ export default function SettingsPage() {
             <Database className="size-4 text-muted-foreground" />
             {t("settings.retention.title")}
           </CardTitle>
-          <CardDescription>
-            {t("settings.retention.desc")}
-          </CardDescription>
+          <CardDescription>{t("settings.retention.desc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-wrap gap-2">
@@ -290,7 +313,10 @@ export default function SettingsPage() {
                 size="sm"
                 variant={s.metricsRetentionDays === d ? "default" : "outline"}
                 onClick={() =>
-                  patch({ metricsRetentionDays: d }, t("settings.retention.saved", { count: d }))
+                  patch(
+                    { metricsRetentionDays: d },
+                    t("settings.retention.saved", { count: d })
+                  )
                 }
               >
                 {t("settings.retention.days", { count: d })}
@@ -309,12 +335,15 @@ export default function SettingsPage() {
                 defaultValue={s.metricsRetentionDays}
                 onBlur={e => {
                   const n = Number(e.target.value);
-                  if (n !== s.metricsRetentionDays) patch({ metricsRetentionDays: n });
+                  if (n !== s.metricsRetentionDays)
+                    patch({ metricsRetentionDays: n });
                 }}
               />
             </div>
             <span className="pb-2 text-sm text-muted-foreground">
-              {t("settings.retention.current", { count: s.metricsRetentionDays })}
+              {t("settings.retention.current", {
+                count: s.metricsRetentionDays,
+              })}
             </span>
           </div>
         </CardContent>
@@ -326,9 +355,7 @@ export default function SettingsPage() {
             <Coins className="size-4 text-muted-foreground" />
             {t("settings.currency.title")}
           </CardTitle>
-          <CardDescription>
-            {t("settings.currency.desc")}
-          </CardDescription>
+          <CardDescription>{t("settings.currency.desc")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="max-w-56">
@@ -337,7 +364,11 @@ export default function SettingsPage() {
             <SearchSelect
               value={s.displayCurrency}
               onChange={v => patch({ displayCurrency: v })}
-              options={CURRENCIES.map(c => ({ value: c, label: c, hint: t(`currency.${c}`) }))}
+              options={CURRENCIES.map(c => ({
+                value: c,
+                label: c,
+                hint: t(`currency.${c}`),
+              }))}
               searchPlaceholder={t("common.search")}
               emptyText={t("common.nothingFound")}
               ariaLabel={t("settings.currency.title")}
@@ -387,19 +418,26 @@ export default function SettingsPage() {
                 // Пустое поле не трогает сохранённый секрет: иначе любое
                 // касание поля стирало бы капчу.
                 if (v) {
-                  patch({ turnstileSecretKey: v.trim() }, t("settings.captcha.saved"));
+                  patch(
+                    { turnstileSecretKey: v.trim() },
+                    t("settings.captcha.saved")
+                  );
                   e.target.value = "";
                 }
               }}
             />
-            <p className="mt-1 text-xs text-muted-foreground">{t("settings.captcha.hint")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("settings.captcha.hint")}
+            </p>
           </div>
           {s.turnstileSecretSet && (
             <Button
               variant="outline"
               size="sm"
               className="self-start"
-              onClick={() => patch({ turnstileSecretKey: "", turnstileSiteKey: "" })}
+              onClick={() =>
+                patch({ turnstileSecretKey: "", turnstileSiteKey: "" })
+              }
             >
               {t("settings.captcha.disable")}
             </Button>

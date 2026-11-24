@@ -112,8 +112,9 @@ export async function metricsHistory(
       samples: Number(r.samples ?? 0),
     });
   }
-  const byHour: HourBucket[] = Array.from({ length: 24 }, (_, h) =>
-    byHourMap.get(h) ?? { hour: h, cpu: null, samples: 0 }
+  const byHour: HourBucket[] = Array.from(
+    { length: 24 },
+    (_, h) => byHourMap.get(h) ?? { hour: h, cpu: null, samples: 0 }
   );
 
   let peakHour: number | null = null;

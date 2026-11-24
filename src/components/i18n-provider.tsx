@@ -37,14 +37,23 @@ type Ctx = {
 
 const I18nContext = createContext<Ctx | null>(null);
 
-export function I18nProvider({ locale, children }: { locale: Locale; children: React.ReactNode }) {
+export function I18nProvider({
+  locale,
+  children,
+}: {
+  locale: Locale;
+  children: React.ReactNode;
+}) {
   const value = useMemo<Ctx>(() => {
     const t = makeT(locale);
     return {
       locale,
       t,
       setLocale: (l: Locale) => {
-        Cookies.set(LOCALE_COOKIE, l, { expires: LOCALE_COOKIE_MAX_AGE / 86400, path: "/" });
+        Cookies.set(LOCALE_COOKIE, l, {
+          expires: LOCALE_COOKIE_MAX_AGE / 86400,
+          path: "/",
+        });
         // Полная перезагрузка, а не router.refresh(): язык участвует в атрибуте
         // lang у <html> и в серверном рендере всех страниц сразу. Мягкое
         // обновление оставило бы часть дерева на прежнем языке.
@@ -91,5 +100,8 @@ export function useT(): TFunc {
 export function syncLocaleCookie(userLocale: unknown): void {
   const l = resolveLocale(userLocale);
   if (Cookies.get(LOCALE_COOKIE) === l) return;
-  Cookies.set(LOCALE_COOKIE, l, { expires: LOCALE_COOKIE_MAX_AGE / 86400, path: "/" });
+  Cookies.set(LOCALE_COOKIE, l, {
+    expires: LOCALE_COOKIE_MAX_AGE / 86400,
+    path: "/",
+  });
 }

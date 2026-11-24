@@ -24,7 +24,12 @@ export type SpendResource = {
 };
 
 /** Сумма по валюте: точная, без пересчёта по курсу. */
-export type CurrencySum = { currency: string; isCrypto: boolean; count: number; amount: number };
+export type CurrencySum = {
+  currency: string;
+  isCrypto: boolean;
+  count: number;
+  amount: number;
+};
 
 /**
  * Шаг назад по периоду. Обратный addPeriod.
@@ -70,7 +75,11 @@ const MAX_OCCURRENCES = 1000;
  * так же, как будущие, — иначе «динамика за год» обрывалась бы на сегодняшнем
  * дне и по ней нельзя было бы увидеть, когда приходил годовой счёт.
  */
-export function occurrencesBetween(r: SpendResource, from: Date, to: Date): Date[] {
+export function occurrencesBetween(
+  r: SpendResource,
+  from: Date,
+  to: Date
+): Date[] {
   const out: Date[] = [];
   const value = Math.max(1, r.periodValue);
 
@@ -103,7 +112,10 @@ export function amountBetween(r: SpendResource, from: Date, to: Date): number {
 }
 
 /** Границы календарного месяца в UTC. */
-export function monthRange(year: number, monthIndex: number): { from: Date; to: Date } {
+export function monthRange(
+  year: number,
+  monthIndex: number
+): { from: Date; to: Date } {
   return {
     from: new Date(Date.UTC(year, monthIndex, 1)),
     to: new Date(Date.UTC(year, monthIndex + 1, 1)),
@@ -111,7 +123,11 @@ export function monthRange(year: number, monthIndex: number): { from: Date; to: 
 }
 
 /** Свести платежи интервала по валютам. */
-export function sumByCurrency(rows: SpendResource[], from: Date, to: Date): CurrencySum[] {
+export function sumByCurrency(
+  rows: SpendResource[],
+  from: Date,
+  to: Date
+): CurrencySum[] {
   const map = new Map<string, CurrencySum>();
   for (const r of rows) {
     const amount = amountBetween(r, from, to);
@@ -131,7 +147,9 @@ export function sumByCurrency(rows: SpendResource[], from: Date, to: Date): Curr
     .map(v => ({
       ...v,
       // Крипте нужны знаки: 0.0004 BTC при округлении до копеек стало бы нулём.
-      amount: v.isCrypto ? Math.round(v.amount * 1e8) / 1e8 : Math.round(v.amount * 100) / 100,
+      amount: v.isCrypto
+        ? Math.round(v.amount * 1e8) / 1e8
+        : Math.round(v.amount * 100) / 100,
     }))
     .sort((a, b) => a.currency.localeCompare(b.currency));
 }

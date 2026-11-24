@@ -28,13 +28,24 @@ export async function POST(req: Request) {
   try {
     const me = await requirePermission("resources.manage");
 
-    const existing = await prisma.resource.findFirst({ where: { isSelf: true } });
+    const existing = await prisma.resource.findFirst({
+      where: { isSelf: true },
+    });
     if (existing) {
-      return NextResponse.json({ row: { id: existing.id, name: existing.name }, already: true });
+      return NextResponse.json({
+        row: { id: existing.id, name: existing.name },
+        already: true,
+      });
     }
 
     const today = new Date();
-    const next = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, today.getUTCDate()));
+    const next = new Date(
+      Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth() + 1,
+        today.getUTCDate()
+      )
+    );
 
     const row = await prisma.resource.create({
       data: {
@@ -51,7 +62,9 @@ export async function POST(req: Request) {
         periodUnit: "MONTH",
         nextPaymentAt: next,
         createdById: me.id,
-        reminders: { create: DEFAULT_REMINDER_DAYS.map(daysBefore => ({ daysBefore })) },
+        reminders: {
+          create: DEFAULT_REMINDER_DAYS.map(daysBefore => ({ daysBefore })),
+        },
       },
       select: { id: true, name: true },
     });
@@ -65,7 +78,10 @@ export async function POST(req: Request) {
 export async function DELETE() {
   try {
     await requirePermission("resources.manage");
-    await prisma.resource.updateMany({ where: { isSelf: true }, data: { isSelf: false } });
+    await prisma.resource.updateMany({
+      where: { isSelf: true },
+      data: { isSelf: false },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return toApiError(e);

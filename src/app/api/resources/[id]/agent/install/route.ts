@@ -51,7 +51,13 @@ export async function POST(req: Request, ctx: Ctx) {
   const { id } = await ctx.params;
   const res = await prisma.resource.findFirst({
     where: { id, ...visibilityWhere(me) },
-    select: { id: true, ip: true, isSelf: true, sshFingerprint: true, agentToken: true },
+    select: {
+      id: true,
+      ip: true,
+      isSelf: true,
+      sshFingerprint: true,
+      agentToken: true,
+    },
   });
   if (!res) return Response.json({ error: t("err.notFound") }, { status: 404 });
   if (res.isSelf) {
@@ -64,24 +70,33 @@ export async function POST(req: Request, ctx: Ctx) {
   const b = (await req.json().catch(() => ({}))) as Body;
 
   const host = String(b.host || res.ip || "").trim();
-  if (!host) return Response.json({ error: t("install.err.noHost") }, { status: 400 });
+  if (!host)
+    return Response.json({ error: t("install.err.noHost") }, { status: 400 });
 
   const port = parseInt(String(b.port ?? 22), 10);
   if (!isFinite(port) || port < 1 || port > 65535) {
-    return Response.json({ error: t("install.err.portRange") }, { status: 400 });
+    return Response.json(
+      { error: t("install.err.portRange") },
+      { status: 400 }
+    );
   }
 
   const user = String(b.user || "root").trim();
-  if (!USER_RE.test(user)) return Response.json({ error: t("install.err.badUser") }, { status: 400 });
+  if (!USER_RE.test(user))
+    return Response.json({ error: t("install.err.badUser") }, { status: 400 });
 
   const privateKey = normalizeKey(String(b.privateKey || ""));
-  if (!privateKey) return Response.json({ error: t("install.err.noKey") }, { status: 400 });
+  if (!privateKey)
+    return Response.json({ error: t("install.err.noKey") }, { status: 400 });
 
   // Адрес, по которому агент будет слать метрики. Это чужая машина, поэтому
   // origin запроса не годится: внутри контейнера он равен https://0.0.0.0:3000.
   const baseUrl = panelBaseUrl(req);
   if (!baseUrl) {
-    return Response.json({ error: t("install.err.noPublicUrl") }, { status: 400 });
+    return Response.json(
+      { error: t("install.err.noPublicUrl") },
+      { status: 400 }
+    );
   }
   const expectedFingerprint = b.resetFingerprint ? "" : res.sshFingerprint;
 
@@ -109,7 +124,10 @@ export async function POST(req: Request, ctx: Ctx) {
   // токеном, и незнакомый панели токен она встретит как 401. Именно на этом
   // первая рабочая установка и остановилась.
   if (isNewToken) {
-    await prisma.resource.update({ where: { id }, data: { agentToken: token } });
+    await prisma.resource.update({
+      where: { id },
+      data: { agentToken: token },
+    });
   }
 
   const script = buildScript({ url: baseUrl, token, agentSh, installSh });
@@ -136,7 +154,15 @@ export async function POST(req: Request, ctx: Ctx) {
       });
 
       const result = await runInstall(
-        { host, port, user, privateKey, passphrase: b.passphrase, expectedFingerprint, useSudo: !!b.useSudo },
+        {
+          host,
+          port,
+          user,
+          privateKey,
+          passphrase: b.passphrase,
+          expectedFingerprint,
+          useSudo: !!b.useSudo,
+        },
         script,
         // Строки уже собраны по границам переводов — отдаём как есть.
         (line, s) => send({ type: "log", stream: s, text: line }),

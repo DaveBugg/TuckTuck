@@ -38,7 +38,10 @@ export function localeFromRequest(req: Request): Locale {
   const raw = req.headers.get("cookie") || "";
   const m = new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=([^;]+)`).exec(raw);
   if (m) return resolveLocale(decodeURIComponent(m[1]));
-  return localeFromAcceptLanguage(req.headers.get("accept-language")) ?? DEFAULT_LOCALE;
+  return (
+    localeFromAcceptLanguage(req.headers.get("accept-language")) ??
+    DEFAULT_LOCALE
+  );
 }
 
 /** t() для ответа API: сообщения об ошибках уходят на языке пользователя. */

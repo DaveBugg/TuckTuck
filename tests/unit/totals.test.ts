@@ -46,7 +46,11 @@ test("итог в монете не схлопывается в ноль", () =>
   const perUsd = { USD: 1, BTC: 1 / 95_000 };
   const inBtc = convert(14.31, "USD", "BTC", perUsd);
   assert.ok(inBtc && inBtc > 0);
-  assert.equal(roundFor(inBtc, false), 0, "до сотых — ноль, ради этого и правка");
+  assert.equal(
+    roundFor(inBtc, false),
+    0,
+    "до сотых — ноль, ради этого и правка"
+  );
   assert.ok(roundFor(inBtc, true) > 0, "до восьми знаков — уже не ноль");
 });
 
@@ -58,11 +62,17 @@ test("валюта итога определяет только сам итог,
   assert.equal(convert(rub, "RUB", "RUB", perUsd), rub);
   const inUsd = convert(rub, "RUB", "USD", perUsd);
   const inEur = convert(rub, "RUB", "EUR", perUsd);
-  assert.ok(inUsd && inEur && Math.abs(inUsd - 13) < 0.01 && Math.abs(inEur - 11.7) < 0.01);
+  assert.ok(
+    inUsd &&
+      inEur &&
+      Math.abs(inUsd - 13) < 0.01 &&
+      Math.abs(inEur - 11.7) < 0.01
+  );
 });
 
 test("списки валют не пересекаются", () => {
   // Иначе флаг isCrypto у суммы зависел бы от того, какой ресурс попался первым.
   const fiat = new Set<string>(FIAT_CURRENCIES);
-  for (const c of CRYPTO_CURRENCIES) assert.ok(!fiat.has(c), `${c} в обоих списках`);
+  for (const c of CRYPTO_CURRENCIES)
+    assert.ok(!fiat.has(c), `${c} в обоих списках`);
 });

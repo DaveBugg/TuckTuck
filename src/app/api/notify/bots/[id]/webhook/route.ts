@@ -35,7 +35,8 @@ export async function GET(req: Request, ctx: Ctx) {
     await requirePermission("notify.manage");
     const { id } = await ctx.params;
     const bot = await botOr404(id);
-    if (!bot) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!bot)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const base = publicBaseUrl();
     const expected = base ? `${base}/api/notify/webhook/${bot.id}` : "";
@@ -44,12 +45,22 @@ export async function GET(req: Request, ctx: Ctx) {
     try {
       token = decryptSecret(bot.tokenEnc);
     } catch {
-      return NextResponse.json({ error: t("notify.err.tokenUnreadable") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("notify.err.tokenUnreadable") },
+        { status: 400 }
+      );
     }
 
-    const info = await getWebhookInfo(token, await proxyForBot(bot.proxyUrlEnc));
+    const info = await getWebhookInfo(
+      token,
+      await proxyForBot(bot.proxyUrlEnc)
+    );
     if (!info.ok) {
-      return NextResponse.json({ expected, reachable: false, error: info.error });
+      return NextResponse.json({
+        expected,
+        reachable: false,
+        error: info.error,
+      });
     }
 
     return NextResponse.json({
@@ -77,18 +88,25 @@ export async function POST(req: Request, ctx: Ctx) {
     await requirePermission("notify.manage");
     const { id } = await ctx.params;
     const bot = await botOr404(id);
-    if (!bot) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!bot)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
 
     const base = publicBaseUrl();
     if (!base) {
-      return NextResponse.json({ error: t("notify.webhook.noPublicUrl") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("notify.webhook.noPublicUrl") },
+        { status: 400 }
+      );
     }
 
     let token: string;
     try {
       token = decryptSecret(bot.tokenEnc);
     } catch {
-      return NextResponse.json({ error: t("notify.err.tokenUnreadable") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("notify.err.tokenUnreadable") },
+        { status: 400 }
+      );
     }
 
     const r = await setWebhook(
@@ -103,7 +121,10 @@ export async function POST(req: Request, ctx: Ctx) {
         { status: 400 }
       );
     }
-    return NextResponse.json({ ok: true, url: `${base}/api/notify/webhook/${bot.id}` });
+    return NextResponse.json({
+      ok: true,
+      url: `${base}/api/notify/webhook/${bot.id}`,
+    });
   } catch (e) {
     return toApiError(e, t);
   }

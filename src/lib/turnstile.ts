@@ -48,7 +48,10 @@ export async function turnstileEnabled(): Promise<boolean> {
 }
 
 /** true = проверка пройдена (или капча выключена). false = токен невалиден. */
-export async function verifyTurnstile(token: string, ip?: string): Promise<boolean> {
+export async function verifyTurnstile(
+  token: string,
+  ip?: string
+): Promise<boolean> {
   const secret = await turnstileSecret();
   if (!secret) return true; // капча не настроена
   if (!token) return false;

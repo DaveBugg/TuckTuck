@@ -77,14 +77,32 @@ async function fiatFallback(): Promise<Record<string, number> | null> {
 }
 
 // Монеты, которые реально встречаются в оплатах инфраструктуры.
-const COINS = ["BTC", "ETH", "USDT", "USDC", "TON", "TRX", "LTC", "BNB", "SOL", "XMR"];
+const COINS = [
+  "BTC",
+  "ETH",
+  "USDT",
+  "USDC",
+  "TON",
+  "TRX",
+  "LTC",
+  "BNB",
+  "SOL",
+  "XMR",
+];
 
 /** CoinGecko — цена монеты в USD. */
 async function cryptoPrimary(): Promise<Record<string, number> | null> {
   const ids: Record<string, string> = {
-    BTC: "bitcoin", ETH: "ethereum", USDT: "tether", USDC: "usd-coin",
-    TON: "the-open-network", TRX: "tron", LTC: "litecoin", BNB: "binancecoin",
-    SOL: "solana", XMR: "monero",
+    BTC: "bitcoin",
+    ETH: "ethereum",
+    USDT: "tether",
+    USDC: "usd-coin",
+    TON: "the-open-network",
+    TRX: "tron",
+    LTC: "litecoin",
+    BNB: "binancecoin",
+    SOL: "solana",
+    XMR: "monero",
   };
   try {
     const r = await fetch(

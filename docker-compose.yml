@@ -24,7 +24,11 @@ services:
     # Порт наружу НЕ публикуется: база доступна только по внутренней сети
     # compose. Нужен доступ снаружи — только через ssh-туннель.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tucktuck} -d ${POSTGRES_DB:-tucktuck}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-tucktuck} -d ${POSTGRES_DB:-tucktuck}",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10

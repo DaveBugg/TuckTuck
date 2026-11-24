@@ -19,15 +19,28 @@ export type ListParams = {
 
 export function parseListParams(
   reqUrl: string,
-  opts: { sortable: string[]; defaultSort: string; defaultOrder?: "asc" | "desc"; maxPageSize?: number }
+  opts: {
+    sortable: string[];
+    defaultSort: string;
+    defaultOrder?: "asc" | "desc";
+    maxPageSize?: number;
+  }
 ): ListParams {
   const sp = new URL(reqUrl).searchParams;
   const maxPS = opts.maxPageSize ?? 100;
   const page = Math.max(1, parseInt(sp.get("page") || "1", 10) || 1);
-  const pageSize = Math.min(maxPS, Math.max(1, parseInt(sp.get("pageSize") || "10", 10) || 10));
+  const pageSize = Math.min(
+    maxPS,
+    Math.max(1, parseInt(sp.get("pageSize") || "10", 10) || 10)
+  );
   const sortRaw = sp.get("sort") || opts.defaultSort;
   const sort = opts.sortable.includes(sortRaw) ? sortRaw : opts.defaultSort; // whitelist!
-  const order = sp.get("order") === "asc" ? "asc" : sp.get("order") === "desc" ? "desc" : (opts.defaultOrder ?? "desc");
+  const order =
+    sp.get("order") === "asc"
+      ? "asc"
+      : sp.get("order") === "desc"
+        ? "desc"
+        : (opts.defaultOrder ?? "desc");
   return {
     page,
     pageSize,
@@ -48,7 +61,10 @@ export function parseListParams(
  * определить язык. Тогда берём язык по умолчанию — это лучше, чем ронять
  * обработчик ошибок из-за отсутствующего аргумента.
  */
-export function toApiError(e: unknown, t: TFunc = makeT(DEFAULT_LOCALE)): NextResponse {
+export function toApiError(
+  e: unknown,
+  t: TFunc = makeT(DEFAULT_LOCALE)
+): NextResponse {
   if (e instanceof AuthError) {
     return NextResponse.json(
       { error: t(e.status === 401 ? "err.unauthorized" : "err.forbidden") },
@@ -63,7 +79,10 @@ export function toApiError(e: unknown, t: TFunc = makeT(DEFAULT_LOCALE)): NextRe
     return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
   }
   if (code === "P2003") {
-    return NextResponse.json({ error: t("err.relationNotFound") }, { status: 400 });
+    return NextResponse.json(
+      { error: t("err.relationNotFound") },
+      { status: 400 }
+    );
   }
   if (code === "P2023") {
     // невалидный uuid в id-поле — такой записи точно нет

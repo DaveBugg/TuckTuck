@@ -15,7 +15,8 @@ export async function POST(req: Request, ctx: Ctx) {
     await requirePermission("users.manage");
     const { id } = await ctx.params;
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    if (!user)
+      return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
     const tempPassword = crypto.randomBytes(9).toString("base64url");
     await prisma.$transaction([
       prisma.user.update({

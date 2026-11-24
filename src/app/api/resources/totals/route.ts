@@ -5,7 +5,12 @@ import { toApiError } from "@/lib/list-query";
 import { visibilityWhere, CRYPTO_CURRENCIES } from "@/lib/resources";
 import { getSettings } from "@/lib/settings";
 import { getRates, convert } from "@/lib/rates";
-import { byMonth, monthRange, sumByCurrency, type CurrencySum } from "@/lib/spend";
+import {
+  byMonth,
+  monthRange,
+  sumByCurrency,
+  type CurrencySum,
+} from "@/lib/spend";
 
 /**
  * Расход по календарным периодам: этот месяц, следующий и год целиком.
@@ -42,7 +47,9 @@ export async function GET() {
     const rows = dbRows.map(r => ({ ...r, amount: r.amount.toString() }));
 
     const rates = await getRates();
-    const displayIsCrypto = (CRYPTO_CURRENCIES as readonly string[]).includes(displayCurrency);
+    const displayIsCrypto = (CRYPTO_CURRENCIES as readonly string[]).includes(
+      displayCurrency
+    );
     // Итог округляем по валюте, в которой его показываем: 14 долларов в
     // пересчёте — это 0.00015 BTC, и округление до сотых дало бы ноль.
     const step = displayIsCrypto ? 1e8 : 100;
@@ -93,7 +100,11 @@ export async function GET() {
       displayIsCrypto,
       year,
       month: { index: m, byCurrency: monthSums, ...convertAll(monthSums) },
-      nextMonth: { index: (m + 1) % 12, byCurrency: nextSums, ...convertAll(nextSums) },
+      nextMonth: {
+        index: (m + 1) % 12,
+        byCurrency: nextSums,
+        ...convertAll(nextSums),
+      },
       yearTotal: { byCurrency: yearSums, ...convertAll(yearSums) },
       months,
       ratesAt: rates.fetchedAt,

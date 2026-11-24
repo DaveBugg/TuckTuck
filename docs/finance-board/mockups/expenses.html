@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Финансы — Расходы | TuckTuck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-zinc-50 text-zinc-900 antialiased">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside
+        class="w-64 shrink-0 border-r border-zinc-200 bg-white flex flex-col"
+      >
+        <div class="h-16 flex items-center px-6 border-b border-zinc-100">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white font-bold text-sm"
+            >
+              TT
+            </div>
+            <span class="font-semibold text-lg tracking-tight">TuckTuck</span>
+          </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-6">
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Главное
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-grid-2 w-5 text-center text-zinc-400"
+                  ></i
+                  >Панель</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-server w-5 text-center text-zinc-400"
+                  ></i
+                  >Ресурсы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-heart-pulse w-5 text-center text-zinc-400"
+                  ></i
+                  >Мониторинг</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i class="fa-solid fa-bell w-5 text-center text-zinc-400"></i
+                  >Уведомления</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Управление
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-users w-5 text-center text-zinc-400"
+                  ></i
+                  >Пользователи</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i class="fa-solid fa-gear w-5 text-center text-zinc-400"></i
+                  >Настройки</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p
+              class="px-3 text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2"
+            >
+              Финансы
+            </p>
+            <ul class="space-y-0.5">
+              <li>
+                <a
+                  href="index.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-wallet w-5 text-center text-zinc-400"
+                  ></i
+                  >Доска</a
+                >
+              </li>
+              <li>
+                <a
+                  href="expenses.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-900 bg-zinc-100"
+                  ><i
+                    class="fa-solid fa-money-bill-transfer w-5 text-center text-zinc-700"
+                  ></i
+                  >Расходы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="income.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-hand-holding-dollar w-5 text-center text-zinc-400"
+                  ></i
+                  >Доходы</a
+                >
+              </li>
+              <li>
+                <a
+                  href="projects.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-folder-open w-5 text-center text-zinc-400"
+                  ></i
+                  >Проекты</a
+                >
+              </li>
+              <li>
+                <a
+                  href="team.html"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+                  ><i
+                    class="fa-solid fa-people-group w-5 text-center text-zinc-400"
+                  ></i
+                  >Команда</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <div class="p-4 border-t border-zinc-100">
+          <div class="flex items-center gap-3 px-3 py-2">
+            <div
+              class="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-semibold text-zinc-600"
+            >
+              АК
+            </div>
+            <div class="text-sm">
+              <p class="font-medium text-zinc-900">Алексей К.</p>
+              <p class="text-zinc-500 text-xs">Администратор</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="flex-1 flex flex-col min-w-0">
+        <!-- Header -->
+        <header
+          class="h-16 border-b border-zinc-200 bg-white flex items-center justify-between px-8"
+        >
+          <h1 class="text-xl font-semibold text-zinc-900">Расходы и выплаты</h1>
+          <button
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 shadow-sm"
+          >
+            <i class="fa-solid fa-plus"></i>Добавить
+          </button>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+          <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Tabs -->
+            <div class="border-b border-zinc-200">
+              <nav class="flex gap-6" aria-label="Tabs">
+                <a
+                  href="#"
+                  class="border-b-2 border-zinc-900 py-3 text-sm font-medium text-zinc-900"
+                  >Все</a
+                >
+                <a
+                  href="#"
+                  class="border-b-2 border-transparent py-3 text-sm font-medium text-zinc-500 hover:text-zinc-700"
+                  >Периодические</a
+                >
+              </nav>
+            </div>
+
+            <!-- Filters -->
+            <div
+              class="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+            >
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Период</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Ноябрь 2026</option>
+                    <option>Октябрь 2026</option>
+                    <option>За всё время</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Вид</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все</option>
+                    <option>Расход</option>
+                    <option>Выплата</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Куда</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все</option>
+                    <option>Команда</option>
+                    <option>Проект</option>
+                    <option>Участник</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Проект</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все проекты</option>
+                    <option>VPN-сервис</option>
+                    <option>Игровой проект</option>
+                    <option>API-шлюз</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Участник</label
+                  >
+                  <select
+                    class="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                    <option>Все участники</option>
+                    <option>Дмитрий Волков</option>
+                    <option>Анна Смирнова</option>
+                    <option>Максим Орлов</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-zinc-500 mb-1.5"
+                    >Поиск</label
+                  >
+                  <div class="relative">
+                    <i
+                      class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-400 text-xs"
+                    ></i>
+                    <input
+                      type="text"
+                      placeholder="Название или сумма"
+                      class="w-full rounded-lg border border-zinc-300 pl-8 pr-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div
+              class="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden"
+            >
+              <table class="w-full text-sm">
+                <thead class="bg-zinc-50">
+                  <tr>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Дата
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Название
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Вид
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Куда
+                    </th>
+                    <th class="px-5 py-3 text-left font-medium text-zinc-500">
+                      Проект / Участник
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Сумма
+                    </th>
+                    <th class="px-5 py-3 text-right font-medium text-zinc-500">
+                      Действия
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">24.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Оплата серверов Hetzner
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+                        >Расход</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Проект</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">VPN-сервис</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      €420
+                      <span class="text-zinc-500 font-normal">(₽41 800)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">23.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Выплата Дмитрию В.
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"
+                        >Выплата</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Участник</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">Дмитрий Волков</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      ₽45 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">22.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Лицензии JetBrains
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+                        >Расход</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Команда</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">—</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $249
+                      <span class="text-zinc-500 font-normal">(₽23 100)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">20.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Домен и хостинг
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+                        >Расход</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Проект</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">
+                      Маркетинговый сайт
+                    </td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      ₽8 700
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">18.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Выплата Анне С.
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700"
+                        >Выплата</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Участник</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">Анна Смирнова</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      ₽32 000
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">15.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Cloudflare Pro
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+                        >Расход</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Команда</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">—</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $20
+                      <span class="text-zinc-500 font-normal">(₽1 860)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-5 py-3.5 text-zinc-500">12.11.2026</td>
+                    <td class="px-5 py-3.5 font-medium text-zinc-900">
+                      Лицензия Figma
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+                        >Расход</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-700"
+                        >Участник</span
+                      >
+                    </td>
+                    <td class="px-5 py-3.5 text-zinc-600">Анна Смирнова</td>
+                    <td
+                      class="px-5 py-3.5 text-right font-medium text-zinc-900"
+                    >
+                      $12
+                      <span class="text-zinc-500 font-normal">(₽1 116)</span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right">
+                      <button class="text-zinc-400 hover:text-zinc-600 mx-1">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="text-zinc-400 hover:text-red-600 mx-1">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div
+                class="px-5 py-3 border-t border-zinc-100 flex items-center justify-between text-sm text-zinc-500"
+              >
+                <span>Показано 7 из 24</span>
+                <div class="flex gap-2">
+                  <button
+                    class="px-3 py-1 rounded-md border border-zinc-200 hover:bg-zinc-50 disabled:opacity-50"
+                    disabled
+                  >
+                    Назад
+                  </button>
+                  <button
+                    class="px-3 py-1 rounded-md border border-zinc-200 hover:bg-zinc-50"
+                  >
+                    Вперёд
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

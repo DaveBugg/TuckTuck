@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram-бот — макет | TuckTuck</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      .chat-bg {
+        background: #e6f2f8;
+        background-image: radial-gradient(#cfe6f2 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      .bubble-user {
+        border-radius: 16px 16px 4px 16px;
+      }
+      .bubble-bot {
+        border-radius: 16px 16px 16px 4px;
+      }
+    </style>
+  </head>
+  <body class="bg-zinc-50 text-zinc-900 antialiased min-h-screen">
+    <div class="max-w-[1600px] mx-auto px-6 py-10">
+      <!-- Header -->
+      <div class="mb-10">
+        <h1 class="text-2xl font-semibold text-zinc-900">
+          Telegram-бот — быстрые действия (макет)
+        </h1>
+        <p class="text-sm text-zinc-500 mt-2 max-w-3xl">
+          Витрина сценариев бота TuckTuck для быстрого внесения
+          расходов/доходов, проверки балансов и финансового аппрува.
+          Пользователь пишет боту в личку или группу, выбирает валюту, scope,
+          теги и отправляет операцию на утверждение.
+        </p>
+      </div>
+
+      <!-- Screens grid -->
+      <div class="flex flex-wrap gap-8">
+        <!-- Screen 1: /start -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-center">
+              <span
+                class="text-[10px] text-zinc-500 bg-zinc-100/80 px-2 py-0.5 rounded-full"
+                >Сегодня</span
+              >
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Привет, Алексей! 👋<br />Я помогу быстро внести расход или
+                  доход, проверить баланс и отправить операцию на утверждение.
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:41</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Выберите действие:
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:41</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[85%]">
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-white hover:bg-sky-50 text-sm text-zinc-800 shadow-sm border border-zinc-100 transition"
+              >
+                ＋ Расход
+              </button>
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-white hover:bg-sky-50 text-sm text-zinc-800 shadow-sm border border-zinc-100 transition"
+              >
+                💰 Мой баланс
+              </button>
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-white hover:bg-sky-50 text-sm text-zinc-800 shadow-sm border border-zinc-100 transition"
+              >
+                📊 Баланс проекта
+              </button>
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-sm text-white shadow-sm transition"
+              >
+                Открыть панель
+              </button>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            1. Меню бота (/start)
+          </p>
+        </div>
+
+        <!-- Screen 2: Currency -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-end">
+              <div
+                class="bubble-user bg-emerald-100 px-3.5 py-2.5 shadow-sm max-w-[80%]"
+              >
+                <p class="text-sm text-zinc-900">＋ Расход</p>
+                <p class="text-[10px] text-zinc-500 text-right mt-1">09:42</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Новый расход. Введите сумму или выберите валюту сначала.
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:42</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Выберите валюту:
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:42</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[85%]">
+              <div class="grid grid-cols-3 gap-1.5">
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  USD
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  EUR
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-emerald-50 border-emerald-200 text-sm text-emerald-800 shadow-sm border"
+                >
+                  RUB
+                </button>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  USDT
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  BTC
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  ETH
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  XMR
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  Другая ✏️
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              4200 ₽
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            2. Шаг 2: Валюта
+          </p>
+        </div>
+
+        <!-- Screen 3: Scope -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-end">
+              <div
+                class="bubble-user bg-emerald-100 px-3.5 py-2.5 shadow-sm max-w-[80%]"
+              >
+                <p class="text-sm text-zinc-900">4200 ₽</p>
+                <p class="text-[10px] text-zinc-500 text-right mt-1">09:43</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Куда отнести расход?
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:43</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[85%]">
+              <div class="grid grid-cols-3 gap-1.5">
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  👥 Команда
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  📁 Проект
+                </button>
+                <button
+                  class="px-2 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+                >
+                  👤 Участник
+                </button>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Выберите проект:
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:43</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[85%]">
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-emerald-50 border-emerald-200 text-sm text-emerald-800 shadow-sm border"
+              >
+                VPN-сервис
+              </button>
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+              >
+                Игровой проект
+              </button>
+              <button
+                class="w-full text-left px-3 py-2 rounded-lg bg-white text-sm text-zinc-800 shadow-sm border border-zinc-100"
+              >
+                API-шлюз
+              </button>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            3. Шаг 3: Куда
+          </p>
+        </div>
+
+        <!-- Screen 4: Tags -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-end">
+              <div
+                class="bubble-user bg-emerald-100 px-3.5 py-2.5 shadow-sm max-w-[80%]"
+              >
+                <p class="text-sm text-zinc-900">VPN-сервис</p>
+                <p class="text-[10px] text-zinc-500 text-right mt-1">09:43</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Название расхода:
+                  <span class="font-medium">Оплата серверов Hetzner</span>
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:44</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[85%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Выберите теги (можно несколько):
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">09:44</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[90%]">
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  class="px-3 py-1.5 rounded-full bg-emerald-100 border border-emerald-200 text-sm text-emerald-800"
+                >
+                  серверы
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-white border border-zinc-100 shadow-sm text-sm text-zinc-800"
+                >
+                  софт
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-white border border-zinc-100 shadow-sm text-sm text-zinc-800"
+                >
+                  домены
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-emerald-100 border border-emerald-200 text-sm text-emerald-800"
+                >
+                  инфраструктура
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-white border border-zinc-100 shadow-sm text-sm text-zinc-800"
+                >
+                  реклама
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-white border border-zinc-100 shadow-sm text-sm text-zinc-800"
+                >
+                  офис
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full bg-white border border-zinc-100 shadow-sm text-sm text-zinc-800"
+                >
+                  налоги
+                </button>
+              </div>
+              <div class="flex gap-1.5 mt-1">
+                <button
+                  class="flex-1 px-3 py-2 rounded-lg bg-white text-sm text-zinc-600 shadow-sm border border-zinc-100"
+                >
+                  Пропустить
+                </button>
+                <button
+                  class="flex-1 px-3 py-2 rounded-lg bg-emerald-600 text-sm text-white shadow-sm"
+                >
+                  Готово ✅
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            4. Шаг 5: Теги
+          </p>
+        </div>
+
+        <!-- Screen 5: Confirmation -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[90%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed mb-3">
+                  Проверьте операцию перед отправкой:
+                </p>
+                <div
+                  class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-2"
+                >
+                  <div class="flex justify-between text-sm">
+                    <span class="text-zinc-500">Сумма</span>
+                    <span class="font-semibold text-zinc-900">4 200 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-zinc-500">Куда</span>
+                    <span class="text-zinc-900">Проект VPN-сервис</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-zinc-500">Название</span>
+                    <span class="text-zinc-900 text-right max-w-[55%]"
+                      >Оплата серверов Hetzner</span
+                    >
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-zinc-500">Теги</span>
+                    <div class="flex gap-1">
+                      <span
+                        class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]"
+                        >серверы</span
+                      >
+                      <span
+                        class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]"
+                        >инфраструктура</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <p class="text-[10px] text-zinc-400 text-right mt-2">09:45</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 pl-2 max-w-[90%]">
+              <button
+                class="w-full text-center px-3 py-2.5 rounded-lg bg-emerald-600 text-sm text-white shadow-sm font-medium"
+              >
+                Отправить на утверждение
+              </button>
+              <button
+                class="w-full text-center px-3 py-2 rounded-lg bg-white text-sm text-zinc-600 shadow-sm border border-zinc-100"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            5. Подтверждение
+          </p>
+        </div>
+
+        <!-- Screen 6: Approval (two states) -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-4 min-h-[420px]">
+            <div>
+              <p class="text-[10px] text-zinc-500 text-center mb-2">
+                Аппрув финансиста
+              </p>
+              <div class="flex">
+                <div
+                  class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[90%]"
+                >
+                  <p class="text-sm font-medium text-zinc-900 mb-2">
+                    ⏳ На утверждении
+                  </p>
+                  <div
+                    class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-1.5 text-sm"
+                  >
+                    <p>
+                      <span class="text-zinc-500">Сумма:</span>
+                      <span class="font-medium">4 200 ₽</span>
+                    </p>
+                    <p><span class="text-zinc-500">Куда:</span> VPN-сервис</p>
+                    <p><span class="text-zinc-500">Автор:</span> @dmitry_v</p>
+                  </div>
+                  <p class="text-[10px] text-zinc-400 text-right mt-2">09:46</p>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5 pl-2 max-w-[90%] mt-2">
+                <div class="grid grid-cols-2 gap-1.5">
+                  <button
+                    class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm"
+                  >
+                    ✅ Утвердить
+                  </button>
+                  <button
+                    class="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium shadow-sm"
+                  >
+                    ❌ Отклонить
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-zinc-200/60 pt-4">
+              <p class="text-[10px] text-zinc-500 text-center mb-2">
+                После решения
+              </p>
+              <div class="flex">
+                <div
+                  class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[90%]"
+                >
+                  <p class="text-sm font-medium text-emerald-700 mb-2">
+                    ✅ Утверждено — @financier
+                  </p>
+                  <div
+                    class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-1.5 text-sm"
+                  >
+                    <p>
+                      <span class="text-zinc-500">Сумма:</span>
+                      <span class="font-medium">4 200 ₽</span>
+                    </p>
+                    <p><span class="text-zinc-500">Куда:</span> VPN-сервис</p>
+                    <p><span class="text-zinc-500">Автор:</span> @dmitry_v</p>
+                  </div>
+                  <p class="text-[10px] text-zinc-400 text-right mt-2">09:47</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            6. Аппрув финансиста
+          </p>
+        </div>
+
+        <!-- Screen 7: Unknown user -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-white text-xs font-bold"
+              >
+                TT
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">TuckTuck Bot</p>
+                <p class="text-[10px] text-emerald-600">онлайн</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-center">
+              <span
+                class="text-[10px] text-zinc-500 bg-zinc-100/80 px-2 py-0.5 rounded-full"
+                >Сегодня</span
+              >
+            </div>
+            <div class="flex justify-end">
+              <div
+                class="bubble-user bg-emerald-100 px-3.5 py-2.5 shadow-sm max-w-[80%]"
+              >
+                <p class="text-sm text-zinc-900">/start</p>
+                <p class="text-[10px] text-zinc-500 text-right mt-1">10:12</p>
+              </div>
+            </div>
+            <div class="flex">
+              <div
+                class="bubble-bot bg-white px-3.5 py-2.5 shadow-sm max-w-[90%]"
+              >
+                <p class="text-sm text-zinc-900 leading-relaxed">
+                  Доступ ограничен. Обратитесь к администратору.
+                </p>
+                <p class="text-[10px] text-zinc-400 text-right mt-1">10:12</p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            7. Заглушка для неизвестного
+          </p>
+        </div>
+
+        <!-- Screen 8: Group not approved -->
+        <div
+          class="w-[380px] shrink-0 rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden flex flex-col"
+        >
+          <div
+            class="h-14 bg-white border-b border-zinc-100 flex items-center justify-between px-4"
+          >
+            <div class="flex items-center gap-3">
+              <button class="text-zinc-400">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div
+                class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold"
+              >
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">
+                  TuckTuck Finance
+                </p>
+                <p class="text-[10px] text-zinc-400">группа</p>
+              </div>
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+          </div>
+          <div class="chat-bg flex-1 p-4 space-y-3 min-h-[420px]">
+            <div class="flex justify-center">
+              <span
+                class="text-[10px] text-zinc-500 bg-zinc-100/80 px-2 py-0.5 rounded-full"
+                >Сегодня</span
+              >
+            </div>
+            <div class="flex items-start gap-2">
+              <div
+                class="w-7 h-7 rounded-full bg-zinc-300 flex items-center justify-center text-[10px] font-semibold text-zinc-600 flex-shrink-0"
+              >
+                ДВ
+              </div>
+              <div
+                class="bubble-user bg-emerald-100 px-3.5 py-2 shadow-sm max-w-[75%]"
+              >
+                <p class="text-sm text-zinc-900">＋ Расход 4200 ₽ VPN-сервис</p>
+                <p class="text-[10px] text-zinc-500 text-right mt-1">10:15</p>
+              </div>
+            </div>
+            <div class="flex justify-center mt-6">
+              <div
+                class="rounded-xl bg-zinc-200/80 px-4 py-3 max-w-[90%] text-center"
+              >
+                <i class="fa-solid fa-lock text-zinc-400 text-lg mb-1.5"></i>
+                <p class="text-xs font-medium text-zinc-600">Бот не отвечает</p>
+                <p class="text-[10px] text-zinc-500 mt-0.5">
+                  Группа ожидает одобрения в админке
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="h-12 bg-white border-t border-zinc-100 flex items-center px-4 gap-3"
+          >
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-paperclip"></i>
+            </button>
+            <div
+              class="flex-1 h-8 rounded-full bg-zinc-100 flex items-center px-4 text-xs text-zinc-400"
+            >
+              Сообщение
+            </div>
+            <button class="text-zinc-400">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+          <p
+            class="text-xs font-medium text-zinc-500 text-center py-2 bg-zinc-50 border-t border-zinc-100"
+          >
+            8. Группа не одобрена
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

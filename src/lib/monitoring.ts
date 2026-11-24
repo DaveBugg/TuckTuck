@@ -40,7 +40,9 @@ export function healthLabel(h: Health, t: TFunc): string {
 }
 
 /** Порог подсветки метрики. 90+ — красное, 70+ — жёлтое. */
-export function metricLevel(pct: number | null): "ok" | "warn" | "crit" | "none" {
+export function metricLevel(
+  pct: number | null
+): "ok" | "warn" | "crit" | "none" {
   if (pct == null) return "none";
   if (pct >= 90) return "crit";
   if (pct >= 70) return "warn";
@@ -62,7 +64,11 @@ export function worstLevel(s: {
   if (s.health === "down") return "crit";
   if (s.health === "stale") return "warn";
   if (s.health === "unknown") return "none";
-  const levels = [metricLevel(s.cpu), metricLevel(s.memory), metricLevel(s.disk)];
+  const levels = [
+    metricLevel(s.cpu),
+    metricLevel(s.memory),
+    metricLevel(s.disk),
+  ];
   if (levels.includes("crit")) return "crit";
   if (levels.includes("warn")) return "warn";
   // Все три пусты — данных ещё нет, и зелёный тут был бы обещанием, которого
@@ -101,14 +107,20 @@ export function uptimeText(sec: number | null, t: TFunc): string {
   const h = Math.floor((sec % 86400) / 3600);
   // Мелкие единицы опускаем, когда есть крупные: «5 дн. 3 ч 12 мин» читается
   // хуже, чем «5 дн. 3 ч», а точность до минуты у аптайма никому не нужна.
-  if (d > 0) return t("uptime.d", { d }) + (h ? " " + t("uptime.h", { h }) : "");
+  if (d > 0)
+    return t("uptime.d", { d }) + (h ? " " + t("uptime.h", { h }) : "");
   const m = Math.floor((sec % 3600) / 60);
-  if (h > 0) return t("uptime.h", { h }) + (m ? " " + t("uptime.m", { m }) : "");
+  if (h > 0)
+    return t("uptime.h", { h }) + (m ? " " + t("uptime.m", { m }) : "");
   return t("uptime.m", { m });
 }
 
 /** «2 мин назад» — насколько свежий снимок. */
-export function agoText(d: Date | null, t: TFunc, now: Date = new Date()): string {
+export function agoText(
+  d: Date | null,
+  t: TFunc,
+  now: Date = new Date()
+): string {
   if (!d) return "";
   const sec = Math.max(0, Math.floor((now.getTime() - d.getTime()) / 1000));
   if (sec < 60) return t("ago.now");

@@ -5,7 +5,12 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { rateLimit, rateLimitReset, ipKey, idKey } from "../../src/lib/rate-limit";
+import {
+  rateLimit,
+  rateLimitReset,
+  ipKey,
+  idKey,
+} from "../../src/lib/rate-limit";
 
 test("лимит срабатывает после исчерпания и говорит, сколько ждать", async () => {
   const key = "test:burst";

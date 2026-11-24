@@ -48,7 +48,12 @@ export async function POST(req: Request, ctx: Ctx) {
   } catch {
     return ok();
   }
-  if (!secretMatches(req.headers.get("x-telegram-bot-api-secret-token") || "", expected)) {
+  if (
+    !secretMatches(
+      req.headers.get("x-telegram-bot-api-secret-token") || "",
+      expected
+    )
+  ) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
@@ -106,7 +111,14 @@ export async function POST(req: Request, ctx: Ctx) {
       const base = cq.message?.text ? esc(cq.message.text) : t("bot.reminder");
       // Кнопки снимаем и дописываем итог: сообщение остаётся в истории чата и
       // должно честно показывать, чем закончилось.
-      await editMessageText(token, msg.chatId, msg.messageId, `${base}\n\n${tail}`, [], proxy);
+      await editMessageText(
+        token,
+        msg.chatId,
+        msg.messageId,
+        `${base}\n\n${tail}`,
+        [],
+        proxy
+      );
     };
 
     /**
@@ -131,7 +143,8 @@ export async function POST(req: Request, ctx: Ctx) {
       cancelled: t("bot.already.cancelled"),
       deleted: t("bot.already.deleted"),
     };
-    const already = () => reply(alreadyText[msg.actedAction] || t("bot.already.other"), true);
+    const already = () =>
+      reply(alreadyText[msg.actedAction] || t("bot.already.other"), true);
 
     if (msg.actedAction) return already();
 
@@ -161,9 +174,14 @@ export async function POST(req: Request, ctx: Ctx) {
             note: t("bot.paid.note"),
           },
         }),
-        prisma.resource.update({ where: { id: r.id }, data: { nextPaymentAt: next } }),
+        prisma.resource.update({
+          where: { id: r.id },
+          data: { nextPaymentAt: next },
+        }),
       ]);
-      await finish(t("bot.paid.text", { date: next.toISOString().slice(0, 10) }));
+      await finish(
+        t("bot.paid.text", { date: next.toISOString().slice(0, 10) })
+      );
       return reply(t("bot.paid.toast"));
     }
 
@@ -193,7 +211,9 @@ export async function POST(req: Request, ctx: Ctx) {
         token,
         msg.chatId,
         msg.messageId,
-        cq.message?.text ? esc(cq.message.text.split("\n\n⚠️")[0]) : t("bot.reminder"),
+        cq.message?.text
+          ? esc(cq.message.text.split("\n\n⚠️")[0])
+          : t("bot.reminder"),
         // Та же клавиатура, что и под исходным напоминанием, собранная тем же
         // кодом: два независимых списка кнопок разъехались бы при первой правке.
         reminderButtons(key, t),

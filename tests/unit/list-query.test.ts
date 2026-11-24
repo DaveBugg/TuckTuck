@@ -32,7 +32,10 @@ test("pageSize клампится (потолок 100, отрицательны�
 });
 
 test("skip/take и произвольные фильтры", () => {
-  const p = parseListParams(url("page=3&pageSize=25&projectId=p1&search=%20x%20"), OPTS);
+  const p = parseListParams(
+    url("page=3&pageSize=25&projectId=p1&search=%20x%20"),
+    OPTS
+  );
   assert.equal(p.skip, 50);
   assert.equal(p.take, 25);
   assert.equal(p.get("projectId"), "p1");

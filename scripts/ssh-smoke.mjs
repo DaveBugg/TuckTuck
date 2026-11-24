@@ -14,7 +14,8 @@ if (!host || !user || !keyPath) {
   process.exit(2);
 }
 
-const { buildScript, normalizeKey, runInstall } = await import("../src/lib/ssh-install.ts");
+const { buildScript, normalizeKey, runInstall } =
+  await import("../src/lib/ssh-install.ts");
 
 const PROBE = `#!/bin/sh
 set -eu

@@ -14,10 +14,17 @@
 
 import React from "react";
 import { Activity } from "lucide-react";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
 import { worstLevel } from "@/lib/monitoring";
-import { SystemSummary, type SystemView } from "@/components/monitoring/metrics";
+import {
+  SystemSummary,
+  type SystemView,
+} from "@/components/monitoring/metrics";
 import { useI18n } from "@/components/i18n-provider";
 import type { ResourceRow } from "./types";
 
@@ -79,7 +86,10 @@ export default function MonitorCell({
         >
           <Activity className={cn("size-4", ICON_COLOR[level])} />
           <span
-            className={cn("size-1.5 rounded-full", DOT_COLOR[system?.health ?? "unknown"])}
+            className={cn(
+              "size-1.5 rounded-full",
+              DOT_COLOR[system?.health ?? "unknown"]
+            )}
           />
         </button>
       </HoverCardTrigger>
@@ -87,7 +97,9 @@ export default function MonitorCell({
         {system ? (
           <SystemSummary s={system} compact />
         ) : (
-          <div className="text-sm text-muted-foreground">{t("monitor.unavailable")}</div>
+          <div className="text-sm text-muted-foreground">
+            {t("monitor.unavailable")}
+          </div>
         )}
       </HoverCardContent>
     </HoverCard>

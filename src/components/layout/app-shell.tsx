@@ -10,7 +10,22 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Layers, Bell, ShieldUser, Settings2, Menu, X, Sun, Moon, LogOut, UserCog, Languages, Check } from "lucide-react";
+import {
+  LayoutDashboard,
+  Layers,
+  Bell,
+  ShieldUser,
+  Settings2,
+  Wallet,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  LogOut,
+  UserCog,
+  Languages,
+  Check,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +49,7 @@ const ICONS = {
   notifications: Bell,
   users: ShieldUser,
   settings: Settings2,
+  finance: Wallet,
 } as const;
 
 function ThemeToggle() {
@@ -77,7 +93,9 @@ function LocaleToggle() {
           <DropdownMenuItem
             key={l}
             onClick={() => {
-              void apiJson("/api/auth/me", "PATCH", { locale: l }).catch(() => null);
+              void apiJson("/api/auth/me", "PATCH", { locale: l }).catch(
+                () => null
+              );
               setLocale(l);
             }}
           >
@@ -103,14 +121,18 @@ function UserMenu() {
           <span className="flex size-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
             {initials}
           </span>
-          <span className="hidden text-sm sm:inline">{me.name || me.email}</span>
+          <span className="hidden text-sm sm:inline">
+            {me.name || me.email}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="text-sm font-medium">{me.name || "—"}</div>
           <div className="text-xs text-muted-foreground">{me.email}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{t("shell.role", { role: me.role || "—" })}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {t("shell.role", { role: me.role || "—" })}
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
@@ -118,7 +140,10 @@ function UserMenu() {
           {t("shell.profile")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => router.push("/auth/logout")}>
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => router.push("/auth/logout")}
+        >
           <LogOut />
           {t("shell.logout")}
         </DropdownMenuItem>
@@ -138,7 +163,47 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
         const Icon = ICONS[item.icon];
         // Точное совпадение или вложенный путь — но не «/resources» для
         // «/resources-archive»: проверяем границу сегмента.
-        const active = pathname === item.href || pathname.startsWith(item.href + "/");
+        const active =
+          pathname === item.href || pathname.startsWith(item.href + "/");
+        if (item.children) {
+          return (
+            <div key={item.href} className="flex flex-col gap-1">
+              <div
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-sidebar-primary/15 text-sidebar-primary"
+                    : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {t(item.labelKey)}
+              </div>
+              <div className="flex flex-col gap-1 pl-4">
+                {item.children
+                  .filter(c => !c.permission || can(c.permission))
+                  .map(child => {
+                    const childActive = pathname === child.href;
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onNavigate}
+                        className={cn(
+                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                          childActive
+                            ? "bg-sidebar-primary/15 text-sidebar-primary"
+                            : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                        )}
+                      >
+                        {t(child.labelKey)}
+                      </Link>
+                    );
+                  })}
+              </div>
+            </div>
+          );
+        }
         return (
           <Link
             key={item.href}
@@ -163,7 +228,14 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <Link href="/dashboard" className="flex h-14 items-center gap-2 px-4">
-      <Image src="/images/logo-sm.png" alt="" width={28} height={28} className="rounded-md" priority />
+      <Image
+        src="/images/logo-sm.png"
+        alt=""
+        width={28}
+        height={28}
+        className="rounded-md"
+        priority
+      />
       <span className="text-base font-semibold tracking-tight">
         Tuck<span className="text-primary">Tuck</span>
       </span>
@@ -194,7 +266,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <aside className="absolute inset-y-0 left-0 w-64 border-r bg-sidebar">
             <div className="flex items-center justify-between pr-2">
               <Brand />
-              <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label={t("shell.closeMenu")}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileOpen(false)}
+                aria-label={t("shell.closeMenu")}
+              >
                 <X />
               </Button>
             </div>

@@ -27,7 +27,12 @@ function sweep(now: number): void {
   for (const [k, v] of memory) if (v.resetAt <= now) memory.delete(k);
 }
 
-function hitMemory(key: string, limit: number, windowSec: number, now: number): RateVerdict {
+function hitMemory(
+  key: string,
+  limit: number,
+  windowSec: number,
+  now: number
+): RateVerdict {
   sweep(now);
   const b = memory.get(key);
   if (!b || b.resetAt <= now) {
@@ -36,7 +41,10 @@ function hitMemory(key: string, limit: number, windowSec: number, now: number): 
   }
   b.count += 1;
   if (b.count > limit) {
-    return { ok: false, retryAfterSec: Math.max(1, Math.ceil((b.resetAt - now) / 1000)) };
+    return {
+      ok: false,
+      retryAfterSec: Math.max(1, Math.ceil((b.resetAt - now) / 1000)),
+    };
   }
   return { ok: true, retryAfterSec: 0 };
 }
@@ -96,7 +104,8 @@ export async function rateLimitReset(key: string): Promise<void> {
 }
 
 /** Ключ по IP. Пустой адрес — общий ключ: лучше грубо, чем никак. */
-export const ipKey = (scope: string, ip: string) => `${scope}:ip:${ip || "unknown"}`;
+export const ipKey = (scope: string, ip: string) =>
+  `${scope}:ip:${ip || "unknown"}`;
 
 /**
  * Ключ по логину. Адрес приводим к нижнему регистру и обрезаем: длинная строка

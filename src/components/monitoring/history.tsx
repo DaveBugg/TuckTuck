@@ -21,14 +21,33 @@ type Days = (typeof PERIODS)[number];
 type History = {
   days: Days;
   timezone: string;
-  summary: { cpu: number | null; memory: number | null; disk: number | null; load1: number | null; samples: number };
+  summary: {
+    cpu: number | null;
+    memory: number | null;
+    disk: number | null;
+    load1: number | null;
+    samples: number;
+  };
   byHour: Array<{ hour: number; cpu: number | null; samples: number }>;
   peakHour: number | null;
 };
 
-const BAR = { ok: "bg-primary", warn: "bg-warning", crit: "bg-destructive", none: "bg-muted" };
+const BAR = {
+  ok: "bg-primary",
+  warn: "bg-warning",
+  crit: "bg-destructive",
+  none: "bg-muted",
+};
 
-function Stat({ label, value, suffix = "%" }: { label: string; value: number | null; suffix?: string }) {
+function Stat({
+  label,
+  value,
+  suffix = "%",
+}: {
+  label: string;
+  value: number | null;
+  suffix?: string;
+}) {
   return (
     <div className="flex flex-col">
       <span className="text-xs text-muted-foreground">{label}</span>
@@ -73,13 +92,13 @@ export default function MetricsHistory({ resourceId }: { resourceId: string }) {
             {d === 1 ? t("history.day") : t("history.days", { count: d })}
           </Button>
         ))}
-        {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+        {loading && (
+          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {data && data.summary.samples === 0 && (
-        <p className="text-sm text-muted-foreground">
-          {t("history.noData")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("history.noData")}</p>
       )}
 
       {data && data.summary.samples > 0 && (
@@ -94,10 +113,14 @@ export default function MetricsHistory({ resourceId }: { resourceId: string }) {
           {hasHourly && (
             <div className="flex flex-col gap-2">
               <div className="flex items-baseline justify-between">
-                <span className="text-sm font-medium">{t("history.byHour")}</span>
+                <span className="text-sm font-medium">
+                  {t("history.byHour")}
+                </span>
                 <span className="text-xs text-muted-foreground">
                   {data.peakHour != null
-                    ? t("history.peak", { hour: String(data.peakHour).padStart(2, "0") })
+                    ? t("history.peak", {
+                        hour: String(data.peakHour).padStart(2, "0"),
+                      })
                     : ""}{" "}
                   · {data.timezone}
                 </span>
@@ -115,7 +138,9 @@ export default function MetricsHistory({ resourceId }: { resourceId: string }) {
                       className="group relative flex-1"
                       title={
                         b.cpu == null
-                          ? t("history.hourNoData", { hour: String(b.hour).padStart(2, "0") })
+                          ? t("history.hourNoData", {
+                              hour: String(b.hour).padStart(2, "0"),
+                            })
                           : t("history.hourValue", {
                               hour: String(b.hour).padStart(2, "0"),
                               value: b.cpu,
@@ -126,7 +151,8 @@ export default function MetricsHistory({ resourceId }: { resourceId: string }) {
                         className={cn(
                           "w-full rounded-sm transition-all",
                           b.cpu == null ? "bg-muted" : BAR[level],
-                          data.peakHour === b.hour && "ring-1 ring-foreground/30"
+                          data.peakHour === b.hour &&
+                            "ring-1 ring-foreground/30"
                         )}
                         style={{ height: `${h}%` }}
                       />

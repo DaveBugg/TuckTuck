@@ -23,7 +23,8 @@ export async function POST(req: Request) {
     where: { agentToken: token },
     select: { id: true },
   });
-  if (!resource) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!resource)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const b = await req.json().catch(() => ({}));
 
@@ -35,7 +36,10 @@ export async function POST(req: Request) {
   for (const [k, v] of Object.entries(b ?? {})) {
     // Только скаляры: вложенные объекты от чужого агента раздули бы строку и
     // ничего не дали бы сводке.
-    if (!known.has(k) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+    if (
+      !known.has(k) &&
+      (typeof v === "string" || typeof v === "number" || typeof v === "boolean")
+    ) {
       extra[k] = v;
     }
   }

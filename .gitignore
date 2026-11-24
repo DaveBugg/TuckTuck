@@ -71,6 +71,7 @@ next-env.d.ts
 .cursor
 .aider*
 .serena
+.codebase-memory/
 
 # артефакты слияния/правок
 *.bak

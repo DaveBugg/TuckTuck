@@ -114,7 +114,13 @@ export type RunResult = {
  */
 export async function runNotify(now = new Date()): Promise<RunResult> {
   const today = todayUTC(now);
-  const res: RunResult = { checked: 0, sent: 0, skipped: 0, failed: 0, deferred: 0 };
+  const res: RunResult = {
+    checked: 0,
+    sent: 0,
+    skipped: 0,
+    failed: 0,
+    deferred: 0,
+  };
 
   // Язык сообщений — общий для установки, а не язык пользователя: сообщение
   // уходит в чат, где сидят разные люди, и «язык получателя» там не определён.
@@ -125,7 +131,10 @@ export async function runNotify(now = new Date()): Promise<RunResult> {
   // Час в поясе из настроек: окно тишины задано местным временем, а сервер
   // почти всегда живёт в UTC.
   const localHour = hourInTimezone(now, settings.timezone);
-  const awake = (bot: { notifyFromHour: number | null; notifyToHour: number | null }) => {
+  const awake = (bot: {
+    notifyFromHour: number | null;
+    notifyToHour: number | null;
+  }) => {
     const w = windowFor(bot, settings);
     return isWithinWindow(localHour, w.from, w.to);
   };
@@ -175,7 +184,10 @@ export async function runNotify(now = new Date()): Promise<RunResult> {
 
       // Кому это напоминание вообще предназначено.
       const matching = usable.filter(bot =>
-        botMatches({ kinds: bot.kinds as string[], tags: bot.tags }, { kind: r.kind, tags: r.tags })
+        botMatches(
+          { kinds: bot.kinds as string[], tags: bot.tags },
+          { kind: r.kind, tags: r.tags }
+        )
       );
       if (matching.length === 0) continue;
 

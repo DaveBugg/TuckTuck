@@ -33,7 +33,8 @@ export async function POST(req: Request) {
     });
     // Ресурс не заведён — это норма, а не ошибка: самомониторинг включают
     // кнопкой, и до неё писать метрики некуда.
-    if (!self) return NextResponse.json({ ok: true, skipped: t("self.err.notEnabled") });
+    if (!self)
+      return NextResponse.json({ ok: true, skipped: t("self.err.notEnabled") });
 
     const s = await collectSelf();
     await prisma.resourceMetric.create({
@@ -44,7 +45,9 @@ export async function POST(req: Request) {
         disk: s.disk,
         load1: s.load1,
         uptimeSec: s.uptimeSec,
-        extra: s.cores ? { cores: s.cores, source: "self" } : { source: "self" },
+        extra: s.cores
+          ? { cores: s.cores, source: "self" }
+          : { source: "self" },
       },
     });
     return NextResponse.json({ ok: true, sample: s });

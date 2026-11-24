@@ -10,16 +10,23 @@ export async function POST(req: Request) {
   try {
     const user = await requireUser();
     if (user.totpEnabled) {
-      return NextResponse.json({ error: t("auth.err.totpAlreadyEnabled") }, { status: 400 });
+      return NextResponse.json(
+        { error: t("auth.err.totpAlreadyEnabled") },
+        { status: 400 }
+      );
     }
     const secret = authenticator.generateSecret();
-    await prisma.user.update({ where: { id: user.id }, data: { totpSecret: secret } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { totpSecret: secret },
+    });
     return NextResponse.json({
       secret,
       otpauthUrl: authenticator.keyuri(user.email, "TuckTuck", secret),
     });
   } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    if (e instanceof AuthError)
+      return NextResponse.json({ error: e.message }, { status: e.status });
     throw e;
   }
 }

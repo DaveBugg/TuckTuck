@@ -116,7 +116,9 @@ export default function DashboardPage() {
     try {
       const d = await apiJson(`/api/resources/${r.id}/pay`, "POST", {});
       toast.success(t("res.toast.paid"), {
-        description: t("res.toast.nextPayment", { date: fmtDate(asDate(d.nextPaymentAt)) }),
+        description: t("res.toast.nextPayment", {
+          date: fmtDate(asDate(d.nextPaymentAt)),
+        }),
       });
       setReloadKey(k => k + 1);
     } catch (e: any) {
@@ -142,7 +144,8 @@ export default function DashboardPage() {
                 href="/resources"
                 className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
               >
-                {t("dashboard.allResources")} <ArrowRight className="size-3.5" />
+                {t("dashboard.allResources")}{" "}
+                <ArrowRight className="size-3.5" />
               </Link>
             )}
           </CardHeader>
@@ -160,11 +163,16 @@ export default function DashboardPage() {
                   />
                 </div>
                 <Select value={kind} onValueChange={setKind}>
-                  <SelectTrigger className="h-8 w-auto min-w-32" aria-label={t("res.col.kind")}>
+                  <SelectTrigger
+                    className="h-8 w-auto min-w-32"
+                    aria-label={t("res.col.kind")}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={ALL_KINDS}>{t("dashboard.allKinds")}</SelectItem>
+                    <SelectItem value={ALL_KINDS}>
+                      {t("dashboard.allKinds")}
+                    </SelectItem>
                     {kindOptions.map(o => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
@@ -172,8 +180,14 @@ export default function DashboardPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={String(size)} onValueChange={v => setSize(Number(v))}>
-                  <SelectTrigger className="h-8 w-auto" aria-label={t("dashboard.show")}>
+                <Select
+                  value={String(size)}
+                  onValueChange={v => setSize(Number(v))}
+                >
+                  <SelectTrigger
+                    className="h-8 w-auto"
+                    aria-label={t("dashboard.show")}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -188,7 +202,9 @@ export default function DashboardPage() {
             )}
 
             {!can("resources.view") && (
-              <p className="text-sm text-muted-foreground">{t("dashboard.noAccess")}</p>
+              <p className="text-sm text-muted-foreground">
+                {t("dashboard.noAccess")}
+              </p>
             )}
             {can("resources.view") && rows === null && (
               <div className="flex flex-col gap-2">
@@ -207,7 +223,10 @@ export default function DashboardPage() {
                 ) : (
                   <>
                     {t("dashboard.emptyResources")}{" "}
-                    <Link href="/resources" className="text-primary hover:underline">
+                    <Link
+                      href="/resources"
+                      className="text-primary hover:underline"
+                    >
                       {t("dashboard.addFirst")}
                     </Link>
                   </>
@@ -223,9 +242,14 @@ export default function DashboardPage() {
                 {rows.map(r => {
                   const d = daysUntil(asDate(r.nextPaymentAt));
                   return (
-                    <li key={r.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <li
+                      key={r.id}
+                      className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                    >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{r.name}</div>
+                        <div className="truncate text-sm font-medium">
+                          {r.name}
+                        </div>
                         <div className="truncate text-xs text-muted-foreground">
                           {kindLabel(r.kind, t)}
                           {/* Провайдер здесь потому, что платить идут к нему, а
@@ -239,17 +263,26 @@ export default function DashboardPage() {
                           asChild
                           variant="ghost"
                           size="icon-sm"
-                          title={t("dashboard.openProvider", { name: r.provider.name })}
+                          title={t("dashboard.openProvider", {
+                            name: r.provider.name,
+                          })}
                         >
-                          <a href={r.provider.url} target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={r.provider.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <ExternalLink />
                           </a>
                         </Button>
                       )}
                       <div className="tabular text-sm">
-                        {fmtNum(Number(r.amount), { minimumFractionDigits: 2 })} {r.currency}
+                        {fmtNum(Number(r.amount), { minimumFractionDigits: 2 })}{" "}
+                        {r.currency}
                       </div>
-                      <Badge variant={DUE_VARIANT[dueLevel(d)]}>{dueText(d, t)}</Badge>
+                      <Badge variant={DUE_VARIANT[dueLevel(d)]}>
+                        {dueText(d, t)}
+                      </Badge>
                       {can("resources.manage") && (
                         <Button
                           variant="ghost"

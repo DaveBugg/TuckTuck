@@ -16,7 +16,13 @@
 // Так порядок строк совпадает с порядком событий, и вокруг вызова не
 // разрастается лесенка вложенных функций.
 
-import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 import { Check, Copy } from "lucide-react";
 import {
   Dialog,
@@ -145,7 +151,12 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             <code className="flex-1 select-all break-all rounded-md border bg-muted/50 px-3 py-2 font-mono text-sm">
               {revealOpts?.value}
             </code>
-            <Button variant="outline" size="icon" onClick={copy} aria-label={t("common.copy")}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={copy}
+              aria-label={t("common.copy")}
+            >
               {copied ? <Check className="text-success" /> : <Copy />}
             </Button>
           </div>

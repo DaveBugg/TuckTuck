@@ -18,7 +18,10 @@ export function webhookSecret(botId: string): string {
   // молча меняла бы секреты всех вебхуков, и кнопки переставали работать.
   const key = (process.env.TUCKTUCK_ENCRYPTION_KEY || "").trim();
   if (!key) throw new Error("TUCKTUCK_ENCRYPTION_KEY is not set");
-  return crypto.createHmac("sha256", key).update(`webhook:${botId}`).digest("base64url");
+  return crypto
+    .createHmac("sha256", key)
+    .update(`webhook:${botId}`)
+    .digest("base64url");
 }
 
 /**
