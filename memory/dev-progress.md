@@ -10,6 +10,19 @@
 - [x] Serena: проект активен (`.serena/project.yml`, typescript), memories — тонкие указатели
 - [ ] Дальше: реальные задачи по ROADMAP (файл локальный, вне репо)
 
+## 2026-11-25 — Finance Board: периодика + финал (этапы 5–6)
+
+- [x] Этап 5: `finance-recurring.ts` (чистые функции `nextRunAfter` с клампом dayOfMonth,
+      `dueTemplates`, `buildExpenseFromTemplate`), API `/api/finance/recurring` +
+      `/run` (воркер по `TUCKTUCK_WORKER_TOKEN` или `finance.manage`, дедуп по recurringId+date,
+      аудит GENERATE), тик в `notify-worker.mjs`, вкладка «Периодические» в `/finance/expenses`,
+      живой прогон через worker-token
+- [x] Этап 6: фикс вкладки «Периодические» (stale-рендер DataTable при смене таба → `key`,
+      i18n расписания с plural-формами, `serializeSnapshot` не распознавал минифицированный
+      Decimal → проверка по полям s/e/d), E2E в браузере (доска, расходы, настройки, профиль,
+      вкладка периодики), `TUCKTUCK_WORKER_TOKEN` сгенерирован в локальный `.env`
+- [x] Итог: 165 юнит-тестов зелёные, type-check/lint чисто, build OK, пуш на GitHub
+
 ## 2026-11-25 — Finance Board: Telegram-бот (этап 4)
 
 - [x] `src/lib/tg-auth.ts` — валидация WebApp initData (HMAC_SHA256, свежесть `auth_date`)
