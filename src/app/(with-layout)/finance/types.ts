@@ -98,6 +98,27 @@ export type AuditRow = {
   actor: { id: string; name: string | null; email: string } | null;
 };
 
+export type RecurringRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  amount: string;
+  currency: string;
+  scope: "TEAM" | "PROJECT" | "MEMBER";
+  projectId: string | null;
+  memberId: string | null;
+  frequency: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+  interval: number;
+  dayOfMonth: number | null;
+  nextRunAt: string;
+  active: boolean;
+  createdById: string | null;
+  createdAt: string;
+  project: { id: string; name: string } | null;
+  member: { id: string; name: string } | null;
+  createdBy: { id: string; name: string | null } | null;
+};
+
 export type Summary = {
   teamBalance: number;
   payable: number;

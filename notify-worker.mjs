@@ -64,7 +64,18 @@ async function tick() {
     }
   } catch (e) {
     // Сеть моргнула или приложение перезапускается — не падаем, ждём следующий тик.
-    log("тик не удался:", e?.message || e);
+    log("тик напоминаний не удался:", e?.message || e);
+  }
+
+  try {
+    const body = await post("/api/finance/recurring/run");
+    if (body.created || body.skipped) {
+      log(
+        `периодические расходы: создано ${body.created}, пропущено ${body.skipped}`
+      );
+    }
+  } catch (e) {
+    log("тик периодических расходов не удался:", e?.message || e);
   }
 }
 

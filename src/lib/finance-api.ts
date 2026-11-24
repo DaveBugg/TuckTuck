@@ -1,7 +1,12 @@
 // Общие хелперы API Finance Board: парсинг тел, конвертация валют, сериализация.
 
 import { convert } from "./rates";
-import type { ExpenseKind, ExpenseStatus, FinanceScope } from "@prisma/client";
+import type {
+  ExpenseKind,
+  ExpenseStatus,
+  FinanceScope,
+  RecurringFrequency,
+} from "@prisma/client";
 
 export const EXPENSE_KINDS: ExpenseKind[] = ["EXPENSE", "PAYOUT"];
 export const EXPENSE_STATUSES: ExpenseStatus[] = [
@@ -10,6 +15,12 @@ export const EXPENSE_STATUSES: ExpenseStatus[] = [
   "REJECTED",
 ];
 export const SCOPES: FinanceScope[] = ["TEAM", "PROJECT", "MEMBER"];
+export const RECURRING_FREQUENCIES: RecurringFrequency[] = [
+  "DAILY",
+  "WEEKLY",
+  "MONTHLY",
+  "YEARLY",
+];
 
 export function parseAmount(value: unknown): number | null {
   if (typeof value === "number")
@@ -44,6 +55,33 @@ export function parseKind(value: unknown): ExpenseKind | null {
   return EXPENSE_KINDS.includes(value as ExpenseKind)
     ? (value as ExpenseKind)
     : null;
+}
+
+export function parseFrequency(value: unknown): RecurringFrequency | null {
+  return RECURRING_FREQUENCIES.includes(value as RecurringFrequency)
+    ? (value as RecurringFrequency)
+    : null;
+}
+
+export function parseInterval(value: unknown): number | null {
+  if (typeof value === "number")
+    return Number.isInteger(value) && value >= 1 ? value : null;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 1 ? n : null;
+  }
+  return null;
+}
+
+export function parseDayOfMonth(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "number")
+    return Number.isInteger(value) && value >= 1 && value <= 31 ? value : null;
+  if (typeof value === "string") {
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 1 && n <= 31 ? n : null;
+  }
+  return null;
 }
 
 /** Пересчитать сумму в базовую валюту. null — курс неизвестен. */

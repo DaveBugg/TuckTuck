@@ -111,10 +111,10 @@ export const API_ROUTE_PERMISSIONS: Array<{
     pattern: /^\/api\/finance\/(incomes|recurring|distributions)$/,
     permission: "finance.manage",
   },
-  // ручной прогон периодики — manage
+  // ручной прогон периодики — manage (также воркер по заголовку)
   {
     method: "POST",
-    pattern: /^\/api\/finance\/recurring\/[^/]+\/run$/,
+    pattern: /^\/api\/finance\/recurring\/run$/,
     permission: "finance.manage",
   },
   // правка/удаление собственного PENDING-расхода — submit; остальные операции — manage

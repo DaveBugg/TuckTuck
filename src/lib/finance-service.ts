@@ -36,6 +36,7 @@ export type ExpenseInput = {
   memberId: string | null;
   date: Date;
   tags: string[];
+  recurringId?: string | null;
 };
 
 export type PrepareExpenseResult = { error: string } | ExpenseInput;
@@ -112,6 +113,8 @@ export type CreateExpenseOptions = {
   data: ExpenseInput;
   sourceChatId?: string;
   sourceMessageId?: number;
+  /** Принудительный статус, нужен для генерации из периодических шаблонов. */
+  forceStatus?: Expense["status"];
 };
 
 /**
@@ -122,10 +125,11 @@ export async function createExpense({
   data,
   sourceChatId,
   sourceMessageId,
+  forceStatus,
 }: CreateExpenseOptions): Promise<Expense> {
-  const status = expenseStatusOnCreate(
-    hasPermission(me.role, "finance.approve")
-  );
+  const status =
+    forceStatus ??
+    expenseStatusOnCreate(hasPermission(me.role, "finance.approve"));
 
   const row = await prisma.expense.create({
     data: {
@@ -140,6 +144,7 @@ export async function createExpense({
       memberId: data.memberId,
       date: data.date,
       tags: data.tags,
+      recurringId: data.recurringId ?? null,
       status,
       createdById: me.id,
       sourceChatId: sourceChatId ?? "",
@@ -159,6 +164,7 @@ export async function createExpense({
     memberId: data.memberId,
     date: data.date.toISOString(),
     tags: data.tags,
+    recurringId: data.recurringId ?? null,
     status,
     sourceChatId: sourceChatId ?? "",
     sourceMessageId: sourceMessageId ?? null,

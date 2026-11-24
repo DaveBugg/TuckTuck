@@ -38,8 +38,8 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 - **notify**: `notify/bots` (+`[id]`, `[id]/test`, `[id]/webhook`), `notify/check`, `notify/run`
   (воркер/ручной прогон), `notify/webhook/[botId]` (callback-кнопки напоминаний + FSM-бот)
 - **profile**: `profile/telegram-link` (GET/POST/DELETE — привязка/отвязка Telegram)
-- **settings**: `settings/finance` (GET/PATCH — валюты/теги/финансист),
-  `settings/telegram-groups` (+`[id]/approve` — одобрение групп)
+- **settings**: `settings/finance` (GET/PATCH — валюты/теги/финансист), `settings/telegram-groups`
+  (+`[id]/approve` — одобрение групп)
 - **finance**: `finance/expenses` (GET/POST + `[id]` PATCH/DELETE + `[id]/approve|reject`),
   `finance/incomes` (GET/POST + `[id]` PATCH/DELETE, мгновенное распределение),
   `finance/distributions` (ручное распределение с проверкой остатка), `finance/projects` (+`[id]`,
@@ -76,8 +76,8 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 | `finance-api.ts`                                 | Хелперы API Finance: парсинг тел, конвертация в `amountBase`                |
 | `finance-audit.ts`                               | `writeAudit` + сериализация снимков Decimal/Date/bigint                     |
 | `finance-service.ts`                             | Создание Expense: подготовка данных + запись + аудит (общее для API и бота) |
-| `tg-auth.ts`                                     | Чистая валидация Telegram WebApp initData (HMAC, свежесть)                 |
-| `tg-bot-fsm.ts`                                  | Чистые функции бота: парсинг сумм, клавиатуры, маршрутизация аппрува       |
+| `tg-auth.ts`                                     | Чистая валидация Telegram WebApp initData (HMAC, свежесть)                  |
+| `tg-bot-fsm.ts`                                  | Чистые функции бота: парсинг сумм, клавиатуры, маршрутизация аппрува        |
 | `tg-bot-state.ts`                                | Состояние FSM-диалога: Redis + in-memory fallback, TTL 10 мин               |
 | `tg-bot.ts`                                      | Обработчик входящих update: /start, FSM расхода, аппрув, баланс, группы     |
 | `list-query.ts`                                  | `parseListParams`, `toApiError` — общий каркас CRUD-роутов                  |

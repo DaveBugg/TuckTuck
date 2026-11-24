@@ -111,6 +111,26 @@ test("apiRoutePermission: метод + путь → право", () => {
     "finance.admin"
   );
   assert.equal(
+    apiRoutePermission("GET", "/api/finance/recurring"),
+    "finance.view"
+  );
+  assert.equal(
+    apiRoutePermission("POST", "/api/finance/recurring"),
+    "finance.manage"
+  );
+  assert.equal(
+    apiRoutePermission("PATCH", "/api/finance/recurring/123"),
+    "finance.manage"
+  );
+  assert.equal(
+    apiRoutePermission("DELETE", "/api/finance/recurring/123"),
+    "finance.manage"
+  );
+  assert.equal(
+    apiRoutePermission("POST", "/api/finance/recurring/run"),
+    "finance.manage"
+  );
+  assert.equal(
     apiRoutePermission("GET", "/api/settings/finance"),
     "finance.admin"
   );
