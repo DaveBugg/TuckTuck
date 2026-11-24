@@ -10,10 +10,36 @@
 - [x] Serena: проект активен (`.serena/project.yml`, typescript), memories — тонкие указатели
 - [ ] Дальше: реальные задачи по ROADMAP (файл локальный, вне репо)
 
+## 2026-11-25 — Finance Board: Telegram-бот (этап 4)
+
+- [x] `src/lib/tg-auth.ts` — валидация WebApp initData (HMAC_SHA256, свежесть `auth_date`)
+- [x] `src/app/api/auth/telegram` + `/tg-app` — вход без пароля по WebApp, редирект на `/dashboard`
+- [x] `src/app/api/profile/telegram-link` + UI в `/profile` — привязка/отвязка Telegram с deep-link
+- [x] `src/lib/finance-service.ts` — общее создание Expense для API и бота; роут
+      `/api/finance/expenses` переведён на сервис
+- [x] FSM-бот: `tg-bot-fsm.ts` (чистые функции), `tg-bot-state.ts` (Redis + in-memory fallback),
+      `tg-bot.ts` (обработчик update)
+- [x] `/start <code>` — привязка TG-аккаунта; `/start`, `/expense`, «＋ Расход», «💰 Мой баланс»,
+      WebApp-кнопка; заглушка для неизвестных пользователей
+- [x] Аппрув-карточка PENDING-расхода: группа → в группу, ЛС → финансисту или всем с
+      `finance.approve`; кнопки ✅/❌; уведомление автору
+- [x] Группы Telegram: `TelegramApprovedGroup`, создание при первом апдейте, переключатель active в
+      настройках; неподтверждённые группы — молчание
+- [x] `src/lib/telegram.ts` — `setWebhook` теперь запрашивает
+      `allowed_updates: [callback_query, message, my_chat_member]`
+- [x] `src/app/api/settings/finance` + `settings/telegram-groups` + UI в `/settings`: валюты, теги,
+      финансист, список групп
+- [x] i18n: блок `finance.bot.*`, `finance.settings.*`, `profile.telegram.*` в `ru.ts`/`en.ts`
+- [x] Unit-тесты: `tests/unit/tg-auth.test.ts`, `tests/unit/tg-bot-flow.test.ts`; добавлены в
+      `test:unit`
+- [x] Проверки: `npm run type-check`, `npm run lint`, `npm test` (154 passed/1 skipped),
+      `npm run build` — все чисто
+
 ## 2026-11-25 — Finance Board: UI (этап 3)
 
 - [x] Навигация: группа «Финансы» в `nav-items.ts`/`app-shell.tsx`, иконка `Wallet`, дочерние пункты
-- [x] i18n: блок `finance.*` + `nav.finance*` в `ru.ts`/`en.ts` (~100 ключей), плейсхолдеры синхронны
+- [x] i18n: блок `finance.*` + `nav.finance*` в `ru.ts`/`en.ts` (~100 ключей), плейсхолдеры
+      синхронны
 - [x] Общий UI-код: `src/app/(with-layout)/finance/types.ts`, `helpers.tsx` (формат денег, бейджи)
 - [x] `OperationDialog.tsx` — универсальный диалог создания/правки расхода/выплаты/дохода с
       распределением по долям проекта

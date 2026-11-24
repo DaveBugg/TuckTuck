@@ -17,8 +17,11 @@ import {
   Plug,
   Save,
   ShieldCheck,
+  Wallet,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchSelect } from "@/components/ui/search-select";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { RETENTION_PRESETS } from "@/lib/settings-config";
@@ -53,6 +57,20 @@ type Settings = {
   proxy: string;
   proxySet: boolean;
   envProxySet: boolean;
+};
+
+type FinanceSettings = {
+  financeQuickCurrencies: string[];
+  financeQuickTags: string[];
+  financierUserId: string | null;
+  financierOptions: { id: string; name: string; telegramUserId: string }[];
+};
+
+type TelegramGroup = {
+  id: string;
+  chatId: string;
+  title: string;
+  active: boolean;
 };
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -91,6 +109,13 @@ export default function SettingsPage() {
   const [proxyDraft, setProxyDraft] = useState("");
   const [editProxy, setEditProxy] = useState(false);
 
+  // ── Finance Board / Telegram bot settings ──
+  const [finance, setFinance] = useState<FinanceSettings | null>(null);
+  const [financeSaving, setFinanceSaving] = useState(false);
+  const [groups, setGroups] = useState<TelegramGroup[] | null>(null);
+  const [currencyDraft, setCurrencyDraft] = useState("");
+  const [tagDraft, setTagDraft] = useState("");
+
   // Смещения считаются один раз: четыреста поясов через Intl на каждый рендер
   // подвешивают открытие списка.
   const zoneOptions = useMemo(() => {
@@ -106,6 +131,20 @@ export default function SettingsPage() {
   }, []);
   useEffect(load, [load]);
 
+  const loadFinance = useCallback(() => {
+    apiFetch("/api/settings/finance")
+      .then(setFinance)
+      .catch(e => toast.error(e.message));
+  }, []);
+  useEffect(loadFinance, [loadFinance]);
+
+  const loadGroups = useCallback(() => {
+    apiFetch("/api/settings/telegram-groups")
+      .then(d => setGroups(d.rows))
+      .catch(e => toast.error(e.message));
+  }, []);
+  useEffect(loadGroups, [loadGroups]);
+
   const patch = async (body: Record<string, unknown>, ok?: string) => {
     setSaving(true);
     try {
@@ -116,6 +155,37 @@ export default function SettingsPage() {
       toast.error(e.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const patchFinance = async (body: Record<string, unknown>, ok?: string) => {
+    setFinanceSaving(true);
+    try {
+      const d = await apiJson("/api/settings/finance", "PATCH", body);
+      setFinance(d);
+      toast.success(ok ?? t("common.saved"));
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setFinanceSaving(false);
+    }
+  };
+
+  const toggleGroup = async (g: TelegramGroup) => {
+    try {
+      const d = await apiJson(
+        `/api/settings/telegram-groups/${g.id}/approve`,
+        "POST",
+        { active: !g.active }
+      );
+      setGroups(prev =>
+        prev
+          ? prev.map(x => (x.id === d.id ? { ...x, active: d.active } : x))
+          : prev
+      );
+      toast.success(t("common.saved"));
+    } catch (e: any) {
+      toast.error(e.message);
     }
   };
 
@@ -464,6 +534,236 @@ export default function SettingsPage() {
               {LOCALE_LABEL[l]}
             </Button>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="size-4 text-muted-foreground" />
+            {t("finance.settings.title")}
+          </CardTitle>
+          <CardDescription>{t("finance.settings.desc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5">
+          {finance === null && (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-9 w-48" />
+              <Skeleton className="h-9 w-48" />
+            </div>
+          )}
+
+          {finance && (
+            <>
+              <div>
+                <Label className="mb-2 block">
+                  {t("finance.settings.currencies")}
+                </Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {finance.financeQuickCurrencies.map(c => (
+                    <Badge key={c} variant="secondary" className="gap-1">
+                      {c}
+                      <button
+                        className="ml-1 rounded-full hover:text-destructive"
+                        onClick={() =>
+                          patchFinance({
+                            financeQuickCurrencies:
+                              finance.financeQuickCurrencies.filter(
+                                x => x !== c
+                              ),
+                          })
+                        }
+                        disabled={financeSaving}
+                        aria-label={t("common.delete")}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="w-24 font-mono text-xs uppercase"
+                      value={currencyDraft}
+                      onChange={e => setCurrencyDraft(e.target.value)}
+                      placeholder="USD"
+                      maxLength={10}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          const c = currencyDraft.trim().toUpperCase();
+                          if (!c) return;
+                          patchFinance({
+                            financeQuickCurrencies: [
+                              ...finance.financeQuickCurrencies,
+                              c,
+                            ],
+                          });
+                          setCurrencyDraft("");
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        financeSaving ||
+                        !currencyDraft.trim() ||
+                        finance.financeQuickCurrencies.length >= 12
+                      }
+                      onClick={() => {
+                        const c = currencyDraft.trim().toUpperCase();
+                        if (!c) return;
+                        patchFinance({
+                          financeQuickCurrencies: [
+                            ...finance.financeQuickCurrencies,
+                            c,
+                          ],
+                        });
+                        setCurrencyDraft("");
+                      }}
+                    >
+                      {t("common.add")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block">
+                  {t("finance.settings.tags")}
+                </Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {finance.financeQuickTags.map(tag => (
+                    <Badge key={tag} variant="secondary" className="gap-1">
+                      {tag}
+                      <button
+                        className="ml-1 rounded-full hover:text-destructive"
+                        onClick={() =>
+                          patchFinance({
+                            financeQuickTags: finance.financeQuickTags.filter(
+                              x => x !== tag
+                            ),
+                          })
+                        }
+                        disabled={financeSaving}
+                        aria-label={t("common.delete")}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="w-32 text-xs"
+                      value={tagDraft}
+                      onChange={e => setTagDraft(e.target.value)}
+                      placeholder={t("finance.settings.tagPlaceholder")}
+                      onKeyDown={e => {
+                        if (e.key === "Enter") {
+                          const tag = tagDraft.trim();
+                          if (!tag) return;
+                          patchFinance({
+                            financeQuickTags: [
+                              ...finance.financeQuickTags,
+                              tag,
+                            ],
+                          });
+                          setTagDraft("");
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        financeSaving ||
+                        !tagDraft.trim() ||
+                        finance.financeQuickTags.length >= 8
+                      }
+                      onClick={() => {
+                        const tag = tagDraft.trim();
+                        if (!tag) return;
+                        patchFinance({
+                          financeQuickTags: [...finance.financeQuickTags, tag],
+                        });
+                        setTagDraft("");
+                      }}
+                    >
+                      {t("common.add")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block">
+                  {t("finance.settings.financier")}
+                </Label>
+                <div className="max-w-sm">
+                  <SearchSelect
+                    value={finance.financierUserId ?? ""}
+                    onChange={v =>
+                      patchFinance({
+                        financierUserId: v || null,
+                      })
+                    }
+                    options={[
+                      { value: "", label: t("finance.settings.noFinancier") },
+                      ...finance.financierOptions.map(u => ({
+                        value: u.id,
+                        label: `${u.name} (ID ${u.telegramUserId})`,
+                      })),
+                    ]}
+                    searchPlaceholder={t("common.search")}
+                    emptyText={t("common.nothingFound")}
+                    ariaLabel={t("finance.settings.financier")}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block">
+                  {t("finance.settings.groups")}
+                </Label>
+                {groups === null && <Skeleton className="h-20 w-full" />}
+                {groups?.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {t("finance.settings.groupsEmpty")}
+                  </p>
+                )}
+                {groups && groups.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    {groups.map(g => (
+                      <div
+                        key={g.id}
+                        className="flex items-center justify-between rounded-md border p-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
+                            {g.title || `ID ${g.chatId}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {g.chatId}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {g.active
+                              ? t("common.enable")
+                              : t("common.disable")}
+                          </span>
+                          <Switch
+                            checked={g.active}
+                            onCheckedChange={() => toggleGroup(g)}
+                            aria-label={t("finance.settings.groups")}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

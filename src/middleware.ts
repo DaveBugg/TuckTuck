@@ -27,7 +27,13 @@ async function readToken(req: NextRequest): Promise<TokenPayload | null> {
 
 // ЕДИНСТВЕННЫЕ публичные страницы (без логина). Всё остальное — под авторизацией.
 // Регистрации нет; forgot-password нет (сброс делает админ). Логаут доступен.
-const PUBLIC_PATHS = new Set(["/", "/auth/login", "/auth/logout"]);
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/auth/login",
+  "/auth/logout",
+  "/tg-app",
+  "/api/auth/telegram",
+]);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

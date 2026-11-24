@@ -1,127 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requirePermission, hasPermission } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { parseListParams, toApiError } from "@/lib/list-query";
 import { tForRequest } from "@/lib/i18n/server";
 import { getRates } from "@/lib/rates";
 import { getSettings } from "@/lib/settings";
-import {
-  parseAmount,
-  parseCurrency,
-  parseDate,
-  parseKind,
-  parseScope,
-  toAmountBase,
-  decimalStr,
-  validationError,
-} from "@/lib/finance-api";
-import {
-  validateScope,
-  expenseStatusOnCreate,
-  type ScopeValidationError,
-} from "@/lib/finance";
-import { writeAudit } from "@/lib/finance-audit";
+import { serializeDecimal } from "@/lib/finance-api";
+import { prepareExpenseData, createExpense } from "@/lib/finance-service";
 import type { Prisma } from "@prisma/client";
-import type { TFunc } from "@/lib/i18n/translate";
-
-function parseBody(
-  b: any,
-  t: TFunc,
-  displayCurrency: string,
-  perUsd: Record<string, number>,
-  partial = false
-): Record<string, unknown> | { error: string } {
-  const out: Record<string, unknown> = {};
-
-  if (!partial || b.title !== undefined) {
-    const title = typeof b.title === "string" ? b.title.trim() : "";
-    if (!title) return validationError(t("finance.err.titleRequired"));
-    out.title = title;
-  }
-
-  if (!partial || b.amount !== undefined) {
-    const amount = parseAmount(b.amount);
-    if (amount === null)
-      return validationError(t("finance.err.amountRequired"));
-    out.amount = decimalStr(amount);
-  }
-
-  if (!partial || b.currency !== undefined) {
-    const currency = parseCurrency(b.currency);
-    if (!currency) return validationError(t("finance.err.currencyRequired"));
-    out.currency = currency;
-  }
-
-  if (b.description !== undefined) {
-    out.description =
-      typeof b.description === "string" ? b.description.trim() : "";
-  }
-
-  if (!partial || b.kind !== undefined) {
-    out.kind = parseKind(b.kind) ?? "EXPENSE";
-  }
-
-  if (!partial || b.scope !== undefined) {
-    const scope = parseScope(b.scope);
-    if (!scope) return validationError(t("finance.err.unknownScope"));
-    out.scope = scope;
-  }
-
-  if (b.projectId !== undefined) out.projectId = b.projectId || null;
-  if (b.memberId !== undefined) out.memberId = b.memberId || null;
-
-  if (b.date !== undefined) {
-    if (b.date === null || b.date === "") {
-      if (!partial) out.date = new Date();
-    } else {
-      const d = parseDate(b.date);
-      if (!d) return validationError(t("finance.err.dateInvalid"));
-      out.date = d;
-    }
-  }
-
-  if (b.tags !== undefined) {
-    out.tags = Array.isArray(b.tags)
-      ? b.tags
-          .filter((x: unknown): x is string => typeof x === "string")
-          .map((x: string) => x.trim())
-      : [];
-  }
-
-  if (b.sourceChatId !== undefined) {
-    out.sourceChatId =
-      typeof b.sourceChatId === "string" ? b.sourceChatId.trim() : "";
-  }
-  if (b.sourceMessageId !== undefined) {
-    const n = Number(b.sourceMessageId);
-    out.sourceMessageId = Number.isInteger(n) && n > 0 ? n : null;
-  }
-
-  // Пересчёт amountBase только при создании или если сумма/валюта менялись.
-  const amountChanged = "amount" in out;
-  const currencyChanged = "currency" in out;
-  if (!partial && amountChanged && currencyChanged) {
-    const amountNum = Number(out.amount);
-    const base = toAmountBase(
-      amountNum,
-      String(out.currency),
-      displayCurrency,
-      perUsd
-    );
-    if (base === null) return validationError(t("finance.err.noRate"));
-    out.amountBase = decimalStr(base);
-  }
-
-  // Валидация инвариантов scope/kind.
-  const scope = String(out.scope ?? b.scope ?? "");
-  const kind = String(out.kind ?? b.kind ?? "EXPENSE");
-  const projectId = (out.projectId ?? b.projectId ?? null) as string | null;
-  const memberId = (out.memberId ?? b.memberId ?? null) as string | null;
-  const scopeErr = validateScope(kind, scope, projectId, memberId);
-  if (scopeErr) return validationError(t("finance.err.scopeValidation"));
-
-  return out;
-}
 
 export async function GET(req: Request) {
   try {
@@ -233,26 +119,15 @@ export async function POST(req: Request) {
     const settings = await getSettings();
     const rates = await getRates();
 
-    const data = parseBody(b, t, settings.displayCurrency, rates.perUsd);
+    const data = prepareExpenseData(
+      b,
+      t,
+      settings.displayCurrency,
+      rates.perUsd
+    );
     if ("error" in data) return NextResponse.json(data, { status: 400 });
 
-    const status = expenseStatusOnCreate(
-      hasPermission(me.role, "finance.approve")
-    );
-
-    const row = await prisma.expense.create({
-      data: {
-        ...(data as any),
-        status,
-        createdById: me.id,
-      },
-    });
-
-    await writeAudit(me.id, "CREATE", "expense", row.id, null, {
-      ...data,
-      status,
-      createdById: me.id,
-    });
+    const row = await createExpense({ me, data });
 
     return NextResponse.json(
       {
@@ -267,4 +142,11 @@ export async function POST(req: Request) {
   } catch (e) {
     return toApiError(e, t);
   }
+}
+
+function parseDate(value: unknown): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return isNaN(d.getTime()) ? null : d;
 }

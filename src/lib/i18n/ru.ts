@@ -870,4 +870,89 @@ export const ru: Record<string, string> = {
   "finance.operation.save": "Сохранить операцию",
   "finance.operation.savedExpense": "Расход добавлен",
   "finance.operation.savedIncome": "Доход добавлен",
+
+  // ── Finance Bot ───────────────────────────────────────────────────────────
+  "finance.bot.welcome":
+    "Привет, {name}! 👋\nЯ помогу быстро внести расход или проверить баланс.",
+  "finance.bot.restricted": "Доступ ограничен. Обратитесь к администратору.",
+  "finance.bot.menu.title": "Выберите действие:",
+  "finance.bot.btn.expense": "＋ Расход",
+  "finance.bot.btn.balance": "💰 Мой баланс",
+  "finance.bot.btn.openPanel": "Открыть панель",
+  "finance.bot.opening": "Открываю панель…",
+  "finance.bot.openFromBot": "Откройте панель через кнопку в боте",
+  "finance.bot.openFromBotHint":
+    "Эта страница работает только внутри Telegram WebApp. В обычном браузере войдите через форму ниже.",
+  "finance.bot.noBot": "Нет активного бота для привязки",
+
+  "finance.bot.expense.enterAmount":
+    "Новый расход. Введите сумму или выберите валюту сначала.",
+  "finance.bot.expense.selectCurrency": "Выберите валюту:",
+  "finance.bot.currency.other": "Другая ✏️",
+  "finance.bot.expense.selectScope": "Куда отнести расход?",
+  "finance.bot.scope.TEAM": "👥 Команда",
+  "finance.bot.scope.PROJECT": "📁 Проект",
+  "finance.bot.scope.MEMBER": "👤 Участник",
+  "finance.bot.expense.selectProject": "Выберите проект:",
+  "finance.bot.expense.selectMember": "Выберите участника:",
+  "finance.bot.expense.enterTitle": "Название расхода:",
+  "finance.bot.expense.titleHint":
+    "Отправьте «Название — описание». Описание опционально.",
+  "finance.bot.expense.selectTags": "Выберите теги (можно несколько):",
+  "finance.bot.tags.skip": "Пропустить",
+  "finance.bot.tags.done": "Готово ✅",
+  "finance.bot.expense.confirmTitle": "Проверьте операцию перед отправкой:",
+  "finance.bot.expense.send": "Отправить на утверждение",
+  "finance.bot.expense.cancel": "Отмена",
+  "finance.bot.expense.sent": "Расход отправлен на утверждение.",
+  "finance.bot.expense.created": "Расход создан.",
+  "finance.bot.expense.cancelled": "Операция отменена.",
+
+  "finance.bot.balance.title": "Ваш баланс: {amount}",
+  "finance.bot.balance.none":
+    "К вашей учётной записи не привязан участник команды.",
+
+  "finance.bot.link.ok": "Telegram успешно привязан к учётной записи.",
+  "finance.bot.link.invalidCode": "Неверный или просроченный код привязки.",
+
+  "finance.bot.approval.title": "⏳ На утверждении",
+  "finance.bot.approval.approved": "✅ Утверждено — {by}",
+  "finance.bot.approval.rejected": "❌ Отклонено — {by}",
+  "finance.bot.approval.amount": "Сумма",
+  "finance.bot.approval.scope": "Куда",
+  "finance.bot.approval.author": "Автор",
+  "finance.bot.btn.approve": "✅ Утвердить",
+  "finance.bot.btn.reject": "❌ Отклонить",
+  "finance.bot.approval.noFinancier": "Нет финансиста для утверждения.",
+  "finance.bot.error.general": "Не удалось обработать запрос.",
+
+  // ── Finance Settings ──────────────────────────────────────────────────────
+  "finance.settings.title": "Финансы и бот",
+  "finance.settings.desc":
+    "Быстрые валюты и теги для Telegram-бота, финансист по умолчанию и одобрённые группы",
+  "finance.settings.currencies": "Быстрые валюты",
+  "finance.settings.tags": "Быстрые теги",
+  "finance.settings.tagPlaceholder": "серверы",
+  "finance.settings.financier": "Финансист по умолчанию",
+  "finance.settings.noFinancier": "— не задан —",
+  "finance.settings.groups": "Telegram-группы",
+  "finance.settings.groupsEmpty":
+    "Групп пока нет. Добавьте бота в группу — она появится здесь.",
+  "finance.settings.err.currencies": "Не более {max} валют",
+  "finance.settings.err.tags": "Не более {max} тегов",
+
+  // ── Profile Telegram ──────────────────────────────────────────────────────
+  "profile.telegram.desc":
+    "Привяжите Telegram для входа через бота и быстрых действий",
+  "profile.telegram.status": "Статус",
+  "profile.telegram.linked": "Привязан",
+  "profile.telegram.notLinked": "Не привязан",
+  "profile.telegram.linkedId": "Привязан (ID {id})",
+  "profile.telegram.link": "Привязать Telegram",
+  "profile.telegram.unlink": "Отвязать Telegram",
+  "profile.telegram.linkHint":
+    "Откройте эту ссылку в Telegram и нажмите /start. Код одноразовый.",
+  "profile.telegram.unlinkConfirm":
+    "Отвязать Telegram? Вход через бота перестанет работать.",
+  "profile.telegram.unlinked": "Telegram отвязан",
 };

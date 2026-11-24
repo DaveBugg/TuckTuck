@@ -137,7 +137,10 @@ test("кнопки: оплата, отмена и удаление, все с к
     ["paid:msg-42", "cancel:msg-42", "del:msg-42"]
   );
   // callback_data Телеграм ограничивает 64 байтами — ключ обязан влезать
-  for (const b of all) assert.ok(Buffer.byteLength(b.callback_data) <= 64);
+  for (const b of all) {
+    assert.ok(b.callback_data);
+    assert.ok(Buffer.byteLength(b.callback_data!) <= 64);
+  }
 });
 
 test("по умолчанию напоминаем и в сам день оплаты", () => {
@@ -153,10 +156,12 @@ test("кнопки под напоминанием: оплатить, отмен
   assert.equal(flat.length, 3);
   // Ключ сообщения обязан быть в каждой кнопке: по нему вебхук находит, о каком
   // напоминании речь, и без него нажатие некуда отнести.
-  for (const b of flat)
-    assert.ok(b.callback_data.endsWith(":msgkey"), b.callback_data);
+  for (const b of flat) {
+    assert.ok(b.callback_data);
+    assert.ok(b.callback_data!.endsWith(":msgkey"), b.callback_data);
+  }
   assert.deepEqual(
-    flat.map(b => b.callback_data.split(":")[0]),
+    flat.map(b => b.callback_data!.split(":")[0]),
     ["paid", "cancel", "del"]
   );
   // Удаление отдельной строкой: рядом с «оплачено» его нажимают промахом.

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { decryptSecret } from "@/lib/secret-crypto";
 import { answerCallbackQuery, editMessageText, esc } from "@/lib/telegram";
+import { handleUpdate as handleFinanceUpdate } from "@/lib/tg-bot";
 import { addPeriod } from "@/lib/resources";
 import { webhookSecret } from "@/lib/notify-webhook";
 import { proxyForBot } from "@/lib/notify-proxy";
@@ -61,10 +62,6 @@ export async function POST(req: Request, ctx: Ctx) {
     const bot = await prisma.notifyBot.findUnique({ where: { id: botId } });
     if (!bot || !bot.isActive) return ok();
 
-    const update = await req.json().catch(() => null);
-    const cq = update?.callback_query;
-    if (!cq?.id || !cq.data) return ok();
-
     let token: string;
     try {
       token = decryptSecret(bot.tokenEnc);
@@ -74,6 +71,15 @@ export async function POST(req: Request, ctx: Ctx) {
     // Ответ и правка сообщения идут в Telegram, а он может быть доступен
     // только через прокси — тот же, которым бот отправлял напоминание.
     const proxy = await proxyForBot(bot.proxyUrlEnc);
+
+    const update = await req.json().catch(() => null);
+
+    // Finance Board: FSM-сообщения, callback-запросы и события групп.
+    const financeHandled = await handleFinanceUpdate(bot, token, proxy, update);
+    if (financeHandled) return ok();
+
+    const cq = update?.callback_query;
+    if (!cq?.id || !cq.data) return ok();
 
     // Язык ответов бота — общий для установки: нажать кнопку может любой
     // участник чата, и его языка панель не знает.

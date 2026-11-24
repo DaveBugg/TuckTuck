@@ -4,7 +4,15 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Loader2, LogOut, ShieldCheck, ShieldOff } from "lucide-react";
+import {
+  Loader2,
+  LogOut,
+  ShieldCheck,
+  ShieldOff,
+  Link2,
+  Copy,
+  Check,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +84,65 @@ export default function ProfilePage() {
   } | null>(null);
   const [code, setCode] = useState("");
   const [totpBusy, setTotpBusy] = useState(false);
+
+  // ── Telegram ──
+  const [tg, setTg] = useState<{
+    linked: boolean;
+    userId: string | null;
+  } | null>(null);
+  const [tgUrl, setTgUrl] = useState<string | null>(null);
+  const [tgBusy, setTgBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const loadTg = useCallback(() => {
+    apiJson("/api/profile/telegram-link", "GET")
+      .then(d => setTg({ linked: d.linked, userId: d.userId }))
+      .catch(() => setTg({ linked: false, userId: null }));
+  }, []);
+  useEffect(loadTg, [loadTg]);
+
+  const linkTg = async () => {
+    setTgBusy(true);
+    try {
+      const d = await apiJson("/api/profile/telegram-link", "POST");
+      setTgUrl(d.url);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setTgBusy(false);
+    }
+  };
+
+  const unlinkTg = async () => {
+    const ok = await confirm({
+      title: t("profile.telegram.unlink"),
+      description: t("profile.telegram.unlinkConfirm"),
+      destructive: true,
+    });
+    if (!ok) return;
+    setTgBusy(true);
+    try {
+      await apiJson("/api/profile/telegram-link", "DELETE");
+      setTg({ linked: false, userId: null });
+      setTgUrl(null);
+      toast.success(t("profile.telegram.unlinked"));
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setTgBusy(false);
+    }
+  };
+
+  const copyUrl = async () => {
+    if (!tgUrl) return;
+    try {
+      await navigator.clipboard.writeText(tgUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error(t("agent.clipboardError"));
+    }
+  };
 
   const loadMe = useCallback(() => {
     apiJson("/api/auth/me", "GET")
@@ -356,6 +423,90 @@ export default function ProfilePage() {
                 {t("common.disable")}
               </Button>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="size-4 text-muted-foreground" />
+            Telegram
+          </CardTitle>
+          <CardDescription>{t("profile.telegram.desc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {tg === null && <Skeleton className="h-9 w-48" />}
+          {tg && (
+            <>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {t("profile.telegram.status")}:
+                </span>
+                {tg.linked ? (
+                  <Badge variant="success">
+                    {tg.userId
+                      ? t("profile.telegram.linkedId", { id: tg.userId })
+                      : t("profile.telegram.linked")}
+                  </Badge>
+                ) : (
+                  <Badge variant="muted">
+                    {t("profile.telegram.notLinked")}
+                  </Badge>
+                )}
+              </div>
+
+              {!tg.linked && !tgUrl && (
+                <Button
+                  variant="outline"
+                  onClick={linkTg}
+                  disabled={tgBusy}
+                  className="self-start"
+                >
+                  {tgBusy && <Loader2 className="animate-spin" />}
+                  {t("profile.telegram.link")}
+                </Button>
+              )}
+
+              {!tg.linked && tgUrl && (
+                <div className="flex max-w-md flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={tgUrl}
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={copyUrl}
+                      aria-label={t("common.copy")}
+                    >
+                      {copied ? (
+                        <Check className="size-4" />
+                      ) : (
+                        <Copy className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t("profile.telegram.linkHint")}
+                  </p>
+                </div>
+              )}
+
+              {tg.linked && (
+                <Button
+                  variant="outline"
+                  onClick={unlinkTg}
+                  disabled={tgBusy}
+                  className="self-start"
+                >
+                  {tgBusy && <Loader2 className="animate-spin" />}
+                  {t("profile.telegram.unlink")}
+                </Button>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

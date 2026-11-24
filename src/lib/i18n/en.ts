@@ -844,4 +844,87 @@ export const en: Record<string, string> = {
   "finance.operation.save": "Save operation",
   "finance.operation.savedExpense": "Expense added",
   "finance.operation.savedIncome": "Income added",
+
+  // ── Finance Bot ───────────────────────────────────────────────────────────
+  "finance.bot.welcome":
+    "Hi, {name}! 👋\nI can quickly add an expense or check your balance.",
+  "finance.bot.restricted": "Access restricted. Contact your administrator.",
+  "finance.bot.menu.title": "Choose an action:",
+  "finance.bot.btn.expense": "＋ Expense",
+  "finance.bot.btn.balance": "💰 My balance",
+  "finance.bot.btn.openPanel": "Open panel",
+  "finance.bot.opening": "Opening panel…",
+  "finance.bot.openFromBot": "Open the panel from the bot button",
+  "finance.bot.openFromBotHint":
+    "This page only works inside Telegram WebApp. Use the sign-in form in a regular browser.",
+  "finance.bot.noBot": "No active bot available for linking",
+
+  "finance.bot.expense.enterAmount":
+    "New expense. Enter the amount or pick a currency first.",
+  "finance.bot.expense.selectCurrency": "Choose currency:",
+  "finance.bot.currency.other": "Other ✏️",
+  "finance.bot.expense.selectScope": "Where does this expense belong?",
+  "finance.bot.scope.TEAM": "👥 Team",
+  "finance.bot.scope.PROJECT": "📁 Project",
+  "finance.bot.scope.MEMBER": "👤 Member",
+  "finance.bot.expense.selectProject": "Choose project:",
+  "finance.bot.expense.selectMember": "Choose member:",
+  "finance.bot.expense.enterTitle": "Expense title:",
+  "finance.bot.expense.titleHint":
+    "Send «Title — description». Description is optional.",
+  "finance.bot.expense.selectTags": "Choose tags (multiple allowed):",
+  "finance.bot.tags.skip": "Skip",
+  "finance.bot.tags.done": "Done ✅",
+  "finance.bot.expense.confirmTitle": "Please review before submitting:",
+  "finance.bot.expense.send": "Submit for approval",
+  "finance.bot.expense.cancel": "Cancel",
+  "finance.bot.expense.sent": "Expense submitted for approval.",
+  "finance.bot.expense.created": "Expense created.",
+  "finance.bot.expense.cancelled": "Operation cancelled.",
+
+  "finance.bot.balance.title": "Your balance: {amount}",
+  "finance.bot.balance.none": "No team member is linked to your account.",
+
+  "finance.bot.link.ok": "Telegram linked to your account.",
+  "finance.bot.link.invalidCode": "Invalid or expired link code.",
+
+  "finance.bot.approval.title": "⏳ Pending approval",
+  "finance.bot.approval.approved": "✅ Approved — {by}",
+  "finance.bot.approval.rejected": "❌ Rejected — {by}",
+  "finance.bot.approval.amount": "Amount",
+  "finance.bot.approval.scope": "Scope",
+  "finance.bot.approval.author": "Author",
+  "finance.bot.btn.approve": "✅ Approve",
+  "finance.bot.btn.reject": "❌ Reject",
+  "finance.bot.approval.noFinancier": "No financier available to approve.",
+  "finance.bot.error.general": "Could not process the request.",
+
+  // ── Finance Settings ──────────────────────────────────────────────────────
+  "finance.settings.title": "Finance and bot",
+  "finance.settings.desc":
+    "Quick currencies and tags for the Telegram bot, default financier, and approved groups",
+  "finance.settings.currencies": "Quick currencies",
+  "finance.settings.tags": "Quick tags",
+  "finance.settings.tagPlaceholder": "servers",
+  "finance.settings.financier": "Default financier",
+  "finance.settings.noFinancier": "— none —",
+  "finance.settings.groups": "Telegram groups",
+  "finance.settings.groupsEmpty":
+    "No groups yet. Add the bot to a group and it will appear here.",
+  "finance.settings.err.currencies": "At most {max} currencies",
+  "finance.settings.err.tags": "At most {max} tags",
+
+  // ── Profile Telegram ──────────────────────────────────────────────────────
+  "profile.telegram.desc": "Link Telegram for bot login and quick actions",
+  "profile.telegram.status": "Status",
+  "profile.telegram.linked": "Linked",
+  "profile.telegram.notLinked": "Not linked",
+  "profile.telegram.linkedId": "Linked (ID {id})",
+  "profile.telegram.link": "Link Telegram",
+  "profile.telegram.unlink": "Unlink Telegram",
+  "profile.telegram.linkHint":
+    "Open this link in Telegram and press /start. The code is single-use.",
+  "profile.telegram.unlinkConfirm":
+    "Unlink Telegram? Bot login will stop working.",
+  "profile.telegram.unlinked": "Telegram unlinked",
 };

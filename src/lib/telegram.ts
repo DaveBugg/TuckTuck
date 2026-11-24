@@ -52,7 +52,11 @@ async function call<T>(
   }
 }
 
-export type InlineButton = { text: string; callback_data: string };
+export type InlineButton = {
+  text: string;
+  callback_data?: string;
+  web_app?: { url: string };
+};
 
 export function sendMessage(
   token: string,
@@ -137,7 +141,11 @@ export function setWebhook(
   return call(
     token,
     "setWebhook",
-    { url, secret_token: secret, allowed_updates: ["callback_query"] },
+    {
+      url,
+      secret_token: secret,
+      allowed_updates: ["callback_query", "message", "my_chat_member"],
+    },
     proxyUrl
   );
 }

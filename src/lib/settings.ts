@@ -20,6 +20,11 @@ export type AppSettingsView = {
   notifyToHour: number;
   /** Публичная половина ключа капчи. Секретная наружу не отдаётся никогда. */
   turnstileSiteKey: string;
+  /** Быстрые валюты и теги для Telegram-бота. */
+  financeQuickCurrencies: unknown[];
+  financeQuickTags: unknown[];
+  /** Финансист по умолчанию (получает аппрувы в ЛС). */
+  financierUserId: string | null;
 };
 
 import { RETENTION_MIN, RETENTION_MAX } from "./settings-config";
@@ -112,8 +117,24 @@ function shape(
     notifyFromHour?: number | null;
     notifyToHour?: number | null;
     turnstileSiteKey?: string | null;
+    financeQuickCurrencies?: unknown | null;
+    financeQuickTags?: unknown | null;
+    financierUserId?: string | null;
   } | null
 ): AppSettingsView {
+  const parseJsonArray = (v: unknown): unknown[] => {
+    if (Array.isArray(v)) return v;
+    if (typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   return {
     timezone: safeTimezone(s?.timezone) ?? serverTimezone(),
     metricsRetentionDays: s?.metricsRetentionDays ?? 90,
@@ -122,6 +143,9 @@ function shape(
     notifyFromHour: parseHour(s?.notifyFromHour) ?? 0,
     notifyToHour: parseHour(s?.notifyToHour) ?? 0,
     turnstileSiteKey: (s?.turnstileSiteKey || "").trim(),
+    financeQuickCurrencies: parseJsonArray(s?.financeQuickCurrencies),
+    financeQuickTags: parseJsonArray(s?.financeQuickTags),
+    financierUserId: s?.financierUserId || null,
   };
 }
 

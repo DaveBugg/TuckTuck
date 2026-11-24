@@ -5,27 +5,30 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 
 ## Страницы (`src/app`)
 
-| Путь                          | Роль                                                          |
-| ----------------------------- | ------------------------------------------------------------- |
-| `/`                           | Лендинг / редирект на дашборд или логин                       |
-| `/auth/login`, `/auth/logout` | Вход/выход (группа `(with-nonlayout)` — без сайдбара)         |
-| `/dashboard`                  | Ближайшие оплаты, расход, здоровье серверов                   |
-| `/resources`                  | Единый список оплачиваемых ресурсов                           |
-| `/users`                      | Пользователи и сессии (ADMIN)                                 |
-| `/settings`                   | Прокси, TZ, retention, валюта, капча                          |
-| `/notifications`              | Telegram-боты, чаты, фильтры, тестовая отправка               |
-| `/profile`                    | Смена пароля, 2FA, язык, сессии                               |
-| `/finance`                    | Доска: балансы, операции, предстоящая периодика               |
-| `/finance/expenses`           | Расходы/выплаты, статусы, апрув                               |
-| `/finance/income`             | Доходы и распределения                                        |
-| `/finance/projects`           | Проекты, участники, доли, архив                               |
-| `/finance/team`               | Тиммейты, привязка учёток                                     |
-| `/finance/audit`              | Журнал изменений с diff before/after                          |
+| Путь                          | Роль                                                  |
+| ----------------------------- | ----------------------------------------------------- |
+| `/`                           | Лендинг / редирект на дашборд или логин               |
+| `/auth/login`, `/auth/logout` | Вход/выход (группа `(with-nonlayout)` — без сайдбара) |
+| `/dashboard`                  | Ближайшие оплаты, расход, здоровье серверов           |
+| `/resources`                  | Единый список оплачиваемых ресурсов                   |
+| `/users`                      | Пользователи и сессии (ADMIN)                         |
+| `/settings`                   | Прокси, TZ, retention, валюта, капча, финансы/бот     |
+| `/notifications`              | Telegram-боты, чаты, фильтры, тестовая отправка       |
+| `/profile`                    | Смена пароля, 2FA, язык, сессии, привязка Telegram    |
+| `/tg-app`                     | Точка входа Telegram WebApp                           |
+| `/finance`                    | Доска: балансы, операции, предстоящая периодика       |
+| `/finance`                    | Доска: балансы, операции, предстоящая периодика       |
+| `/finance/expenses`           | Расходы/выплаты, статусы, апрув                       |
+| `/finance/income`             | Доходы и распределения                                |
+| `/finance/projects`           | Проекты, участники, доли, архив                       |
+| `/finance/team`               | Тиммейты, привязка учёток                             |
+| `/finance/audit`              | Журнал изменений с diff before/after                  |
 
 ## API (`src/app/api`) — по подсистемам
 
 - **auth**: `auth/login` (rate-limit+Turnstile+2FA→JWT-куки), `auth/logout`, `auth/sessions`,
-  `auth/me`, `auth/2fa/{setup,verify,disable}`, `auth/change-password`
+  `auth/me`, `auth/2fa/{setup,verify,disable}`, `auth/change-password`, `auth/telegram` (вход по
+  WebApp initData)
 - **resources**: `resources` (GET список с фильтрами/сортировкой, POST создание+дефолтные
   напоминания), `resources/totals`, `resources/[id]` (PATCH/DELETE), `resources/[id]/pay` (сдвиг
   `nextPaymentAt`), `resources/[id]/agent` (токен), `resources/[id]/agent/install` (SSH,
@@ -33,7 +36,10 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 - **monitoring**: `monitoring`, `monitoring/[id]`, `monitoring/[id]/history` (1/7/14/30д),
   `monitoring/self` (+`/enable`), `monitoring/rollup`, `ingest/metrics` (приём от агента по токену)
 - **notify**: `notify/bots` (+`[id]`, `[id]/test`, `[id]/webhook`), `notify/check`, `notify/run`
-  (воркер/ручной прогон), `notify/webhook/[botId]` (callback-кнопки)
+  (воркер/ручной прогон), `notify/webhook/[botId]` (callback-кнопки напоминаний + FSM-бот)
+- **profile**: `profile/telegram-link` (GET/POST/DELETE — привязка/отвязка Telegram)
+- **settings**: `settings/finance` (GET/PATCH — валюты/теги/финансист),
+  `settings/telegram-groups` (+`[id]/approve` — одобрение групп)
 - **finance**: `finance/expenses` (GET/POST + `[id]` PATCH/DELETE + `[id]/approve|reject`),
   `finance/incomes` (GET/POST + `[id]` PATCH/DELETE, мгновенное распределение),
   `finance/distributions` (ручное распределение с проверкой остатка), `finance/projects` (+`[id]`,
@@ -69,6 +75,11 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 | `finance.ts`                                     | Чистые функции: балансы, `splitIncome`, scope/kind, approve-статусы         |
 | `finance-api.ts`                                 | Хелперы API Finance: парсинг тел, конвертация в `amountBase`                |
 | `finance-audit.ts`                               | `writeAudit` + сериализация снимков Decimal/Date/bigint                     |
+| `finance-service.ts`                             | Создание Expense: подготовка данных + запись + аудит (общее для API и бота) |
+| `tg-auth.ts`                                     | Чистая валидация Telegram WebApp initData (HMAC, свежесть)                 |
+| `tg-bot-fsm.ts`                                  | Чистые функции бота: парсинг сумм, клавиатуры, маршрутизация аппрува       |
+| `tg-bot-state.ts`                                | Состояние FSM-диалога: Redis + in-memory fallback, TTL 10 мин               |
+| `tg-bot.ts`                                      | Обработчик входящих update: /start, FSM расхода, аппрув, баланс, группы     |
 | `list-query.ts`                                  | `parseListParams`, `toApiError` — общий каркас CRUD-роутов                  |
 | `client-api.ts`                                  | Клиентский fetch (`apiFetch`/`apiJson`), 401 → логин                        |
 | `i18n/*`                                         | Словари ru/en, Intl-plurals, форматы дат/чисел                              |
@@ -84,16 +95,15 @@ singletons — prisma, redis, кеш настроек. Новую логику �
 поиск/сорт/фильтры/действия) · `monitoring/{metrics,history}.tsx` · `ui/*` (shadcn, собственность
 репо) · `confirm-dialog.tsx` (свои окна вместо `confirm()`) · `i18n-provider.tsx`,
 `theme-provider.tsx` · `captcha/turnstile.tsx`
+
 ## `src/app/(with-layout)/finance` — UI Finance Board
 
 `page.tsx` (server, `displayCurrency` из `getSettings()`) → `FinanceDashboard.tsx`;
-`expenses/page.tsx` → `ExpenseList.tsx` + фильтры/inline-действия;
-`income/page.tsx` → `IncomeList.tsx`;
-`projects/page.tsx` → `ProjectList.tsx` + диалоги `ProjectForm`, `MembersEditDialog`, `DistributionDialog`;
-`team/page.tsx` → `TeamList.tsx` + диалоги `MemberForm`, `LinkUserDialog`;
-`audit/page.tsx` → `AuditLogList.tsx` + диалог diff.
-Общий код: `types.ts`, `helpers.tsx`, `OperationDialog.tsx` (создание/правка расхода/выплаты/дохода).
-
+`expenses/page.tsx` → `ExpenseList.tsx` + фильтры/inline-действия; `income/page.tsx` →
+`IncomeList.tsx`; `projects/page.tsx` → `ProjectList.tsx` + диалоги `ProjectForm`,
+`MembersEditDialog`, `DistributionDialog`; `team/page.tsx` → `TeamList.tsx` + диалоги `MemberForm`,
+`LinkUserDialog`; `audit/page.tsx` → `AuditLogList.tsx` + диалог diff. Общий код: `types.ts`,
+`helpers.tsx`, `OperationDialog.tsx` (создание/правка расхода/выплаты/дохода).
 
 ## Prisma (`prisma/schema.prisma`)
 
@@ -102,7 +112,8 @@ singletons — prisma, redis, кеш настроек. Новую логику �
 оплачиваемое), `ResourceCredential`, `CredentialReveal` (журнал просмотров), `ResourcePayment`,
 `PaymentReminder`, `ReminderDispatch` (дедуп отправок), `NotifyBot`, `NotifyBotChat`
 (`allowedUserIds` для кнопок), `NotifyBotTag`, `NotifyMessage`, `ResourceMetric` (минутные),
-`ResourceMetricRollup` (час/сутки), `AppSettings` (singleton).
+`ResourceMetricRollup` (час/сутки), `AppSettings` (singleton: прокси/TZ/retention/валюта/язык/
+`financeQuickCurrencies`/`financeQuickTags`/`financierUserId`).
 
 ## Интеграции
 
@@ -127,7 +138,7 @@ Server `lib/auth.ts`: сессия по `jti`, `revokedAt`/`isActive`, `lastSeen
 
 ## Тесты (`tests/unit/`)
 
-21 файлов: notify, monitoring, worst-level, spend, totals, rate-limit, quiet-hours, permissions,
+23 файла: notify, monitoring, worst-level, spend, totals, rate-limit, quiet-hours, permissions,
 timezone, server-timezone, i18n, secret-crypto, panel-url, ssh-install, robots, list-query,
-finance-balance, finance-distribute, finance-scope, finance-approval, finance-audit. Новый файл —
-добавить в скрипт `test:unit` в `package.json`.
+finance-balance, finance-distribute, finance-scope, finance-approval, finance-audit, tg-auth,
+tg-bot-flow. Новый файл — добавить в скрипт `test:unit` в `package.json`.
