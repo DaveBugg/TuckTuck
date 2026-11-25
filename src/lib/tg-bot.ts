@@ -39,6 +39,7 @@ import {
   type ApprovalTarget,
 } from "./tg-bot-fsm";
 import { getFsmState, setFsmState, clearFsmState } from "./tg-bot-state";
+import { canPressButtons } from "./notify-chat-access";
 
 const RESTRICTED_TEXT = "finance.bot.restricted";
 
@@ -756,7 +757,7 @@ async function handleCallback(
   }
 
   if (data.startsWith("fina:") || data.startsWith("finr:")) {
-    await handleApprovalCallback(token, proxy, cq, user);
+    await handleApprovalCallback(bot, token, proxy, cq, user);
     return;
   }
 
@@ -967,6 +968,7 @@ async function handleCallback(
 }
 
 async function handleApprovalCallback(
+  bot: NotifyBot,
   token: string,
   proxy: string,
   cq: any,
@@ -984,6 +986,22 @@ async function handleApprovalCallback(
   if (!user || !hasPermission(user.role, "finance.approve")) {
     await answerCallbackQuery(token, cq.id, t("bot.noRights"), true, proxy);
     return;
+  }
+
+  // В группах проверяем, что нажавший может жать кнопки этого чата.
+  if (chatId) {
+    const chat = await prisma.notifyBotChat.findFirst({
+      where: { botId: bot.id, chatId },
+      select: {
+        allowedMode: true,
+        allowedProjectId: true,
+        allowedUserIds: true,
+      },
+    });
+    if (chat && !(await canPressButtons(chat, from.id))) {
+      await answerCallbackQuery(token, cq.id, t("bot.noRights"), true, proxy);
+      return;
+    }
   }
 
   const expenseId = data.startsWith("fina:") ? data.slice(5) : data.slice(5);

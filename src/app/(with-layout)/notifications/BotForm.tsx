@@ -3,8 +3,8 @@
 // Форма бота: токен, чаты, фильтры. Токен наружу никогда не отдаётся, поэтому
 // при правке поле пустое и означает «не менять».
 
-import React, { useEffect, useState } from "react";
-import { Check, Plus, X } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Check, Plus, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -19,6 +19,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { apiJson } from "@/lib/client-api";
 import { KINDS, kindLabel } from "@/lib/resources";
@@ -34,6 +47,8 @@ export type BotRow = {
     id: string;
     chatId: string;
     label: string;
+    allowedMode: string;
+    allowedProjectId: string | null;
     allowedUserIds: string[];
   }>;
   tags: Array<{ id: string; name: string }>;
@@ -41,7 +56,206 @@ export type BotRow = {
   proxy?: string;
 };
 
-type ChatDraft = { chatId: string; label: string; allowed: string };
+type ProjectOption = { id: string; name: string };
+
+type UserOption = {
+  id: string;
+  name: string;
+  email: string;
+  telegramUserId: string | null;
+};
+
+type ChatMode = "all" | "project" | "users";
+
+type ChatDraft = {
+  chatId: string;
+  label: string;
+  allowedMode: ChatMode;
+  allowedProjectId: string | null;
+  allowedUserIds: string[];
+};
+
+const MODES: ChatMode[] = ["all", "project", "users"];
+
+function modeIcon(mode: ChatMode) {
+  if (mode === "all") return "👥";
+  if (mode === "project") return "📁";
+  return "🔒";
+}
+
+function useTelegramUsers(enabled: boolean) {
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    setLoading(true);
+    apiJson("/api/users?hasTelegram=true&pageSize=1000", "GET")
+      .then((d: any) => {
+        if (cancelled) return;
+        setUsers(
+          (d.rows || []).map((u: any) => ({
+            id: u.id,
+            name: u.name || "",
+            email: u.email || "",
+            telegramUserId: u.telegramUserId ? String(u.telegramUserId) : null,
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setUsers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  return { users, loading };
+}
+
+function useProjects(enabled: boolean) {
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    apiJson("/api/finance/projects?archived=false&pageSize=1000", "GET")
+      .then((d: any) => {
+        if (cancelled) return;
+        setProjects(
+          (d.rows || []).map((p: any) => ({ id: p.id, name: p.name }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setProjects([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  return projects;
+}
+
+function UserMultiSelect({
+  options,
+  selected,
+  onChange,
+  placeholder,
+  searchPlaceholder,
+  emptyText,
+}: {
+  options: UserOption[];
+  selected: string[];
+  onChange: (ids: string[]) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter(
+      o => o.name.toLowerCase().includes(q) || o.email.toLowerCase().includes(q)
+    );
+  }, [options, query]);
+
+  const selectedUsers = useMemo(
+    () => options.filter(o => selected.includes(o.id)),
+    [options, selected]
+  );
+
+  const toggle = (id: string) => {
+    onChange(
+      selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]
+    );
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-auto min-h-9 w-full justify-start gap-1 font-normal"
+        >
+          {selectedUsers.length === 0 ? (
+            <span className="text-muted-foreground">{placeholder || ""}</span>
+          ) : (
+            selectedUsers.map(u => (
+              <Badge
+                key={u.id}
+                variant="secondary"
+                className="gap-1"
+                onClick={e => {
+                  e.stopPropagation();
+                  toggle(u.id);
+                }}
+              >
+                {u.name || u.email}
+                <X className="size-3" />
+              </Badge>
+            ))
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0">
+        <div className="flex items-center gap-2 border-b px-2.5">
+          <Search className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={searchPlaceholder || ""}
+            className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="max-h-64 overflow-y-auto p-1">
+          {filtered.length === 0 && (
+            <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+              {emptyText || ""}
+            </div>
+          )}
+          {filtered.map(u => {
+            const on = selected.includes(u.id);
+            return (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => toggle(u.id)}
+                className="flex w-full items-start gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+              >
+                <span className="mt-0.5">
+                  {on ? (
+                    <Check className="size-4 text-primary" />
+                  ) : (
+                    <span className="size-4" />
+                  )}
+                </span>
+                <span className="flex flex-col">
+                  <span>{u.name || u.email}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {u.email}
+                    {u.telegramUserId
+                      ? ` · ${t("notify.form.tgLinked")}`
+                      : ` · ${t("notify.form.tgNotLinked")}`}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function BotForm({
   open,
@@ -67,26 +281,44 @@ export default function BotForm({
   const [newChat, setNewChat] = useState<ChatDraft>({
     chatId: "",
     label: "",
-    allowed: "",
+    allowedMode: "users",
+    allowedProjectId: null,
+    allowedUserIds: [],
   });
   const [busy, setBusy] = useState(false);
+
+  const { users } = useTelegramUsers(open);
+  const projects = useProjects(open);
 
   useEffect(() => {
     if (!open) return;
     setToken("");
     setProxyUrl("");
-    setNewChat({ chatId: "", label: "", allowed: "" });
+    setNewChat({
+      chatId: "",
+      label: "",
+      allowedMode: "users",
+      allowedProjectId: null,
+      allowedUserIds: [],
+    });
     if (row) {
       setName(row.name);
       setIsActive(row.isActive);
       setKinds(row.kinds);
       setTagIds(row.tags.map(t => t.id));
       setChats(
-        row.chats.map(c => ({
-          chatId: c.chatId,
-          label: c.label,
-          allowed: (c.allowedUserIds || []).join(", "),
-        }))
+        row.chats.map(c => {
+          const mode: ChatMode =
+            (c.allowedMode as ChatMode) ||
+            ((c.allowedUserIds || []).length ? "users" : "all");
+          return {
+            chatId: c.chatId,
+            label: c.label,
+            allowedMode: mode,
+            allowedProjectId: c.allowedProjectId || null,
+            allowedUserIds: c.allowedUserIds || [],
+          };
+        })
       );
     } else {
       setName("");
@@ -104,23 +336,32 @@ export default function BotForm({
       toast.error(t("notify.form.chatExists"));
       return;
     }
+    if (newChat.allowedMode === "project" && !newChat.allowedProjectId) {
+      toast.error(t("notify.err.projectIdRequired"));
+      return;
+    }
+    if (
+      newChat.allowedMode === "users" &&
+      newChat.allowedUserIds.length === 0
+    ) {
+      toast.error(t("notify.err.allowedUsersRequired"));
+      return;
+    }
     setChats([
       ...chats,
-      {
-        chatId: id,
-        label: newChat.label.trim(),
-        allowed: newChat.allowed.trim(),
-      },
+      { ...newChat, chatId: id, label: newChat.label.trim() },
     ]);
-    setNewChat({ chatId: "", label: "", allowed: "" });
+    setNewChat({
+      chatId: "",
+      label: "",
+      allowedMode: "users",
+      allowedProjectId: null,
+      allowedUserIds: [],
+    });
   };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (chats.length === 0) {
-      toast.error(t("notify.form.needChat"));
-      return;
-    }
     setBusy(true);
     try {
       const payload = {
@@ -134,10 +375,9 @@ export default function BotForm({
         chats: chats.map(c => ({
           chatId: c.chatId,
           label: c.label,
-          allowedUserIds: c.allowed
-            .split(/[,\s]+/)
-            .map(v => v.trim())
-            .filter(Boolean),
+          allowedMode: c.allowedMode,
+          allowedProjectId: c.allowedProjectId,
+          allowedUserIds: c.allowedUserIds,
         })),
       };
       const d = row
@@ -164,6 +404,9 @@ export default function BotForm({
 
   const toggle = (arr: string[], set: (v: string[]) => void, v: string) =>
     set(arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
+
+  const projectName = (id: string | null) =>
+    projects.find(p => p.id === id)?.name || "";
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
@@ -206,9 +449,15 @@ export default function BotForm({
             </p>
           </div>
 
-          <div>
-            <Label>{t("notify.bot.chats")}</Label>
-            <div className="mt-1.5 flex flex-wrap gap-2">
+          <div className="rounded-lg border p-3">
+            <Label className="font-medium">
+              {t("notify.form.chatPurpose")}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {t("notify.form.chatPurposeHint")}
+            </p>
+
+            <div className="mt-2 flex flex-wrap gap-2">
               {chats.length === 0 && (
                 <span className="text-sm text-muted-foreground">
                   {t("common.emptyYet")}
@@ -221,8 +470,7 @@ export default function BotForm({
                   className="gap-1 py-1"
                 >
                   {c.label ? `${c.label} · ` : ""}
-                  {c.chatId}
-                  {c.allowed ? " · 🔒" : ""}
+                  {c.chatId} {modeIcon(c.allowedMode)}
                   <button
                     type="button"
                     onClick={() =>
@@ -236,64 +484,134 @@ export default function BotForm({
                 </Badge>
               ))}
             </div>
-            <div className="mt-2 flex gap-2">
-              <Input
-                className="h-8 max-w-44"
-                value={newChat.chatId}
-                onChange={e =>
-                  setNewChat({ ...newChat, chatId: e.target.value })
-                }
-                placeholder="chat_id"
-                onKeyDown={e => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addChat();
+
+            <Separator className="my-3" />
+
+            <div className="grid gap-3">
+              <div className="flex gap-2">
+                <Input
+                  className="h-8 max-w-44"
+                  value={newChat.chatId}
+                  onChange={e =>
+                    setNewChat({ ...newChat, chatId: e.target.value })
                   }
-                }}
-              />
-              <Input
-                className="h-8"
-                value={newChat.label}
-                onChange={e =>
-                  setNewChat({ ...newChat, label: e.target.value })
-                }
-                placeholder={t("notify.form.chatLabel")}
-                onKeyDown={e => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addChat();
+                  placeholder="chat_id"
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addChat();
+                    }
+                  }}
+                />
+                <Input
+                  className="h-8"
+                  value={newChat.label}
+                  onChange={e =>
+                    setNewChat({ ...newChat, label: e.target.value })
                   }
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                onClick={addChat}
-              >
-                <Plus />
-              </Button>
+                  placeholder={t("notify.form.chatLabel")}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addChat();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  onClick={addChat}
+                >
+                  <Plus />
+                </Button>
+              </div>
+
+              <div>
+                <Label className="text-xs font-normal text-muted-foreground">
+                  {t("notify.form.allowedMode")}
+                </Label>
+                <Select
+                  value={newChat.allowedMode}
+                  onValueChange={(v: ChatMode) =>
+                    setNewChat({
+                      ...newChat,
+                      allowedMode: v,
+                      allowedProjectId: null,
+                      allowedUserIds: [],
+                    })
+                  }
+                >
+                  <SelectTrigger className="mt-1 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MODES.map(m => (
+                      <SelectItem key={m} value={m}>
+                        {modeIcon(m)} {t(`notify.form.allowedMode.${m}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {newChat.allowedMode === "project" && (
+                <div>
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    {t("notify.form.allowedProject")}
+                  </Label>
+                  <Select
+                    value={newChat.allowedProjectId ?? "__none__"}
+                    onValueChange={v =>
+                      setNewChat({
+                        ...newChat,
+                        allowedProjectId: v === "__none__" ? null : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1 h-8">
+                      <SelectValue
+                        placeholder={t("finance.projects.searchPlaceholder")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">
+                        {t("common.nothingFound")}
+                      </SelectItem>
+                      {projects.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {newChat.allowedMode === "users" && (
+                <div>
+                  <Label className="text-xs font-normal text-muted-foreground">
+                    {t("notify.form.allowedUsers")}
+                  </Label>
+                  <div className="mt-1">
+                    <UserMultiSelect
+                      options={users}
+                      selected={newChat.allowedUserIds}
+                      onChange={ids =>
+                        setNewChat({ ...newChat, allowedUserIds: ids })
+                      }
+                      placeholder={t("notify.form.userSearchPlaceholder")}
+                      searchPlaceholder={t("notify.form.userSearchPlaceholder")}
+                      emptyText={t("notify.form.noUsers")}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                {t("notify.form.chatIdHint")}
+              </p>
             </div>
-            <Input
-              className="mt-2 h-8"
-              value={newChat.allowed}
-              onChange={e =>
-                setNewChat({ ...newChat, allowed: e.target.value })
-              }
-              placeholder={t("notify.form.allowedIds")}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addChat();
-                }
-              }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t("notify.form.chatIdHint")}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t("notify.form.allowedHint")}
-            </p>
           </div>
 
           <div>

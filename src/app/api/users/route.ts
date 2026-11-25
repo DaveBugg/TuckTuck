@@ -15,10 +15,16 @@ export async function GET(req: Request) {
       defaultSort: "createdAt",
     });
     const role = p.get("role");
+    const hasTelegram = p.get("hasTelegram");
     const where = {
       ...(ROLES.includes(role as any)
         ? { role: role as (typeof ROLES)[number] }
         : {}),
+      ...(hasTelegram === "true"
+        ? { telegramUserId: { not: null } }
+        : hasTelegram === "false"
+          ? { telegramUserId: null }
+          : {}),
       ...(p.search
         ? {
             OR: [
@@ -41,6 +47,7 @@ export async function GET(req: Request) {
           role: true,
           isActive: true,
           totpEnabled: true,
+          telegramUserId: true,
           createdAt: true,
           _count: { select: { sessions: { where: { revokedAt: null } } } },
         },

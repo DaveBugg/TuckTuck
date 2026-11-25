@@ -449,6 +449,19 @@ export const ru: Record<string, string> = {
     "Хранится зашифрованным и наружу не отдаётся. Проверяется при сохранении.",
   "notify.form.removeChat": "Убрать чат",
   "notify.form.chatLabel": "подпись (необязательно)",
+  "notify.form.allowedMode": "Кто может жать кнопки",
+  "notify.form.allowedMode.all": "Всем в чате",
+  "notify.form.allowedMode.project": "Участникам проекта",
+  "notify.form.allowedMode.users": "Выбранным пользователям",
+  "notify.form.allowedProject": "Проект",
+  "notify.form.allowedUsers": "Пользователи",
+  "notify.form.userSearchPlaceholder": "Поиск по имени или email…",
+  "notify.form.noUsers": "Нет пользователей с привязанным Telegram",
+  "notify.form.tgLinked": "привязан",
+  "notify.form.tgNotLinked": "не привязан",
+  "notify.form.chatPurpose": "Чаты",
+  "notify.form.chatPurposeHint":
+    "Куда бот шлёт напоминания об оплатах и карточки на утверждение расходов. Можно добавить сейчас или позже.",
   "notify.form.allowedIds": "кому можно жать кнопки: telegram id через запятую",
   "notify.form.chatIdHint":
     "Свой chat_id можно узнать у @userinfobot. У групп и каналов id отрицательный.",
@@ -474,6 +487,8 @@ export const ru: Record<string, string> = {
   "notify.err.tokenRequired": "Токен бота обязателен",
   "notify.err.botNotFound": "Бот не найден",
   "notify.err.noChats": "У бота не задано ни одного чата",
+  "notify.err.projectIdRequired": "Укажите проект",
+  "notify.err.allowedUsersRequired": "Выберите хотя бы одного пользователя",
   "notify.err.tokenUnreadable": "токен не расшифровывается",
   "notify.err.unreachable":
     "Не удалось связаться с Telegram: {error}. Проверьте доступ с сервера к api.telegram.org — если он закрыт, задайте прокси.",
@@ -700,6 +715,7 @@ export const ru: Record<string, string> = {
 
   // ── Finance Board UI ─────────────────────────────────────────────────────
   "nav.finance": "Финансы",
+  "nav.system": "Система",
   "nav.financeBoard": "Доска",
   "nav.financeExpenses": "Расходы",
   "nav.financeIncome": "Доходы",
@@ -941,6 +957,8 @@ export const ru: Record<string, string> = {
   "finance.bot.openFromBot": "Откройте панель через кнопку в боте",
   "finance.bot.openFromBotHint":
     "Эта страница работает только внутри Telegram WebApp. В обычном браузере войдите через форму ниже.",
+  "finance.bot.authFailed":
+    "Не удалось войти через Telegram. Откройте панель через кнопку бота или используйте обычную форму входа.",
   "finance.bot.noBot": "Нет активного бота для привязки",
 
   "finance.bot.expense.enterAmount":

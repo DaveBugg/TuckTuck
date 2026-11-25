@@ -416,18 +416,22 @@ model NotifyBotChat {
   chatId String // строка, а не число: у каналов id вида -100... и длиннее int32
   label  String @default("") // подпись для человека: «мой чат», «дежурные»
 
-  // Кому в этом чате разрешено нажимать кнопки под напоминаниями (telegram
-  // user id). Секретный вебхук подтверждает, что запрос пришёл ОТ Telegram, но
-  // не говорит, КТО нажал: в групповом чате это любой участник, в том числе
-  // человек без аккаунта в панели. Без списка он мог бы удалить ресурс.
-  //
-  // ПУСТОЙ список = разрешено всем в этом чате. Это осознанный дефолт для
-  // личного чата 1:1, где «все» — это ты сам; для группы список надо заполнить.
+  // Кому в этом чате разрешено нажимать кнопки под напоминаниями.
+  // all      — любой участник чата (личный чат 1:1);
+  // project  — участники выбранного проекта (у кого Telegram привязан);
+  // users    — только указанные telegram user id.
+  allowedMode      String   @default("users")
+  allowedProjectId String?  @db.Uuid
+  allowedProject   Project? @relation(fields: [allowedProjectId], references: [id], onDelete: SetNull)
+
+  // Явный список telegram user id для режима users. Не удаляем: он всё ещё
+  // нужен для точечного контроля и обратной совместимости.
   allowedUserIds String[] @default([])
 
   createdAt DateTime @default(now())
 
   @@unique([botId, chatId])
+  @@index([allowedProjectId])
 }
 
 // Второй фильтр — по тегам ресурса. Пустой список = без ограничения по тегам.
@@ -611,6 +615,7 @@ model Project {
   expenses      Expense[]
   distributions Distribution[]
   recurring     RecurringExpense[]
+  notifyChats   NotifyBotChat[]
 }
 
 // Связь «проект — участник» + доля дохода. Составной PK вместо отдельного id:

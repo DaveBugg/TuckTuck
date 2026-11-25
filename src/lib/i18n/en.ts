@@ -430,6 +430,19 @@ export const en: Record<string, string> = {
     "Stored encrypted and never returned. Verified on save.",
   "notify.form.removeChat": "Remove chat",
   "notify.form.chatLabel": "label (optional)",
+  "notify.form.allowedMode": "Who can press buttons",
+  "notify.form.allowedMode.all": "Everyone in chat",
+  "notify.form.allowedMode.project": "Project members",
+  "notify.form.allowedMode.users": "Selected users",
+  "notify.form.allowedProject": "Project",
+  "notify.form.allowedUsers": "Users",
+  "notify.form.userSearchPlaceholder": "Search by name or email…",
+  "notify.form.noUsers": "No users with Telegram linked",
+  "notify.form.tgLinked": "linked",
+  "notify.form.tgNotLinked": "not linked",
+  "notify.form.chatPurpose": "Chats",
+  "notify.form.chatPurposeHint":
+    "Where the bot sends payment reminders and expense approval cards. You can add chats now or later.",
   "notify.form.allowedIds":
     "who may press buttons: telegram ids, comma separated",
   "notify.form.chatIdHint":
@@ -457,6 +470,8 @@ export const en: Record<string, string> = {
   "notify.err.tokenRequired": "Bot token is required",
   "notify.err.botNotFound": "Bot not found",
   "notify.err.noChats": "The bot has no chats configured",
+  "notify.err.projectIdRequired": "Project is required",
+  "notify.err.allowedUsersRequired": "Select at least one user",
   "notify.err.tokenUnreadable": "token cannot be decrypted",
   "notify.err.unreachable":
     "Could not reach Telegram: {error}. Check access to api.telegram.org from the server — if it is blocked, set a proxy.",
@@ -675,6 +690,7 @@ export const en: Record<string, string> = {
 
   // ── Finance Board UI ─────────────────────────────────────────────────────
   "nav.finance": "Finance",
+  "nav.system": "System",
   "nav.financeBoard": "Board",
   "nav.financeExpenses": "Expenses",
   "nav.financeIncome": "Income",
@@ -906,6 +922,8 @@ export const en: Record<string, string> = {
   "finance.bot.openFromBot": "Open the panel from the bot button",
   "finance.bot.openFromBotHint":
     "This page only works inside Telegram WebApp. Use the sign-in form in a regular browser.",
+  "finance.bot.authFailed":
+    "Could not sign in via Telegram. Open the panel from the bot button or use the regular sign-in form.",
   "finance.bot.noBot": "No active bot available for linking",
 
   "finance.bot.expense.enterAmount":

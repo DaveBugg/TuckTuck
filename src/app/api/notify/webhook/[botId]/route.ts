@@ -10,6 +10,7 @@ import { proxyForBot } from "@/lib/notify-proxy";
 import { getSettings } from "@/lib/settings";
 import { makeT } from "@/lib/i18n/translate";
 import { reminderButtons } from "@/lib/notify";
+import { canPressButtons } from "@/lib/notify-chat-access";
 
 type Ctx = { params: Promise<{ botId: string }> };
 
@@ -104,13 +105,18 @@ export async function POST(req: Request, ctx: Ctx) {
     });
     if (!msg) return reply(t("bot.messageStale"), true);
 
-    // Кому в этом чате можно нажимать. Пустой список = всем (личный чат).
+    // Кому в этом чате можно нажимать.
     const chat = await prisma.notifyBotChat.findFirst({
       where: { botId, chatId },
-      select: { allowedUserIds: true },
+      select: {
+        allowedMode: true,
+        allowedProjectId: true,
+        allowedUserIds: true,
+      },
     });
     if (!chat) return reply(t("bot.chatGone"), true);
-    if (chat.allowedUserIds.length > 0 && !chat.allowedUserIds.includes(who)) {
+    const allowed = await canPressButtons(chat, who);
+    if (!allowed) {
       return reply(t("bot.noRights"), true);
     }
 

@@ -75,4 +75,37 @@ describe("validateInitData", () => {
     assert.strictEqual(right.ok, true);
     assert.strictEqual(right.user?.id, 42);
   });
+
+  it("accepts initData with a signature field from Bot API 7.10+", () => {
+    const now = Math.floor(Date.now() / 1000);
+    const base = buildInitData({ id: 42, first_name: "Test" }, now);
+    // Telegram may add an arbitrary signature; it must be excluded from the
+    // data-check-string, so the existing hash should still validate.
+    const initData = `${base}&signature=dummy-signature-value`;
+    const result = validateInitData(initData, BOT_TOKEN);
+    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.user?.id, 42);
+  });
+
+  it("rejects initData when signature is included in the data-check-string", () => {
+    const now = Math.floor(Date.now() / 1000);
+    const user = JSON.stringify({ id: 42, first_name: "Test" });
+    const pairs = [`auth_date=${now}`, `user=${user}`];
+    const dataCheckString = [...pairs, "signature=dummy-signature-value"]
+      .sort()
+      .join("\n");
+    const secretKey = crypto
+      .createHmac("sha256", BOT_TOKEN)
+      .update("WebAppData")
+      .digest();
+    const hash = crypto
+      .createHmac("sha256", secretKey)
+      .update(dataCheckString)
+      .digest("hex");
+    const initData = `${pairs.join("&")}&signature=dummy-signature-value&hash=${hash}`;
+    // Our validator excludes signature from the check-string, so this forged
+    // hash (computed with signature included) must not match.
+    const result = validateInitData(initData, BOT_TOKEN);
+    assert.strictEqual(result.ok, false);
+  });
 });

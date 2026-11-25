@@ -8,9 +8,14 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n-provider";
-import { apiJson } from "@/lib/client-api";
 
 const TG_SCRIPT = "https://telegram.org/js/telegram-web-app.js";
+
+type TgWebApp = {
+  initData: string;
+  ready: () => void;
+  expand: () => void;
+};
 
 export default function TgAppPage() {
   const { t } = useI18n();
@@ -23,8 +28,12 @@ export default function TgAppPage() {
     const tryAuth = async () => {
       // Telegram WebApp загружается синхронно после скрипта; если скрипт уже
       // есть на странице, initData уже доступен.
-      const webApp = (window as any).Telegram?.WebApp;
+      const webApp = (window as any).Telegram?.WebApp as TgWebApp | undefined;
       const initData = webApp?.initData ?? "";
+
+      // Сообщаем Telegram, что страница готова и можно раскрыть окно.
+      webApp?.ready();
+      webApp?.expand();
 
       if (!initData) {
         if (!cancelled) setState("noData");
@@ -32,7 +41,15 @@ export default function TgAppPage() {
       }
 
       try {
-        await apiJson("/api/auth/telegram", "POST", { initData });
+        const res = await fetch("/api/auth/telegram", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData }),
+        });
+        if (!res.ok) {
+          if (!cancelled) setState("error");
+          return;
+        }
         router.replace("/dashboard");
       } catch (e: any) {
         if (!cancelled) setState("error");
@@ -65,13 +82,26 @@ export default function TgAppPage() {
           </p>
         </>
       )}
-      {(state === "noData" || state === "error") && (
+      {state === "noData" && (
         <>
           <h1 className="text-xl font-semibold">
             {t("finance.bot.openFromBot")}
           </h1>
           <p className="max-w-sm text-sm text-muted-foreground">
             {t("finance.bot.openFromBotHint")}
+          </p>
+          <Button variant="outline" onClick={() => router.push("/auth/login")}>
+            {t("auth.signIn")}
+          </Button>
+        </>
+      )}
+      {state === "error" && (
+        <>
+          <h1 className="text-xl font-semibold">
+            {t("finance.bot.openFromBot")}
+          </h1>
+          <p className="max-w-sm text-sm text-muted-foreground">
+            {t("finance.bot.authFailed")}
           </p>
           <Button variant="outline" onClick={() => router.push("/auth/login")}>
             {t("auth.signIn")}

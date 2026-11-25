@@ -24,7 +24,14 @@ const SELECT = {
   createdAt: true,
   proxyUrlEnc: true,
   chats: {
-    select: { id: true, chatId: true, label: true, allowedUserIds: true },
+    select: {
+      id: true,
+      chatId: true,
+      label: true,
+      allowedMode: true,
+      allowedProjectId: true,
+      allowedUserIds: true,
+    },
   },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const;
@@ -44,34 +51,10 @@ const shape = (b: any, t: TFunc) => {
   return { ...rest, tags: b.tags.map((rt: any) => rt.tag), proxy };
 };
 
-/**
- * Чаты бота из тела запроса.
- *
- * allowedUserIds — кому в этом чате можно нажимать кнопки под напоминаниями.
- * Пустой список = всем, кто в чате: для личного чата 1:1 это ты сам. Для
- * группы список надо заполнить, иначе удалить ресурс сможет любой участник.
- */
-export type ChatInput = {
-  chatId: string;
-  label: string;
-  allowedUserIds: string[];
-};
+import { parseChats, validateChats } from "@/lib/notify-chat-input";
 
-export function parseChats(raw: unknown): ChatInput[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((c: any): ChatInput => {
-      const ids: string[] = Array.isArray(c?.allowedUserIds)
-        ? c.allowedUserIds.map((v: unknown) => String(v).trim()).filter(Boolean)
-        : [];
-      return {
-        chatId: String(c?.chatId || "").trim(),
-        label: String(c?.label || "").trim(),
-        allowedUserIds: Array.from(new Set(ids)),
-      };
-    })
-    .filter(c => c.chatId);
-}
+export type { ChatInput } from "@/lib/notify-chat-input";
+export { parseChats, validateChats };
 
 export async function GET(req: Request) {
   const t = tForRequest(req);
@@ -141,6 +124,8 @@ export async function POST(req: Request) {
       ? b.tagIds.filter(Boolean)
       : [];
     const chats = parseChats(b.chats);
+    const chatErr = validateChats(chats, t);
+    if (chatErr) return NextResponse.json({ error: chatErr }, { status: 400 });
 
     const row = await prisma.notifyBot.create({
       data: {

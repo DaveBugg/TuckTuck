@@ -18,7 +18,8 @@ export type NavItem = {
     | "notifications"
     | "users"
     | "settings"
-    | "finance";
+    | "finance"
+    | "system";
   permission?: Permission;
   /** Вложенные пункты группы (рендерятся в сайдбаре под родителем). */
   children?: Omit<NavItem, "icon" | "children">[];
@@ -33,24 +34,6 @@ export const NAV_ITEMS: NavItem[] = [
     permission: "resources.view",
   },
   {
-    href: "/notifications",
-    labelKey: "nav.notifications",
-    icon: "notifications",
-    permission: "notify.manage",
-  },
-  {
-    href: "/users",
-    labelKey: "nav.users",
-    icon: "users",
-    permission: "users.view",
-  },
-  {
-    href: "/settings",
-    labelKey: "nav.settings",
-    icon: "settings",
-    permission: "users.manage",
-  },
-  {
     href: "/finance",
     labelKey: "nav.finance",
     icon: "finance",
@@ -62,6 +45,30 @@ export const NAV_ITEMS: NavItem[] = [
       { href: "/finance/projects", labelKey: "nav.financeProjects" },
       { href: "/finance/team", labelKey: "nav.financeTeam" },
       { href: "/finance/audit", labelKey: "nav.financeAudit" },
+    ],
+  },
+  {
+    // Группа без своей страницы: заголовок-разделитель, активность подсвечивают
+    // дети по точному совпадению пути.
+    href: "/system",
+    labelKey: "nav.system",
+    icon: "system",
+    children: [
+      {
+        href: "/notifications",
+        labelKey: "nav.notifications",
+        permission: "notify.manage",
+      },
+      {
+        href: "/users",
+        labelKey: "nav.users",
+        permission: "users.view",
+      },
+      {
+        href: "/settings",
+        labelKey: "nav.settings",
+        permission: "users.manage",
+      },
     ],
   },
 ];

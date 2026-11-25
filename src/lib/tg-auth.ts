@@ -45,10 +45,12 @@ export function validateInitData(
     return { ok: false };
   }
 
-  // data-check-string: пары key=value кроме hash, отсортированы по ключу, через \n.
+  // data-check-string: пары key=value кроме hash и signature, отсортированы по
+  // ключу, через \n. Telegram с Bot API 7.10+ добавляет поле signature, которое
+  // тоже исключается из проверки (см. официальную документацию WebApp).
   const pairs: string[] = [];
   for (const [key, value] of params.entries()) {
-    if (key === "hash") continue;
+    if (key === "hash" || key === "signature") continue;
     pairs.push(`${key}=${value}`);
   }
   pairs.sort();

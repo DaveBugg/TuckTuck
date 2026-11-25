@@ -11,7 +11,7 @@ import {
   proxyForBot,
   validateProxyUrl,
 } from "@/lib/notify-proxy";
-import { parseChats } from "../route";
+import { parseChats, validateChats } from "@/lib/notify-chat-input";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
 
@@ -25,7 +25,14 @@ const SELECT = {
   createdAt: true,
   proxyUrlEnc: true,
   chats: {
-    select: { id: true, chatId: true, label: true, allowedUserIds: true },
+    select: {
+      id: true,
+      chatId: true,
+      label: true,
+      allowedMode: true,
+      allowedProjectId: true,
+      allowedUserIds: true,
+    },
   },
   tags: { select: { tag: { select: { id: true, name: true } } } },
 } as const;
@@ -107,6 +114,11 @@ export async function PATCH(req: Request, ctx: Ctx) {
       ? b.tagIds.filter(Boolean)
       : null;
     const chats = Array.isArray(b.chats) ? parseChats(b.chats) : null;
+    if (chats) {
+      const chatErr = validateChats(chats, t);
+      if (chatErr)
+        return NextResponse.json({ error: chatErr }, { status: 400 });
+    }
 
     const row = await prisma.$transaction(async tx => {
       // Теги и чаты приходят полным набором, а не дельтой: форма всегда знает
