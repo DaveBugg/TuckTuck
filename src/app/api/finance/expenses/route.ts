@@ -7,7 +7,7 @@ import { getRates } from "@/lib/rates";
 import { getSettings } from "@/lib/settings";
 import { serializeDecimal } from "@/lib/finance-api";
 import { prepareExpenseData, createExpense } from "@/lib/finance-service";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 
 export async function GET(req: Request) {
   try {

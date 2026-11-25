@@ -6,7 +6,7 @@ import type {
   ExpenseStatus,
   FinanceScope,
   RecurringFrequency,
-} from "@prisma/client";
+} from "@/generated/prisma/client";
 
 export const EXPENSE_KINDS: ExpenseKind[] = ["EXPENSE", "PAYOUT"];
 export const EXPENSE_STATUSES: ExpenseStatus[] = [

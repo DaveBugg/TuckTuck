@@ -4,12 +4,12 @@
 // Migrations: npx prisma migrate dev (локально) / migrate deploy (сервер).
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Селфхостед на одного/мини-команду: ADMIN видит и настраивает всё, USER —

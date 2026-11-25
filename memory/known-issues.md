@@ -15,6 +15,9 @@
   `eslint.config.mjs` — кодовая база писалась до них, массовый рефакторинг не оправдан.
 - Мёртвый `src/lib/react-apexcharts-safe.tsx` (импорт несуществующего `react-apexcharts-original`)
   ломал `type-check` на свежем клоне — удалён 2026-11-24, импортёров не было.
+- **`npm audit` после Prisma 7.10.1 оставляет 3 high (effect <=3.22.0)** через транзитивную
+  `@prisma/config`: уязвимость в библиотеке Effect, от которой зависит Prisma CLI/config.
+  Ждём фикса со стороны Prisma; откат на 6.x не вариант (требуется driver adapter + v7 API).
 
 ## Проектные
 

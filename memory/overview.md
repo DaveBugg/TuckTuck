@@ -25,7 +25,7 @@ SaaS-подписки в одном списке с напоминаниями �
 ## Стек
 
 - **Next.js 16.1.6** (App Router, `output: standalone`), React 19, TypeScript 5
-- **Prisma 6.19** + PostgreSQL 17
+- **Prisma 7.10.1** + PostgreSQL 17 (generated client в `src/generated/prisma`, seed на `tsx prisma/seed.ts`)
 - **Redis 7** (ioredis) — кеш курсов валют и rate-cache, не хранилище
 - **Tailwind CSS v4** + shadcn/ui (Radix) — `src/components/ui/` принадлежит репо
 - Auth: JWT (jose) в cookie + middleware на edge; TOTP (otplib) для 2FA; Turnstile-капча

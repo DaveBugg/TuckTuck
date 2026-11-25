@@ -3,7 +3,7 @@
 // Роуты готовят входные данные и проверяют права, этот модуль занимается
 // валидацией, пересчётом в базовую валюту, созданием записи и аудитом.
 
-import type { User, Expense, Prisma } from "@prisma/client";
+import type { User, Expense, Prisma } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 import { hasPermission } from "./auth";
 import { writeAudit } from "./finance-audit";

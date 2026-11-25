@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticator } from "otplib";
+import { generateSecret, generateSync, verifySync, generateURI } from "otplib";
 import { AuthError, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { tForRequest } from "@/lib/i18n/server";
@@ -15,14 +15,18 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const secret = authenticator.generateSecret();
+    const secret = generateSecret();
     await prisma.user.update({
       where: { id: user.id },
       data: { totpSecret: secret },
     });
     return NextResponse.json({
       secret,
-      otpauthUrl: authenticator.keyuri(user.email, "TuckTuck", secret),
+      otpauthUrl: generateURI({
+        issuer: "TuckTuck",
+        label: user.email,
+        secret,
+      }),
     });
   } catch (e) {
     if (e instanceof AuthError)

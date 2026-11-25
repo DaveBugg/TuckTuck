@@ -4,7 +4,7 @@
 // Middleware does its own edge-safe jwtVerify (no prisma there) — see middleware.ts.
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import type { User, UserRole } from "@prisma/client";
+import type { User, UserRole } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 import { hasPermission, type Permission } from "./permissions";
 export { hasPermission };

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { authenticator } from "otplib";
+import { generateSecret, generateSync, verifySync, generateURI } from "otplib";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import {
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
     if (!totp) {
       return NextResponse.json({ needTotp: true });
     }
-    if (!authenticator.check(totp, user.totpSecret)) {
+    if (!verifySync({ secret: user.totpSecret, token: totp }).valid) {
       return NextResponse.json(
         { error: t("auth.err.badTotp") },
         { status: 401 }

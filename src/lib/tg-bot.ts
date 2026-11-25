@@ -4,7 +4,7 @@
 // api/notify/webhook/[botId]/route.ts для сообщений, callback-запросов по
 // финансовым префиксам и событий my_chat_member.
 
-import type { NotifyBot, User, Expense } from "@prisma/client";
+import type { NotifyBot, User, Expense } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 import { hasPermission } from "./auth";
 import {

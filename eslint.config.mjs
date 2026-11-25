@@ -12,6 +12,9 @@ const __dirname = dirname(__filename);
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
 const eslintConfig = [
+  {
+    ignores: ["src/generated/prisma/**/*"],
+  },
   // Next.js recommended configs (flat config поставляется самим eslint-config-next)
   ...nextConfig,
   // Отключает правила, конфликтующие с Prettier

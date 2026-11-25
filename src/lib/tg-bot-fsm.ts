@@ -4,7 +4,7 @@
 // клавиатур и маршрутизация карточек аппрува. Всё тестируется без базы.
 
 import type { InlineButton } from "./telegram";
-import type { FinanceScope, Expense } from "@prisma/client";
+import type { FinanceScope, Expense } from "@/generated/prisma/client";
 
 export const TG_PAGE_SIZE = 8;
 export const TG_CURRENCY_ROW = 3;

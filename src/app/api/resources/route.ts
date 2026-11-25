@@ -10,7 +10,7 @@ import {
   CURRENCIES,
   CHAINS,
 } from "@/lib/resources";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { tForRequest } from "@/lib/i18n/server";
 import type { TFunc } from "@/lib/i18n/translate";
 

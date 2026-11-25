@@ -15,7 +15,7 @@ import {
   parseScope,
   decimalStr,
 } from "@/lib/finance-api";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import type { TFunc } from "@/lib/i18n/translate";
 
 function parseBody(

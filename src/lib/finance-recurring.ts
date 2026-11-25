@@ -1,6 +1,9 @@
 // Чистые функции периодических расходов. Не содержат вызовов БД.
 
-import type { RecurringExpense, RecurringFrequency } from "@prisma/client";
+import type {
+  RecurringExpense,
+  RecurringFrequency,
+} from "@/generated/prisma/client";
 
 export type RecurringTemplate = Pick<
   RecurringExpense,

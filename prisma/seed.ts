@@ -2,15 +2,16 @@
 // Переопределяется через SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD; иначе пароль
 // генерируется случайно и печатается ОДИН раз — сохраните его.
 //
-// Обычный .mjs, а не .ts под tsx: этот скрипт должен запускаться и на сервере,
-// внутри рантайм-образа, где из зависимостей есть только то, что затрассировал
-// Next (@prisma/client и bcryptjs — есть, tsx — нет).
-//   docker compose exec tucktuck node prisma/seed.mjs
-import { PrismaClient } from "@prisma/client";
+// Prisma 7: клиент генерируется в src/generated/prisma, запуск через tsx
+// (локально) либо из скомпилированного образа (Docker).
+import "dotenv/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function seedAdmin() {
   const email = (process.env.SEED_ADMIN_EMAIL || "admin@tucktuck.local")

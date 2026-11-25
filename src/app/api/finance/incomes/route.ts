@@ -14,7 +14,7 @@ import {
 } from "@/lib/finance-api";
 import { splitIncome } from "@/lib/finance";
 import { writeAudit } from "@/lib/finance-audit";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import type { TFunc } from "@/lib/i18n/translate";
 
 function parseBody(

@@ -1,7 +1,11 @@
 // Чистые функции бизнес-логики Finance Board. Не содержат вызовов БД —
 // тестируются без базы, а роуты передают сюда уже выбранные агрегации.
 
-import type { ExpenseKind, ExpenseStatus, FinanceScope } from "@prisma/client";
+import type {
+  ExpenseKind,
+  ExpenseStatus,
+  FinanceScope,
+} from "@/generated/prisma/client";
 
 type DecimalLike = { toNumber(): number };
 type AmountValue = number | string | DecimalLike;

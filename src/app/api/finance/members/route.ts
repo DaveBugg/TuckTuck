@@ -4,7 +4,7 @@ import { requirePermission } from "@/lib/auth";
 import { parseListParams, toApiError } from "@/lib/list-query";
 import { tForRequest } from "@/lib/i18n/server";
 import { writeAudit } from "@/lib/finance-audit";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import type { TFunc } from "@/lib/i18n/translate";
 
 function parseBody(

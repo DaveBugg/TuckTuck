@@ -15,7 +15,7 @@ import {
 import { writeAudit } from "@/lib/finance-audit";
 import { validateScope } from "@/lib/finance";
 import type { TFunc } from "@/lib/i18n/translate";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 
 type Ctx = { params: Promise<{ id: string }> };
 

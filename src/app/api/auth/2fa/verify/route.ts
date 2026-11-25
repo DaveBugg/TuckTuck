@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticator } from "otplib";
+import { generateSecret, generateSync, verifySync, generateURI } from "otplib";
 import { AuthError, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { tForRequest } from "@/lib/i18n/server";
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (!code || !authenticator.check(code, user.totpSecret)) {
+    if (!code || !verifySync({ secret: user.totpSecret, token: code }).valid) {
       return NextResponse.json(
         { error: t("auth.err.badCode") },
         { status: 400 }

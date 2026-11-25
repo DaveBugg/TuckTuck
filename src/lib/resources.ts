@@ -1,7 +1,7 @@
 // Общая логика оплачиваемых ресурсов: видимость по группам, сдвиг даты оплаты
 // на период, «сколько дней осталось». Вынесено из роутов, чтобы правило
 // видимости было ОДНО и его нельзя было забыть в новом эндпоинте.
-import type { PeriodUnit, User } from "@prisma/client";
+import type { PeriodUnit, User } from "@/generated/prisma/client";
 import { hasPermission } from "./permissions";
 import type { TFunc } from "./i18n/translate";
 

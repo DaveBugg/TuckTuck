@@ -48,6 +48,12 @@ ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 RUN npx prisma generate
 RUN npm run build
 
+# ---------- seed-tools: tsx для запуска prisma/seed.ts в slim-раннере ----------
+FROM node:${NODE_VERSION} AS seed-tools
+WORKDIR /seed-tools
+RUN npm init -y >/dev/null \
+ && npm install --no-audit --no-fund tsx
+
 # ---------- test: юнит-тесты в CI ----------
 # Отдельной стадией, а не отдельной джобой с `npm install`: дерево зависимостей
 # уже собрано выше, и переиспользование слоя экономит минуты на каждом пуше.
@@ -80,6 +86,7 @@ RUN npm config set fetch-retries 5 \
       "prisma@$(node -p "require('/tmp/pkg.json').devDependencies.prisma")" \
  && npm cache clean --force \
  && rm -f /tmp/pkg.json
+COPY prisma.config.ts ./
 COPY prisma ./prisma
 ENTRYPOINT ["/usr/bin/tini","--","node","node_modules/prisma/build/index.js"]
 CMD ["migrate","deploy"]
@@ -107,19 +114,36 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static     ./.next/static
 COPY --from=builder --chown=node:node /app/public           ./public
 
-# Сид первого админа. Лежит здесь, а не в образе мигратора: ему нужен
-# @prisma/client, а он есть именно в затрассированном node_modules приложения.
+# Сид первого админа. Переведён на TypeScript; в раннере нет tsx, поэтому
+# подкладываем tsx/esbuild и исходник seed.ts с tsconfig + сгенерированный клиент.
 # Запуск на сервере:
-#   docker compose exec tucktuck node prisma/seed.mjs
-COPY --from=builder --chown=node:node /app/prisma/seed.mjs  ./prisma/seed.mjs
+#   docker compose exec tucktuck node node_modules/tsx/dist/cli.mjs prisma/seed.ts
+COPY --from=builder --chown=node:node /app/prisma/seed.ts ./prisma/seed.ts
+COPY --from=builder --chown=node:node /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=node:node /app/src/generated/prisma ./src/generated/prisma
 
 # bcryptjs — ОТДЕЛЬНО и намеренно. В standalone-выводе его нет: Next вшивает
 # зависимости серверных роутов прямо в бандл, и как самостоятельный модуль
 # bcryptjs не остаётся (ловили ERR_MODULE_NOT_FOUND при первом сиде на сервере).
-# Приложению это не мешает — оно ходит в свой бандл, — но seed.mjs запускается
+# Приложению это не мешает — оно ходит в свой бандл, — но seed.ts запускается
 # отдельным процессом и резолвит модуль обычным способом. Пакет чисто на JS,
 # весит десятки килобайт.
 COPY --from=builder --chown=node:node /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
+# Prisma 7: для seed.ts нужен драйвер-адаптер и его транзитивные зависимости,
+# которые Next не оставляет в standalone node_modules (они заbundлены в бандл).
+# dotenv нужен для `import "dotenv/config"` в seed.ts.
+COPY --from=builder --chown=node:node /app/node_modules/dotenv ./node_modules/dotenv
+COPY --from=builder --chown=node:node /app/node_modules/@prisma/adapter-pg ./node_modules/@prisma/adapter-pg
+COPY --from=builder --chown=node:node /app/node_modules/@prisma/driver-adapter-utils ./node_modules/@prisma/driver-adapter-utils
+COPY --from=builder --chown=node:node /app/node_modules/@prisma/debug ./node_modules/@prisma/debug
+COPY --from=builder --chown=node:node /app/node_modules/postgres-array ./node_modules/postgres-array
+
+# tsx + esbuild для запуска seed.ts в раннере (Linux-специфичные бинарники
+# ставятся отдельной стадией seed-tools).
+COPY --from=seed-tools --chown=node:node /seed-tools/node_modules/tsx ./node_modules/tsx
+COPY --from=seed-tools --chown=node:node /seed-tools/node_modules/esbuild ./node_modules/esbuild
+COPY --from=seed-tools --chown=node:node /seed-tools/node_modules/@esbuild ./node_modules/@esbuild
 
 # Воркер напоминаний. Тот же образ, другая команда (см. docker-compose.yml):
 # отдельный образ ради одного .mjs без зависимостей был бы лишним.
