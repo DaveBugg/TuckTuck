@@ -212,7 +212,13 @@
     --vc-date-weekend-bg-hover: var(--accent);
     --vc-date-weekend-hover-bg: var(--accent);
     --vc-date-weekend-outside-color: var(--muted-foreground);
+    --vc-date-weekend-outside-bg: transparent;
     --vc-date-weekend-outside-bg-hover: var(--accent);
+    --vc-date-selected-outside-bg: var(--primary);
+    --vc-date-selected-outside-color: var(--primary-foreground);
+    --vc-date-today-outside-color: var(--muted-foreground);
+    --vc-date-popup-bg: var(--popover);
+    --vc-date-popup-color: var(--popover-foreground);
     --vc-date-outside-color: var(--muted-foreground);
     --vc-date-disabled-color: var(--muted-foreground);
     --vc-date-selected-bg: var(--primary);
