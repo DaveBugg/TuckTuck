@@ -23,6 +23,63 @@ const IP_LIMIT = 20;
 const IP_WINDOW_SEC = 300;
 
 /**
+ * Диагностика подписи initData при отказе: пробуем 4 варианта построения
+ * data-check-string (значения URL-декодированные vs сырые × signature
+ * исключён/включён) и логируем, какой совпал бы. Секретов в логе нет:
+ * ключи полей и буль совпадения, сам hash не секрет (HMAC от публичных полей).
+ * Временная инструментальная функция — снять после отладки подписи на проде.
+ */
+function debugSignatureVariants(
+  initData: string,
+  bots: { tokenEnc: string }[]
+): string {
+  try {
+    const cleaned = initData.replace(/^\?/, "");
+    const decoded = new URLSearchParams(cleaned);
+    const hash = decoded.get("hash") || "";
+    if (!hash) return "no_hash";
+    for (const bot of bots) {
+      let token: string;
+      try {
+        token = decryptSecret(bot.tokenEnc);
+      } catch {
+        continue;
+      }
+      const secretKey = crypto
+        .createHmac("sha256", token)
+        .update("WebAppData")
+        .digest();
+      const h = (s: string) =>
+        crypto.createHmac("sha256", secretKey).update(s).digest("hex");
+      const build = (pairs: [string, string][], excludeSig: boolean) =>
+        pairs
+          .filter(([k]) => k !== "hash" && !(excludeSig && k === "signature"))
+          .map(([k, v]) => `${k}=${v}`)
+          .sort()
+          .join("\n");
+      const decodedPairs = [...decoded.entries()] as [string, string][];
+      const rawPairs = cleaned.split("&").map(p => {
+        const i = p.indexOf("=");
+        return [p.slice(0, i), p.slice(i + 1)] as [string, string];
+      });
+      const results = {
+        decoded_exclSig: h(build(decodedPairs, true)) === hash,
+        decoded_inclSig: h(build(decodedPairs, false)) === hash,
+        raw_exclSig: h(build(rawPairs, true)) === hash,
+        raw_inclSig: h(build(rawPairs, false)) === hash,
+      };
+      return JSON.stringify({
+        keys: [...decoded.keys()],
+        results,
+      });
+    }
+    return "no_valid_bot";
+  } catch (e) {
+    return `debug_error:${(e as Error).message}`;
+  }
+}
+
+/**
  * Вход по Telegram WebApp initData.
  *
  * Публичный эндпоинт: WebApp шлёт подписанные Telegram-ом данные, мы
@@ -90,7 +147,9 @@ export async function POST(req: Request) {
 
     if (!validatedUser) {
       // Причина — только в серверный лог: снаружи всегда нейтральный 401.
-      console.warn(`[auth/telegram] rejected: ${lastReason}`);
+      console.warn(
+        `[auth/telegram] rejected: ${lastReason} ${debugSignatureVariants(initData, bots)}`
+      );
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }

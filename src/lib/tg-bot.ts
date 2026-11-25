@@ -63,8 +63,8 @@ async function ensureGroup(chatId: number, title?: string) {
 
 function menuButtons(t: TFunc, publicUrl: string | null): InlineButton[][] {
   const rows: InlineButton[][] = [
-    [{ text: t("finance.bot.btn.expense"), callback_data: "menu-expense" }],
-    [{ text: t("finance.bot.btn.balance"), callback_data: "menu-balance" }],
+    [{ text: t("finance.bot.btn.expense"), callback_data: "finmenu-expense" }],
+    [{ text: t("finance.bot.btn.balance"), callback_data: "finmenu-balance" }],
   ];
   if (publicUrl) {
     rows.push([
