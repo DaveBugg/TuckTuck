@@ -24,6 +24,16 @@
 - [x] Проверки: `type-check` чисто, `lint` (0 errors, 1 старый warning),
       `npm test` (211 passed / 1 skipped), `npm run build` OK
 
+## 2026-11-25 — Тема календаря + фикс 401-цикла
+
+- [x] Календарь vanilla-calendar-pro переведён на токены темы панели (`globals.css`, блок `.vc` —
+      фон popover, выходные — destructive, выбранный день — primary); работает в обеих темах
+- [x] `client-api`: при 401 сначала серверный `/api/auth/logout` (чистит HttpOnly `tt_token`),
+      потом редирект — раньше валидный по подписи JWT при ревокнутой сессии зацикливал
+      login↔dashboard
+- [x] Грабля для памяти: Radix Popover-портал внутри модального Dialog пустеет → DatePicker
+      рендерит календарь инлайн
+
 ## 2026-11-25 — Проекты: привязка ресурсов, детальные карточки, DatePicker
 
 - [x] `Resource.projectId` + `ProjectMember.active` (миграция `20261125132040_project_resources`);
