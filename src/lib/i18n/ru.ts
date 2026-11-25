@@ -1000,8 +1000,7 @@ export const ru: Record<string, string> = {
     "Не удалось войти через Telegram. Откройте панель через кнопку бота или используйте обычную форму входа.",
   "finance.bot.noBot": "Нет активного бота для привязки",
 
-  "finance.bot.expense.enterAmount":
-    "Новый расход. Введите сумму или выберите валюту сначала.",
+  "finance.bot.expense.enterAmount": "Новый расход. Введите сумму:",
   "finance.bot.expense.selectCurrency": "Выберите валюту:",
   "finance.bot.currency.other": "Другая ✏️",
   "finance.bot.expense.selectScope": "Куда отнести расход?",

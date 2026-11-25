@@ -9,7 +9,7 @@ import type { FinanceScope, Expense } from "@/generated/prisma/client";
 export const TG_PAGE_SIZE = 8;
 export const TG_CURRENCY_ROW = 3;
 
-export type FsmState =
+export type FsmState = { flowMessageId?: number } & (
   | { step: "idle" }
   | { step: "awaitAmount" }
   | { step: "awaitCurrency"; amount: number }
@@ -50,10 +50,25 @@ export type FsmState =
       title: string;
       description: string;
       tags: string[];
-    };
+    }
+);
 
 export type ProjectItem = { id: string; name: string };
 export type MemberItem = { id: string; name: string };
+
+/** Решение: редактировать существующее сообщение потока или отправлять новое. */
+export function decideFlowAction(
+  flowMessageId: number | undefined,
+  menuMessageId?: number
+): { type: "edit"; messageId: number } | { type: "send" } {
+  if (menuMessageId !== undefined) {
+    return { type: "edit", messageId: menuMessageId };
+  }
+  if (flowMessageId !== undefined) {
+    return { type: "edit", messageId: flowMessageId };
+  }
+  return { type: "send" };
+}
 
 /**
  * Распарсить сумму из произвольного текста.

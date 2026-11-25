@@ -99,6 +99,53 @@ async function sendRestricted(token: string, chatId: string, proxy: string) {
   await sendMessage(token, chatId, t(RESTRICTED_TEXT), [], proxy);
 }
 
+async function saveState(
+  chatId: string | number,
+  userId: string | number,
+  next: FsmState
+): Promise<void> {
+  const current = await getFsmState(chatId, userId);
+  await setFsmState(chatId, userId, { ...current, ...next });
+}
+
+async function flowSay(
+  token: string,
+  chatId: string,
+  userId: number | string,
+  text: string,
+  buttons: InlineButton[][],
+  proxy: string
+): Promise<void> {
+  const state = await getFsmState(chatId, userId);
+  if (state.flowMessageId) {
+    const edit = await editMessageText(
+      token,
+      chatId,
+      String(state.flowMessageId),
+      text,
+      buttons,
+      proxy
+    );
+    if (edit.ok) return;
+    // Редактирование не удалось — отправляем новое и запоминаем его id.
+    const sent = await sendMessage(token, chatId, text, buttons, proxy);
+    if (sent.ok) {
+      await saveState(chatId, userId, {
+        ...state,
+        flowMessageId: sent.result.message_id,
+      });
+    }
+    return;
+  }
+  const sent = await sendMessage(token, chatId, text, buttons, proxy);
+  if (sent.ok) {
+    await saveState(chatId, userId, {
+      ...state,
+      flowMessageId: sent.result.message_id,
+    });
+  }
+}
+
 async function startExpense(
   token: string,
   chatId: string,
@@ -106,14 +153,50 @@ async function startExpense(
   proxy: string
 ) {
   const t = makeT((await getSettings()).notifyLocale);
-  await setFsmState(chatId, userId, { step: "awaitAmount" });
-  await sendMessage(
+  const sent = await sendMessage(
     token,
     chatId,
     t("finance.bot.expense.enterAmount"),
     [],
     proxy
   );
+  if (!sent.ok) return;
+  await saveState(chatId, userId, {
+    step: "awaitAmount",
+    flowMessageId: sent.result.message_id,
+  });
+}
+
+async function startExpenseFromMenu(
+  token: string,
+  chatId: string,
+  userId: number | string,
+  menuMessageId: number,
+  proxy: string
+) {
+  const t = makeT((await getSettings()).notifyLocale);
+  const text = t("finance.bot.expense.enterAmount");
+  const edit = await editMessageText(
+    token,
+    chatId,
+    String(menuMessageId),
+    text,
+    [],
+    proxy
+  );
+  if (!edit.ok) {
+    const sent = await sendMessage(token, chatId, text, [], proxy);
+    if (!sent.ok) return;
+    await saveState(chatId, userId, {
+      step: "awaitAmount",
+      flowMessageId: sent.result.message_id,
+    });
+    return;
+  }
+  await saveState(chatId, userId, {
+    step: "awaitAmount",
+    flowMessageId: menuMessageId,
+  });
 }
 
 async function showCurrencies(
@@ -130,10 +213,11 @@ async function showCurrencies(
         (c): c is string => typeof c === "string"
       )
     : [];
-  await setFsmState(chatId, userId, { step: "awaitCurrency", amount });
-  await sendMessage(
+  await saveState(chatId, userId, { step: "awaitCurrency", amount });
+  await flowSay(
     token,
     chatId,
+    userId,
     t("finance.bot.expense.selectCurrency"),
     buildCurrencyKeyboard(currencies, t("finance.bot.currency.other")),
     proxy
@@ -149,14 +233,15 @@ async function showScopes(
   proxy: string
 ) {
   const t = makeT((await getSettings()).notifyLocale);
-  await setFsmState(chatId, userId, {
+  await saveState(chatId, userId, {
     step: "awaitScope",
     amount,
     currency,
   });
-  await sendMessage(
+  await flowSay(
     token,
     chatId,
+    userId,
     t("finance.bot.expense.selectScope"),
     buildScopeKeyboard({
       team: t("finance.bot.scope.TEAM"),
@@ -171,7 +256,7 @@ async function showProjects(
   token: string,
   chatId: string,
   userId: number | string,
-  state: Extract<FsmState, { step: "awaitProject" }>,
+  _state: Extract<FsmState, { step: "awaitProject" }>,
   page: number,
   proxy: string
 ) {
@@ -183,9 +268,10 @@ async function showProjects(
       orderBy: { name: "asc" },
     })
     .then(rows => rows.map(r => ({ id: r.id, name: r.name })));
-  await sendMessage(
+  await flowSay(
     token,
     chatId,
+    userId,
     t("finance.bot.expense.selectProject"),
     buildProjectKeyboard(projects, page),
     proxy
@@ -196,7 +282,7 @@ async function showMembers(
   token: string,
   chatId: string,
   userId: number | string,
-  state: Extract<FsmState, { step: "awaitMember" }>,
+  _state: Extract<FsmState, { step: "awaitMember" }>,
   page: number,
   proxy: string
 ) {
@@ -208,9 +294,10 @@ async function showMembers(
       orderBy: { name: "asc" },
     })
     .then(rows => rows.map(r => ({ id: r.id, name: r.name })));
-  await sendMessage(
+  await flowSay(
     token,
     chatId,
+    userId,
     t("finance.bot.expense.selectMember"),
     buildMemberKeyboard(members, page),
     proxy
@@ -225,10 +312,11 @@ async function askTitle(
   proxy: string
 ) {
   const t = makeT((await getSettings()).notifyLocale);
-  await setFsmState(chatId, userId, { ...state, step: "awaitTitle" });
-  await sendMessage(
+  await saveState(chatId, userId, { ...state, step: "awaitTitle" });
+  await flowSay(
     token,
     chatId,
+    userId,
     `${t("finance.bot.expense.enterTitle")}\n${t(
       "finance.bot.expense.titleHint"
     )}`,
@@ -255,14 +343,15 @@ async function askTags(
         (c): c is string => typeof c === "string"
       )
     : [];
-  await setFsmState(chatId, userId, {
+  await saveState(chatId, userId, {
     ...state,
     step: "awaitTags",
     selectedTags,
   });
-  await sendMessage(
+  await flowSay(
     token,
     chatId,
+    userId,
     t("finance.bot.expense.selectTags"),
     buildTagsKeyboard(
       tags,
@@ -282,7 +371,7 @@ async function showConfirm(
   proxy: string
 ) {
   const t = makeT((await getSettings()).notifyLocale);
-  await setFsmState(chatId, userId, { ...state, step: "confirm" });
+  await saveState(chatId, userId, { ...state, step: "confirm" });
   const scopeLabel = t(`finance.scope.${state.scope}`);
   const target = state.projectId
     ? (
@@ -320,9 +409,10 @@ async function showConfirm(
     );
   }
 
-  await sendMessage(
+  await flowSay(
     token,
     chatId,
+    userId,
     lines.join("\n"),
     buildConfirmKeyboard(
       t("finance.bot.expense.send"),
@@ -361,8 +451,21 @@ async function submitExpense(
     settings.displayCurrency,
     rates.perUsd
   );
+  const flowMessageId = state.flowMessageId;
+
   if ("error" in data) {
-    await sendMessage(token, chatId, esc(data.error), [], proxy);
+    if (flowMessageId) {
+      await editMessageText(
+        token,
+        chatId,
+        String(flowMessageId),
+        esc(data.error),
+        [],
+        proxy
+      );
+    } else {
+      await sendMessage(token, chatId, esc(data.error), [], proxy);
+    }
     return;
   }
 
@@ -372,19 +475,35 @@ async function submitExpense(
     sourceChatId: isGroup ? chatId : "",
   });
 
-  await clearFsmState(chatId, userId);
-
-  if (row.status === "PENDING") {
-    await sendMessage(token, chatId, t("finance.bot.expense.sent"), [], proxy);
-    await sendApprovalCard(token, row, user, proxy);
+  if (flowMessageId) {
+    const finalText =
+      row.status === "PENDING"
+        ? t("finance.bot.expense.sent")
+        : t("finance.bot.expense.created");
+    await editMessageText(
+      token,
+      chatId,
+      String(flowMessageId),
+      finalText,
+      [],
+      proxy
+    );
   } else {
     await sendMessage(
       token,
       chatId,
-      t("finance.bot.expense.created"),
+      row.status === "PENDING"
+        ? t("finance.bot.expense.sent")
+        : t("finance.bot.expense.created"),
       [],
       proxy
     );
+  }
+
+  await clearFsmState(chatId, userId);
+
+  if (row.status === "PENDING") {
+    await sendApprovalCard(token, row, user, proxy);
   }
 }
 
@@ -645,9 +764,10 @@ async function handleMessage(
       const amount = parseAmountText(text);
       if (amount === null) {
         const t = makeT((await getSettings()).notifyLocale);
-        await sendMessage(
+        await flowSay(
           token,
           chatId,
+          userId,
           t("finance.err.amountRequired"),
           [],
           proxy
@@ -660,12 +780,22 @@ async function handleMessage(
     case "awaitCurrency": {
       const currency = normalizeCurrency(text);
       if (!currency) {
-        const t = makeT((await getSettings()).notifyLocale);
-        await sendMessage(
+        const settings = await getSettings();
+        const t = makeT(settings.notifyLocale);
+        const quickCurrencies = Array.isArray(settings.financeQuickCurrencies)
+          ? (settings.financeQuickCurrencies as string[]).filter(
+              (c): c is string => typeof c === "string"
+            )
+          : [];
+        await flowSay(
           token,
           chatId,
+          userId,
           t("finance.err.currencyRequired"),
-          [],
+          buildCurrencyKeyboard(
+            quickCurrencies,
+            t("finance.bot.currency.other")
+          ),
           proxy
         );
         return;
@@ -677,9 +807,10 @@ async function handleMessage(
       const { title, description } = splitTitleDescription(text);
       if (!title) {
         const t = makeT((await getSettings()).notifyLocale);
-        await sendMessage(
+        await flowSay(
           token,
           chatId,
+          userId,
           t("finance.err.titleRequired"),
           [],
           proxy
@@ -740,7 +871,12 @@ async function handleCallback(
       await answerCallbackQuery(token, cq.id, undefined, false, proxy);
       return;
     }
-    await startExpense(token, chatId, userId, proxy);
+    const menuMessageId = message?.message_id;
+    if (menuMessageId) {
+      await startExpenseFromMenu(token, chatId, userId, menuMessageId, proxy);
+    } else {
+      await startExpense(token, chatId, userId, proxy);
+    }
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
@@ -787,7 +923,7 @@ async function handleCallback(
     if (state.step !== "awaitScope") return;
     const scope = data.slice(6) as "TEAM" | "PROJECT" | "MEMBER";
     if (scope === "PROJECT") {
-      await setFsmState(chatId, userId, {
+      await saveState(chatId, userId, {
         step: "awaitProject",
         amount: state.amount,
         currency: state.currency,
@@ -805,7 +941,7 @@ async function handleCallback(
         proxy
       );
     } else if (scope === "MEMBER") {
-      await setFsmState(chatId, userId, {
+      await saveState(chatId, userId, {
         step: "awaitMember",
         amount: state.amount,
         currency: state.currency,
@@ -951,15 +1087,21 @@ async function handleCallback(
   }
 
   if (data === "fintg-cancel") {
-    await clearFsmState(chatId, userId);
     const t = makeT((await getSettings()).notifyLocale);
-    await sendMessage(
-      token,
-      chatId,
-      t("finance.bot.expense.cancelled"),
-      [],
-      proxy
-    );
+    const text = t("finance.bot.expense.cancelled");
+    if (state.flowMessageId) {
+      await editMessageText(
+        token,
+        chatId,
+        String(state.flowMessageId),
+        text,
+        [],
+        proxy
+      );
+    } else {
+      await sendMessage(token, chatId, text, [], proxy);
+    }
+    await clearFsmState(chatId, userId);
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }

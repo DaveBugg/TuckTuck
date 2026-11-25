@@ -11,6 +11,7 @@ import {
   buildConfirmKeyboard,
   decideApprovalTarget,
   isFinanceCallback,
+  decideFlowAction,
 } from "@/lib/tg-bot-fsm";
 
 describe("tg-bot-flow", () => {
@@ -173,6 +174,25 @@ describe("tg-bot-flow", () => {
       const kb = buildConfirmKeyboard("Send", "Cancel");
       assert.strictEqual(kb[0][0].callback_data, "finconfirm");
       assert.strictEqual(kb[1][0].callback_data, "fintg-cancel");
+    });
+  });
+
+  describe("decideFlowAction", () => {
+    it("edits the menu message when starting from a callback", () => {
+      const plan = decideFlowAction(undefined, 42);
+      assert.strictEqual(plan.type, "edit");
+      assert.strictEqual(plan.messageId, 42);
+    });
+
+    it("edits the existing flow message when id is known", () => {
+      const plan = decideFlowAction(7);
+      assert.strictEqual(plan.type, "edit");
+      assert.strictEqual(plan.messageId, 7);
+    });
+
+    it("sends a new message when no flow id exists", () => {
+      const plan = decideFlowAction(undefined);
+      assert.strictEqual(plan.type, "send");
     });
   });
 });

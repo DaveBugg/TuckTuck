@@ -963,8 +963,7 @@ export const en: Record<string, string> = {
     "Could not sign in via Telegram. Open the panel from the bot button or use the regular sign-in form.",
   "finance.bot.noBot": "No active bot available for linking",
 
-  "finance.bot.expense.enterAmount":
-    "New expense. Enter the amount or pick a currency first.",
+  "finance.bot.expense.enterAmount": "New expense. Enter the amount:",
   "finance.bot.expense.selectCurrency": "Choose currency:",
   "finance.bot.currency.other": "Other ✏️",
   "finance.bot.expense.selectScope": "Where does this expense belong?",
