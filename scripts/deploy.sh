@@ -34,6 +34,10 @@ die()  { printf '\033[1;31mОШИБКА:\033[0m %s\n' "$*" >&2; exit 1; }
 # Порт нужен для health-проверки ещё до того, как compose прочитает .env сам.
 set -a; . ./.env; set +a
 APP_URL="http://127.0.0.1:${TUCKTUCK_PORT:-3000}/api/health"
+# Установки без нашего Caddy (TUCKTUCK_SKIP_PROXY=1 в .env): свой веб-сервер уже
+# держит 80/443, и поднимать прокси-контейнер — значит гарантированно упасть на
+# занятых портах посреди деплоя. Читается после source .env, не раньше.
+SKIP_PROXY="${TUCKTUCK_SKIP_PROXY:-0}"
 
 export TUCKTUCK_TAG="$TAG"
 
@@ -43,7 +47,11 @@ PREV_TAG="${PREV_IMAGE##*:}"
 [ -n "$PREV_IMAGE" ] && log "Сейчас работает: $PREV_IMAGE" || log "Первый запуск (работающего контейнера нет)"
 
 log "Тяну образы (tag: $TAG)"
-$COMPOSE pull tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy
+if [ "$SKIP_PROXY" = "1" ]; then
+  $COMPOSE pull tucktuck tucktuck-pg tucktuck-redis
+else
+  $COMPOSE pull tucktuck tucktuck-pg tucktuck-redis tucktuck-proxy
+fi
 $COMPOSE --profile tools pull tucktuck-migrate
 
 # База поднимается ДО миграций и остаётся поднятой: мигратор ждёт её healthcheck.
@@ -61,9 +69,14 @@ log "Обновляю приложение"
 $COMPOSE up -d tucktuck
 
 # Прокси поднимается ПОСЛЕ приложения и не перезапускается, если уже работает:
-# рвать TLS-соединения на каждый деплой незачем.
-log "Проверяю прокси"
-$COMPOSE up -d tucktuck-proxy
+# рвать TLS-соединения на каждый деплой незачем. В установках SKIP_PROXY его
+# контейнера нет вовсе — TLS держит внешний веб-сервер.
+if [ "$SKIP_PROXY" = "1" ]; then
+  log "Прокси пропущен (TUCKTUCK_SKIP_PROXY=1) — HTTPS на внешнем веб-сервере"
+else
+  log "Проверяю прокси"
+  $COMPOSE up -d tucktuck-proxy
+fi
 
 # Воркер обновляем ТОЛЬКО если он уже запущен на этой машине. Профиль workers
 # включают не везде, и поднимать его самим на машине, где его сознательно нет,
