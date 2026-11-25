@@ -192,7 +192,9 @@
   /* Календарь (vanilla-calendar-pro) в токенах панели. Стоковая тёмная тема
      библиотеки — чужой синий #0f172a с ярко-красными выходными; переменные
      темы календаря мапим на наши, поэтому переключение светлая/тёмная
-     работает само, без второго набора правил. */
+     работает само, без второго набора правил. Ячейки дат — без фона, даты
+     в цвете текста панели, выходные приглушены до muted (не красные),
+     выбранный день — бирюзовый primary, сегодня — мягкий accent. */
   .vc {
     --vc-bg: var(--popover);
     --vc-color: var(--popover-foreground);
@@ -201,15 +203,25 @@
     --vc-title-color-hover: var(--primary);
     --vc-week-day-color: var(--muted-foreground);
     --vc-week-day-off-color: var(--muted-foreground);
+    --vc-date-bg: transparent;
+    --vc-date-color: var(--popover-foreground);
+    --vc-date-bg-hover: transparent;
     --vc-date-hover-bg: var(--accent);
     --vc-date-color-hover: var(--accent-foreground);
-    --vc-date-weekend-color: var(--destructive);
+    --vc-date-weekend-color: var(--muted-foreground);
+    --vc-date-weekend-bg-hover: var(--accent);
+    --vc-date-weekend-hover-bg: var(--accent);
     --vc-date-weekend-outside-color: var(--muted-foreground);
+    --vc-date-weekend-outside-bg-hover: var(--accent);
     --vc-date-outside-color: var(--muted-foreground);
+    --vc-date-disabled-color: var(--muted-foreground);
     --vc-date-selected-bg: var(--primary);
     --vc-date-selected-color: var(--primary-foreground);
-    --vc-date-today-bg: var(--secondary);
-    --vc-date-today-color: var(--secondary-foreground);
+    --vc-date-weekend-selected-bg: var(--primary);
+    --vc-date-weekend-selected-color: var(--primary-foreground);
+    --vc-date-today-bg: var(--accent);
+    --vc-date-today-color: var(--accent-foreground);
+    --vc-date-weekend-today-color: var(--accent-foreground);
     --vc-focus-outline-color: var(--ring);
   }
 }
