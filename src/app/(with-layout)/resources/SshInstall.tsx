@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -277,9 +278,8 @@ export default function SshInstall({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="ssh-pass">{t("ssh.form.passphrase")}</Label>
-          <Input
+          <PasswordInput
             id="ssh-pass"
-            type="password"
             value={passphrase}
             onChange={e => setPassphrase(e.target.value)}
             placeholder={t("ssh.form.passphraseHint")}

@@ -7,10 +7,11 @@
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Turnstile,
@@ -26,7 +27,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [totp, setTotp] = useState("");
   const [needTotp, setNeedTotp] = useState(false);
-  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
@@ -125,32 +125,15 @@ export default function LoginPage() {
 
               <div>
                 <Label htmlFor="password">{t("auth.password")}</Label>
-                <div className="relative mt-1.5">
-                  <Input
-                    id="password"
-                    type={showPass ? "text" : "password"}
-                    className="pr-9"
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    disabled={needTotp}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(v => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={
-                      showPass ? t("auth.hidePassword") : t("auth.showPassword")
-                    }
-                  >
-                    {showPass ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </button>
-                </div>
+                <PasswordInput
+                  id="password"
+                  className="mt-1.5"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  disabled={needTotp}
+                  required
+                />
               </div>
 
               {needTotp && (

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -435,10 +436,9 @@ export default function BotForm({
 
           <div>
             <Label htmlFor="bf-token">{t("notify.form.token")}</Label>
-            <Input
+            <PasswordInput
               id="bf-token"
               className="mt-1.5 font-mono text-xs"
-              type="password"
               value={token}
               onChange={e => setToken(e.target.value)}
               placeholder={row ? t("notify.form.tokenKeep") : "123456:ABC-DEF…"}

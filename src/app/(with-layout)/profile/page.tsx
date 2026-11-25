@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -278,9 +279,8 @@ export default function ProfilePage() {
           >
             <div>
               <Label htmlFor="cur">{t("profile.currentPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="cur"
-                type="password"
                 className="mt-1.5"
                 autoComplete="current-password"
                 value={cur}
@@ -290,9 +290,8 @@ export default function ProfilePage() {
             </div>
             <div>
               <Label htmlFor="new">{t("profile.newPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="new"
-                type="password"
                 className="mt-1.5"
                 autoComplete="new-password"
                 minLength={8}
@@ -306,9 +305,8 @@ export default function ProfilePage() {
             </div>
             <div>
               <Label htmlFor="again">{t("profile.repeatPassword")}</Label>
-              <Input
+              <PasswordInput
                 id="again"
-                type="password"
                 className="mt-1.5"
                 autoComplete="new-password"
                 value={again}

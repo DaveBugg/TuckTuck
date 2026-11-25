@@ -31,6 +31,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SearchSelect } from "@/components/ui/search-select";
@@ -471,10 +472,9 @@ export default function SettingsPage() {
           </div>
           <div>
             <Label htmlFor="ts-secret">{t("settings.captcha.secretKey")}</Label>
-            <Input
+            <PasswordInput
               id="ts-secret"
               className="mt-1.5 max-w-md font-mono text-xs"
-              type="password"
               autoComplete="new-password"
               placeholder={
                 s.turnstileSecretSet
