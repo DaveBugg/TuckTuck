@@ -11,6 +11,7 @@ import {
   sendMessage,
   editMessageText,
   answerCallbackQuery,
+  getMe,
   esc,
   type InlineButton,
 } from "./telegram";
@@ -711,6 +712,22 @@ async function handleStart(
   await sendMenu(token, chatId, user, proxy);
 }
 
+// getMe нужен редко (узнать username бота для парсинга упоминаний в группах),
+// но ходить в Telegram на каждое сообщение — нет. Кеш на час в процессе.
+const meCache = new Map<string, { username: string; at: number }>();
+async function cachedBotUsername(
+  botId: string,
+  token: string,
+  proxy: string
+): Promise<string> {
+  const hit = meCache.get(botId);
+  if (hit && Date.now() - hit.at < 3600_000) return hit.username;
+  const res = await getMe(token, proxy);
+  if (!res.ok) return "";
+  meCache.set(botId, { username: res.result.username, at: Date.now() });
+  return res.result.username;
+}
+
 async function handleMessage(
   bot: NotifyBot,
   token: string,
@@ -749,8 +766,28 @@ async function handleMessage(
 
   const state = await getFsmState(chatId, userId);
 
-  if (text === "/expense" || text === "＋ Расход") {
+  // Команды в группах приходят с суффиксом бота: /expense@tucktuck_manage_bot.
+  if (/^\/expense(@\w+)?\s*$/.test(text) || text === "＋ Расход") {
     await startExpense(token, chatId, userId, proxy);
+    return;
+  }
+
+  // Упоминание бота в одобренной группе (при выключенном privacy mode):
+  // голое @bot — меню, @bot /expense — флоу расхода. Чужие упоминания — мимо.
+  const mention = isGroup ? text.match(/^@(\w+)\s*(.*)$/) : null;
+  if (mention) {
+    const me = await cachedBotUsername(bot.id, token, proxy);
+    if (me && mention[1].toLowerCase() === me.toLowerCase()) {
+      const rest = (mention[2] || "").trim();
+      if (!rest) {
+        await sendMenu(token, chatId, user, proxy);
+        return;
+      }
+      if (/^\/expense/.test(rest)) {
+        await startExpense(token, chatId, userId, proxy);
+        return;
+      }
+    }
     return;
   }
 
