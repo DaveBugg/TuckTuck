@@ -49,6 +49,9 @@ export async function POST(req: Request, ctx: Ctx) {
   } catch {
     return ok();
   }
+  // Fail-closed: если по какой-либо причине секрет пустой — не обрабатываем
+  // запрос, чтобы случайное сравнение с пустым заголовком не пропустило атаку.
+  if (!expected) return ok();
   if (
     !secretMatches(
       req.headers.get("x-telegram-bot-api-secret-token") || "",

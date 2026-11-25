@@ -7,7 +7,10 @@ import {
   buildCurrencyKeyboard,
   buildTagsKeyboard,
   buildProjectKeyboard,
+  buildMemberKeyboard,
+  buildConfirmKeyboard,
   decideApprovalTarget,
+  isFinanceCallback,
 } from "@/lib/tg-bot-fsm";
 
 describe("tg-bot-flow", () => {
@@ -68,7 +71,7 @@ describe("tg-bot-flow", () => {
       assert.strictEqual(kb[0].length, 3);
       assert.strictEqual(kb[1].length, 1);
       assert.strictEqual(kb[2].length, 1);
-      assert.strictEqual(kb[2][0].callback_data, "curo");
+      assert.strictEqual(kb[2][0].callback_data, "fincuro");
     });
   });
 
@@ -84,8 +87,8 @@ describe("tg-bot-flow", () => {
       assert.strictEqual(firstRow[0].text, "✅ a");
       assert.strictEqual(firstRow[1].text, "b");
       const lastRow = kb[kb.length - 1];
-      assert.strictEqual(lastRow[0].callback_data, "tags-skip");
-      assert.strictEqual(lastRow[1].callback_data, "tags-done");
+      assert.strictEqual(lastRow[0].callback_data, "fintags-skip");
+      assert.strictEqual(lastRow[1].callback_data, "fintags-done");
     });
   });
 
@@ -97,9 +100,9 @@ describe("tg-bot-flow", () => {
       }));
       const kb = buildProjectKeyboard(projects, 0);
       assert.strictEqual(kb.length, 9); // 8 items + nav
-      assert.strictEqual(kb[0][0].callback_data, "proj:p0");
+      assert.strictEqual(kb[0][0].callback_data, "finpr:p0");
       const nav = kb[kb.length - 1];
-      assert.ok(nav.some(b => b.callback_data === "projp:1"));
+      assert.ok(nav.some(b => b.callback_data === "finprp:1"));
     });
   });
 
@@ -121,6 +124,55 @@ describe("tg-bot-flow", () => {
       });
       assert.ok("dm" in target);
       assert.strictEqual(target.dm, true);
+    });
+  });
+
+  describe("isFinanceCallback", () => {
+    it("accepts finance namespace callbacks", () => {
+      assert.ok(isFinanceCallback("fincr:USD"));
+      assert.ok(isFinanceCallback("finsc:PROJECT"));
+      assert.ok(isFinanceCallback("finpr:p1"));
+      assert.ok(isFinanceCallback("finprp:1"));
+      assert.ok(isFinanceCallback("finme:m1"));
+      assert.ok(isFinanceCallback("finmep:0"));
+      assert.ok(isFinanceCallback("finta:server"));
+      assert.ok(isFinanceCallback("fintags-done"));
+      assert.ok(isFinanceCallback("finconfirm"));
+      assert.ok(isFinanceCallback("fintg-cancel"));
+      assert.ok(isFinanceCallback("fina:exp1"));
+      assert.ok(isFinanceCallback("finr:exp1"));
+      assert.ok(isFinanceCallback("finmenu-expense"));
+      assert.ok(isFinanceCallback("finmenu-balance"));
+    });
+
+    it("rejects old generic prefixes", () => {
+      assert.ok(!isFinanceCallback("proj:p1"));
+      assert.ok(!isFinanceCallback("projp:1"));
+      assert.ok(!isFinanceCallback("mem:m1"));
+      assert.ok(!isFinanceCallback("tag:server"));
+      assert.ok(!isFinanceCallback("confirm"));
+      assert.ok(!isFinanceCallback("tg-cancel"));
+      assert.ok(!isFinanceCallback("menu-expense"));
+    });
+
+    it("rejects unrelated reminders", () => {
+      assert.ok(!isFinanceCallback("paid:msg1"));
+      assert.ok(!isFinanceCallback("cancel:msg1"));
+    });
+  });
+
+  describe("buildMemberKeyboard", () => {
+    it("uses finme namespace", () => {
+      const kb = buildMemberKeyboard([{ id: "m1", name: "Member 1" }], 0);
+      assert.strictEqual(kb[0][0].callback_data, "finme:m1");
+    });
+  });
+
+  describe("buildConfirmKeyboard", () => {
+    it("uses finconfirm and fintg-cancel", () => {
+      const kb = buildConfirmKeyboard("Send", "Cancel");
+      assert.strictEqual(kb[0][0].callback_data, "finconfirm");
+      assert.strictEqual(kb[1][0].callback_data, "fintg-cancel");
     });
   });
 });

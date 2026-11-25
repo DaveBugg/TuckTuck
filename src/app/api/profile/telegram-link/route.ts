@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       try {
         await prisma.user.update({
           where: { id: me.id },
-          data: { telegramLinkCode: code },
+          data: { telegramLinkCode: code, telegramLinkCodeAt: new Date() },
         });
         break;
       } catch (e: any) {
@@ -96,7 +96,11 @@ export async function DELETE(req: Request) {
     const me = await requireUser();
     await prisma.user.update({
       where: { id: me.id },
-      data: { telegramUserId: null, telegramLinkCode: null },
+      data: {
+        telegramUserId: null,
+        telegramLinkCode: null,
+        telegramLinkCodeAt: null,
+      },
     });
     return NextResponse.json({ ok: true });
   } catch (e) {

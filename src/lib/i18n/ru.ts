@@ -689,7 +689,11 @@ export const ru: Record<string, string> = {
     "Сумма распределения превышает доступный остаток",
   "finance.err.cannotEditApproved":
     "Утверждённую операцию может править только управляющий финансами",
+  "finance.err.cannotEditDistributed":
+    "Нельзя менять сумму или валюту дохода с уже созданными распределениями",
   "finance.err.cannotTransition": "Недопустимый переход статуса",
+  "finance.err.cannotApproveOwn":
+    "Нельзя утверждать собственный расход — нужен другой финансист",
   "finance.err.alreadyApproved": "Расход уже обработан",
   "finance.err.userAlreadyLinked":
     "Пользователь уже привязан к другому участнику",
@@ -994,6 +998,12 @@ export const ru: Record<string, string> = {
     "Групп пока нет. Добавьте бота в группу — она появится здесь.",
   "finance.settings.err.currencies": "Не более {max} валют",
   "finance.settings.err.tags": "Не более {max} тегов",
+  "finance.settings.err.currencyFormat":
+    "Коды валют — 2–10 заглавных латинских букв/цифр, не более {max}",
+  "finance.settings.err.tagFormat":
+    "Теги — непустые строки до {max} символов, не более {max} штук",
+  "finance.settings.err.financierNoTelegram":
+    "Финансист должен иметь привязанный Telegram",
 
   // ── Profile Telegram ──────────────────────────────────────────────────────
   "profile.telegram.desc":

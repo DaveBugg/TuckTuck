@@ -3,7 +3,7 @@
 // Роуты готовят входные данные и проверяют права, этот модуль занимается
 // валидацией, пересчётом в базовую валюту, созданием записи и аудитом.
 
-import type { User, Expense } from "@prisma/client";
+import type { User, Expense, Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { hasPermission } from "./auth";
 import { writeAudit } from "./finance-audit";
@@ -115,6 +115,7 @@ export type CreateExpenseOptions = {
   sourceMessageId?: number;
   /** Принудительный статус, нужен для генерации из периодических шаблонов. */
   forceStatus?: Expense["status"];
+  tx?: Prisma.TransactionClient;
 };
 
 /**
@@ -126,12 +127,14 @@ export async function createExpense({
   sourceChatId,
   sourceMessageId,
   forceStatus,
+  tx,
 }: CreateExpenseOptions): Promise<Expense> {
   const status =
     forceStatus ??
     expenseStatusOnCreate(hasPermission(me.role, "finance.approve"));
 
-  const row = await prisma.expense.create({
+  const client = tx ?? prisma;
+  const row = await client.expense.create({
     data: {
       title: data.title,
       description: data.description,
@@ -152,24 +155,32 @@ export async function createExpense({
     },
   });
 
-  await writeAudit(me.id, "CREATE", "expense", row.id, null, {
-    title: data.title,
-    description: data.description,
-    amount: data.amount,
-    currency: data.currency,
-    amountBase: data.amountBase,
-    kind: data.kind,
-    scope: data.scope,
-    projectId: data.projectId,
-    memberId: data.memberId,
-    date: data.date.toISOString(),
-    tags: data.tags,
-    recurringId: data.recurringId ?? null,
-    status,
-    sourceChatId: sourceChatId ?? "",
-    sourceMessageId: sourceMessageId ?? null,
-    createdById: me.id,
-  });
+  await writeAudit(
+    me.id,
+    "CREATE",
+    "expense",
+    row.id,
+    null,
+    {
+      title: data.title,
+      description: data.description,
+      amount: data.amount,
+      currency: data.currency,
+      amountBase: data.amountBase,
+      kind: data.kind,
+      scope: data.scope,
+      projectId: data.projectId,
+      memberId: data.memberId,
+      date: data.date.toISOString(),
+      tags: data.tags,
+      recurringId: data.recurringId ?? null,
+      status,
+      sourceChatId: sourceChatId ?? "",
+      sourceMessageId: sourceMessageId ?? null,
+      createdById: me.id,
+    },
+    tx
+  );
 
   return row;
 }

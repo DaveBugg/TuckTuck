@@ -29,6 +29,14 @@ function normalizeDate(d: Date): Date {
   );
 }
 
+function isPrismaUniqueError(e: unknown): boolean {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    (e as { code?: string }).code === "P2002"
+  );
+}
+
 export async function POST(req: Request) {
   try {
     const me = workerAuthorized(req)
@@ -65,7 +73,7 @@ export async function POST(req: Request) {
       new Set(due.map(t => t.createdById).filter(Boolean))
     ) as string[];
     const creators = await prisma.user.findMany({
-      where: { id: { in: creatorIds } },
+      where: { id: { in: creatorIds }, isActive: true },
     });
     const creatorById = new Map(creators.map(u => [u.id, u]));
 
@@ -73,61 +81,61 @@ export async function POST(req: Request) {
     let skipped = 0;
 
     for (const t of due) {
-      const runDate = normalizeDate(t.nextRunAt);
-
-      const existing = await prisma.expense.findFirst({
-        where: {
-          recurringId: t.id,
-          date: runDate,
-        },
-      });
-
-      if (existing) {
+      const creator = t.createdById ? creatorById.get(t.createdById) : null;
+      if (!creator) {
+        console.warn(
+          `[recurring/run] creator missing or inactive for template ${t.id}`
+        );
         skipped++;
-      } else {
-        const creator = t.createdById ? creatorById.get(t.createdById) : null;
-        if (!creator) {
-          console.warn(
-            `[recurring/run] creator not found for template ${t.id}`
-          );
-          skipped++;
-        } else {
-          const base = toAmountBase(
-            Number(t.amount),
-            t.currency,
-            settings.displayCurrency,
-            rates.perUsd
-          );
-          if (base === null) {
-            console.warn(
-              `[recurring/run] no rate for ${t.currency} (template ${t.id})`
-            );
-            skipped++;
-          } else {
-            const data = buildExpenseFromTemplate(t);
-            await createExpense({
-              me: creator,
-              data: {
-                ...data,
-                amountBase: decimalStr(base),
-                tags: data.tags,
-              },
-              forceStatus: "APPROVED",
-            });
-            created++;
-          }
-        }
+        continue;
       }
 
+      const base = toAmountBase(
+        Number(t.amount),
+        t.currency,
+        settings.displayCurrency,
+        rates.perUsd
+      );
+      if (base === null) {
+        console.warn(
+          `[recurring/run] no rate for ${t.currency} (template ${t.id})`
+        );
+        skipped++;
+        continue;
+      }
+
+      const data = buildExpenseFromTemplate(t);
       let nextRun = t.nextRunAt;
       while (nextRun <= now) {
         nextRun = nextRunAfter(nextRun, t.frequency, t.interval, t.dayOfMonth);
       }
 
-      await prisma.recurringExpense.update({
-        where: { id: t.id },
-        data: { nextRunAt: nextRun },
-      });
+      try {
+        await prisma.$transaction(async tx => {
+          await createExpense({
+            me: creator,
+            data: {
+              ...data,
+              amountBase: decimalStr(base),
+              tags: data.tags,
+            },
+            forceStatus: "APPROVED",
+            tx,
+          });
+          await tx.recurringExpense.update({
+            where: { id: t.id },
+            data: { nextRunAt: nextRun },
+          });
+        });
+        created++;
+      } catch (e) {
+        if (isPrismaUniqueError(e)) {
+          // Уже создано за этот период — дедуп сработал на уровне БД.
+          skipped++;
+        } else {
+          throw e;
+        }
+      }
     }
 
     await writeAudit(me?.id ?? null, "GENERATE", "recurring", "run", null, {

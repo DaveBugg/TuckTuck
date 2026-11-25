@@ -8,13 +8,30 @@ import { getSettings, invalidateSettingsCache } from "@/lib/settings";
 const MAX_CURRENCIES = 12;
 const MAX_TAGS = 8;
 
-function validateStringArray(value: unknown, max: number): string[] | null {
+const MAX_CURRENCY_LEN = 10;
+const MAX_TAG_LEN = 24;
+
+function validateCurrencies(value: unknown, max: number): string[] | null {
+  if (!Array.isArray(value)) return null;
+  const out = value
+    .filter((x): x is string => typeof x === "string")
+    .map(x => x.trim().toUpperCase())
+    .filter(Boolean);
+  if (out.length > max || out.some(c => !/^[A-Z0-9]{2,10}$/.test(c))) {
+    return null;
+  }
+  return out;
+}
+
+function validateTags(value: unknown, max: number): string[] | null {
   if (!Array.isArray(value)) return null;
   const out = value
     .filter((x): x is string => typeof x === "string")
     .map(x => x.trim())
     .filter(Boolean);
-  if (out.length > max) return null;
+  if (out.length > max || out.some(t => t.length > MAX_TAG_LEN)) {
+    return null;
+  }
   return out;
 }
 
@@ -77,14 +94,14 @@ export async function PATCH(req: Request) {
     const data: Record<string, unknown> = {};
 
     if (b.financeQuickCurrencies !== undefined) {
-      const currencies = validateStringArray(
+      const currencies = validateCurrencies(
         b.financeQuickCurrencies,
         MAX_CURRENCIES
       );
       if (currencies === null) {
         return NextResponse.json(
           {
-            error: t("finance.settings.err.currencies", {
+            error: t("finance.settings.err.currencyFormat", {
               max: MAX_CURRENCIES,
             }),
           },
@@ -95,10 +112,10 @@ export async function PATCH(req: Request) {
     }
 
     if (b.financeQuickTags !== undefined) {
-      const tags = validateStringArray(b.financeQuickTags, MAX_TAGS);
+      const tags = validateTags(b.financeQuickTags, MAX_TAGS);
       if (tags === null) {
         return NextResponse.json(
-          { error: t("finance.settings.err.tags", { max: MAX_TAGS }) },
+          { error: t("finance.settings.err.tagFormat", { max: MAX_TAGS }) },
           { status: 400 }
         );
       }
@@ -109,13 +126,19 @@ export async function PATCH(req: Request) {
       if (b.financierUserId === null) {
         data.financierUserId = null;
       } else if (isUuid(b.financierUserId)) {
-        const exists = await prisma.user.findUnique({
+        const candidate = await prisma.user.findUnique({
           where: { id: b.financierUserId },
-          select: { id: true },
+          select: { id: true, telegramUserId: true },
         });
-        if (!exists) {
+        if (!candidate) {
           return NextResponse.json(
             { error: t("err.relationNotFound") },
+            { status: 400 }
+          );
+        }
+        if (candidate.telegramUserId === null) {
+          return NextResponse.json(
+            { error: t("finance.settings.err.financierNoTelegram") },
             { status: 400 }
           );
         }

@@ -13,6 +13,7 @@ import {
   toAmountBase,
 } from "@/lib/finance-api";
 import { writeAudit } from "@/lib/finance-audit";
+import { validateScope } from "@/lib/finance";
 import type { TFunc } from "@/lib/i18n/translate";
 import type { Prisma } from "@prisma/client";
 
@@ -112,6 +113,21 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const rates = await getRates();
     const data = parseBody(b, t, settings.displayCurrency, rates.perUsd);
     if ("error" in data) return NextResponse.json(data, { status: 400 });
+
+    const finalKind = existing.kind;
+    const finalScope = existing.scope;
+    const finalProjectId =
+      "projectId" in data
+        ? (data.projectId as string | null)
+        : existing.projectId;
+    const finalMemberId =
+      "memberId" in data ? (data.memberId as string | null) : existing.memberId;
+    if (validateScope(finalKind, finalScope, finalProjectId, finalMemberId)) {
+      return NextResponse.json(
+        { error: t("finance.err.scopeValidation") },
+        { status: 400 }
+      );
+    }
 
     const row = await prisma.expense.update({
       where: { id },

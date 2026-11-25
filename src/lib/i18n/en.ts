@@ -665,7 +665,11 @@ export const en: Record<string, string> = {
     "Distribution total exceeds available balance",
   "finance.err.cannotEditApproved":
     "Only a finance manager can edit an approved operation",
+  "finance.err.cannotEditDistributed":
+    "Cannot change amount or currency of an income with existing distributions",
   "finance.err.cannotTransition": "Invalid status transition",
+  "finance.err.cannotApproveOwn":
+    "You cannot approve your own expense — another financier is required",
   "finance.err.alreadyApproved": "Expense is already processed",
   "finance.err.userAlreadyLinked": "User is already linked to another member",
 
@@ -958,6 +962,12 @@ export const en: Record<string, string> = {
     "No groups yet. Add the bot to a group and it will appear here.",
   "finance.settings.err.currencies": "At most {max} currencies",
   "finance.settings.err.tags": "At most {max} tags",
+  "finance.settings.err.currencyFormat":
+    "Currency codes must be 2–10 uppercase Latin letters/digits, at most {max}",
+  "finance.settings.err.tagFormat":
+    "Tags must be non-empty strings up to {max} chars, at most {max}",
+  "finance.settings.err.financierNoTelegram":
+    "Financier must have a linked Telegram account",
 
   // ── Profile Telegram ──────────────────────────────────────────────────────
   "profile.telegram.desc": "Link Telegram for bot login and quick actions",

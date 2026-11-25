@@ -480,22 +480,11 @@ async function notifyAuthorDecision(
   const author = await prisma.user.findUnique({
     where: { id: expense.createdById },
   });
+  const text = `${decisionText}\n\n${esc(expense.title)}: ${expense.amount} ${expense.currency}`;
   if (author?.telegramUserId) {
-    await sendMessage(
-      token,
-      String(author.telegramUserId),
-      `${decisionText}\n\n${expense.title}: ${expense.amount} ${expense.currency}`,
-      [],
-      proxy
-    );
+    await sendMessage(token, String(author.telegramUserId), text, [], proxy);
   } else if (expense.sourceChatId) {
-    await sendMessage(
-      token,
-      expense.sourceChatId,
-      `${decisionText}\n\n${expense.title}: ${expense.amount} ${expense.currency}`,
-      [],
-      proxy
-    );
+    await sendMessage(token, expense.sourceChatId, text, [], proxy);
   }
 }
 
@@ -552,28 +541,46 @@ async function handleStart(
   const code = args[1];
 
   if (code) {
-    const linkUser = await prisma.user.findUnique({
-      where: { telegramLinkCode: code },
-    });
-    if (!linkUser) {
-      await sendRestricted(token, chatId, proxy);
-      return;
-    }
-    await prisma.user.update({
-      where: { id: linkUser.id },
+    const ttlMs = 10 * 60 * 1000;
+    const minCreatedAt = new Date(Date.now() - ttlMs);
+    const linkResult = await prisma.user.updateMany({
+      where: {
+        telegramLinkCode: code,
+        telegramLinkCodeAt: { gte: minCreatedAt },
+      },
       data: {
         telegramUserId: tgUserId(from.id),
         telegramLinkCode: null,
+        telegramLinkCodeAt: null,
       },
     });
+    if (linkResult.count !== 1) {
+      const t = makeT((await getSettings()).notifyLocale);
+      await sendMessage(
+        token,
+        chatId,
+        t("finance.bot.link.invalidCode"),
+        [],
+        proxy
+      );
+      return;
+    }
+    const linkUser = await prisma.user.findUnique({
+      where: { telegramUserId: tgUserId(from.id) },
+    });
     const t = makeT((await getSettings()).notifyLocale);
+    if (!linkUser) {
+      await sendMessage(
+        token,
+        chatId,
+        t("finance.bot.error.general"),
+        [],
+        proxy
+      );
+      return;
+    }
     await sendMessage(token, chatId, t("finance.bot.link.ok"), [], proxy);
-    await sendMenu(
-      token,
-      chatId,
-      { ...linkUser, telegramUserId: tgUserId(from.id) } as User,
-      proxy
-    );
+    await sendMenu(token, chatId, linkUser, proxy);
     return;
   }
 
@@ -614,7 +621,9 @@ async function handleMessage(
   }
 
   if (!user) {
-    await sendRestricted(token, chatId, proxy);
+    if (!isGroup) {
+      await sendRestricted(token, chatId, proxy);
+    }
     return;
   }
 
@@ -724,7 +733,7 @@ async function handleCallback(
   // Финансовые аппрув-кнопки могут жать финансисты, не обязательно автор.
   const user = await findUserByTg(from.id);
 
-  if (data === "menu-expense") {
+  if (data === "finmenu-expense") {
     if (!user) {
       await sendRestricted(token, chatId, proxy);
       await answerCallbackQuery(token, cq.id, undefined, false, proxy);
@@ -735,7 +744,7 @@ async function handleCallback(
     return;
   }
 
-  if (data === "menu-balance") {
+  if (data === "finmenu-balance") {
     if (!user) {
       await sendRestricted(token, chatId, proxy);
       await answerCallbackQuery(token, cq.id, undefined, false, proxy);
@@ -759,21 +768,21 @@ async function handleCallback(
 
   const state = await getFsmState(chatId, userId);
 
-  if (data.startsWith("cur:")) {
+  if (data.startsWith("fincr:")) {
     if (state.step !== "awaitCurrency") return;
-    const currency = data.slice(4);
+    const currency = data.slice(6);
     await showScopes(token, chatId, userId, state.amount, currency, proxy);
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
 
-  if (data === "curo") {
+  if (data === "fincuro") {
     // "Другая" — просто ждём текст валюты.
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
 
-  if (data.startsWith("scope:")) {
+  if (data.startsWith("finsc:")) {
     if (state.step !== "awaitScope") return;
     const scope = data.slice(6) as "TEAM" | "PROJECT" | "MEMBER";
     if (scope === "PROJECT") {
@@ -829,9 +838,9 @@ async function handleCallback(
     return;
   }
 
-  if (data.startsWith("proj:")) {
+  if (data.startsWith("finpr:")) {
     if (state.step !== "awaitProject") return;
-    const projectId = data.slice(5);
+    const projectId = data.slice(6);
     await askTitle(
       token,
       chatId,
@@ -848,17 +857,17 @@ async function handleCallback(
     return;
   }
 
-  if (data.startsWith("projp:")) {
+  if (data.startsWith("finprp:")) {
     if (state.step !== "awaitProject") return;
-    const page = Number(data.slice(6)) || 0;
+    const page = Number(data.slice(7)) || 0;
     await showProjects(token, chatId, userId, state, page, proxy);
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
 
-  if (data.startsWith("mem:")) {
+  if (data.startsWith("finme:")) {
     if (state.step !== "awaitMember") return;
-    const memberId = data.slice(4);
+    const memberId = data.slice(6);
     await askTitle(
       token,
       chatId,
@@ -876,17 +885,17 @@ async function handleCallback(
     return;
   }
 
-  if (data.startsWith("memp:")) {
+  if (data.startsWith("finmep:")) {
     if (state.step !== "awaitMember") return;
-    const page = Number(data.slice(5)) || 0;
+    const page = Number(data.slice(7)) || 0;
     await showMembers(token, chatId, userId, state, page, proxy);
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
 
-  if (data.startsWith("tag:")) {
+  if (data.startsWith("finta:")) {
     if (state.step !== "awaitTags") return;
-    const tag = data.slice(4);
+    const tag = data.slice(6);
     const selected = new Set(state.selectedTags);
     if (selected.has(tag)) selected.delete(tag);
     else selected.add(tag);
@@ -910,9 +919,9 @@ async function handleCallback(
     return;
   }
 
-  if (data === "tags-done" || data === "tags-skip") {
+  if (data === "fintags-done" || data === "fintags-skip") {
     if (state.step !== "awaitTags") return;
-    const tags = data === "tags-done" ? state.selectedTags : [];
+    const tags = data === "fintags-done" ? state.selectedTags : [];
     await showConfirm(
       token,
       chatId,
@@ -933,14 +942,14 @@ async function handleCallback(
     return;
   }
 
-  if (data === "confirm") {
+  if (data === "finconfirm") {
     if (state.step !== "confirm") return;
     await submitExpense(token, chatId, userId, user, state, proxy);
     await answerCallbackQuery(token, cq.id, undefined, false, proxy);
     return;
   }
 
-  if (data === "tg-cancel") {
+  if (data === "fintg-cancel") {
     await clearFsmState(chatId, userId);
     const t = makeT((await getSettings()).notifyLocale);
     await sendMessage(
@@ -1001,15 +1010,31 @@ async function handleApprovalCallback(
     return;
   }
 
-  const row = await prisma.expense.update({
-    where: { id: expenseId },
+  // Атомарный захват: только один callback обработает PENDING → решение.
+  const captured = await prisma.expense.updateMany({
+    where: { id: expenseId, status: "PENDING" },
     data: {
       status: toStatus,
       approvedById: user.id,
       approvedAt: new Date(),
     },
   });
+  if (captured.count !== 1) {
+    await answerCallbackQuery(
+      token,
+      cq.id,
+      t("finance.err.alreadyApproved"),
+      true,
+      proxy
+    );
+    return;
+  }
 
+  const row = await prisma.expense.findUnique({ where: { id: expenseId } });
+  if (!row) {
+    await answerCallbackQuery(token, cq.id, t("err.notFound"), true, proxy);
+    return;
+  }
   await writeAudit(user.id, action, "expense", expenseId, existing, row);
 
   const decisionText =

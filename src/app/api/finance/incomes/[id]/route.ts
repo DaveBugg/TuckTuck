@@ -72,9 +72,22 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const { id } = await ctx.params;
     const b = await req.json().catch(() => ({}));
 
-    const existing = await prisma.income.findUnique({ where: { id } });
+    const existing = await prisma.income.findUnique({
+      where: { id },
+      include: { _count: { select: { distributions: true } } },
+    });
     if (!existing) {
       return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
+    }
+
+    if (
+      existing._count.distributions > 0 &&
+      (b.amount !== undefined || b.currency !== undefined)
+    ) {
+      return NextResponse.json(
+        { error: t("finance.err.cannotEditDistributed") },
+        { status: 409 }
+      );
     }
 
     const settings = await getSettings();

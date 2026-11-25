@@ -22,6 +22,14 @@ test("MEMBER: memberId обязателен, projectId опционален", ()
 
 test("PAYOUT всегда требует memberId", () => {
   assert.equal(validateScope("PAYOUT", "MEMBER", null, "m1"), null);
+  assert.equal(validateScope("PAYOUT", "PROJECT", "p1", "m1"), null);
   assert.notEqual(validateScope("PAYOUT", "TEAM", null, null), null);
   assert.notEqual(validateScope("PAYOUT", "PROJECT", "p1", null), null);
+});
+
+test("PATCH-подобные переходы: нельзя сбросить обязательный контекст", () => {
+  // PROJECT-расход без projectId — невалиден.
+  assert.notEqual(validateScope("EXPENSE", "PROJECT", null, "m1"), null);
+  // MEMBER-расход без memberId — невалиден.
+  assert.notEqual(validateScope("EXPENSE", "MEMBER", "p1", null), null);
 });

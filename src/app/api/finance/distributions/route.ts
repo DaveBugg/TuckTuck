@@ -9,6 +9,12 @@ import { writeAudit } from "@/lib/finance-audit";
 import type { Prisma } from "@prisma/client";
 import type { TFunc } from "@/lib/i18n/translate";
 
+class InsufficientBalanceError extends Error {
+  constructor() {
+    super("insufficient balance");
+  }
+}
+
 function parseBody(
   b: any,
   t: TFunc
@@ -116,68 +122,72 @@ export async function POST(req: Request) {
 
     const projectId = (data.projectId ?? null) as string | null;
 
-    // Расчёт доступного остатка: проект или команда.
-    let available = 0;
-    if (projectId) {
-      const [incomes, distributions, expenses] = await Promise.all([
-        prisma.income.findMany({
-          where: { projectId },
-          select: { amountBase: true },
-        }),
-        prisma.distribution.findMany({
-          where: { projectId },
-          select: { amountBase: true },
-        }),
-        prisma.expense.findMany({
-          where: { projectId, kind: "EXPENSE", status: "APPROVED" },
-          select: { amountBase: true, kind: true },
-        }),
-      ]);
-      available = projectBalance(incomes, distributions, expenses);
-    } else {
-      const [incomes, distributions, allExpenses] = await Promise.all([
-        prisma.income.findMany({ select: { amountBase: true } }),
-        prisma.distribution.findMany({ select: { amountBase: true } }),
-        prisma.expense.findMany({
-          where: {
-            kind: { in: ["EXPENSE", "PAYOUT"] },
-            status: "APPROVED",
-          },
-          select: { amountBase: true, kind: true },
-        }),
-      ]);
-      available = teamBalance(incomes, distributions, allExpenses);
-    }
+    const row = await prisma.$transaction(async tx => {
+      // Пересчёт остатка внутри транзакции — защита от гонок.
+      let available = 0;
+      if (projectId) {
+        const [incomes, distributions, expenses] = await Promise.all([
+          tx.income.findMany({
+            where: { projectId },
+            select: { amountBase: true },
+          }),
+          tx.distribution.findMany({
+            where: { projectId },
+            select: { amountBase: true },
+          }),
+          tx.expense.findMany({
+            where: {
+              projectId,
+              kind: "EXPENSE",
+              status: "APPROVED",
+              scope: "PROJECT",
+            },
+            select: { amountBase: true, kind: true },
+          }),
+        ]);
+        available = projectBalance(incomes, distributions, expenses);
+      } else {
+        const [incomes, distributions, allExpenses] = await Promise.all([
+          tx.income.findMany({ select: { amountBase: true } }),
+          tx.distribution.findMany({ select: { amountBase: true } }),
+          tx.expense.findMany({
+            where: {
+              kind: { in: ["EXPENSE", "PAYOUT"] },
+              status: "APPROVED",
+            },
+            select: { amountBase: true, kind: true },
+          }),
+        ]);
+        available = teamBalance(incomes, distributions, allExpenses);
+      }
 
-    let amountBase: number;
-    if (data.percent !== undefined) {
-      amountBase =
-        Math.round(((available * Number(data.percent)) / 100) * 100) / 100;
-    } else {
-      amountBase = Number(data.amountBase);
-    }
+      let amountBase: number;
+      if (data.percent !== undefined) {
+        amountBase =
+          Math.round(((available * Number(data.percent)) / 100) * 100) / 100;
+      } else {
+        amountBase = Number(data.amountBase);
+      }
 
-    if (amountBase > available + 1e-8) {
-      return NextResponse.json(
-        { error: t("finance.err.insufficientBalance") },
-        { status: 400 }
-      );
-    }
+      if (amountBase > available + 1e-8) {
+        throw new InsufficientBalanceError();
+      }
 
-    const row = await prisma.distribution.create({
-      data: {
-        memberId: String(data.memberId),
-        projectId,
-        amountBase: decimalStr(amountBase),
-        percent:
-          data.percent !== undefined ? Number(data.percent).toFixed(2) : null,
-        note: String(data.note ?? ""),
-      },
+      return tx.distribution.create({
+        data: {
+          memberId: String(data.memberId),
+          projectId,
+          amountBase: decimalStr(amountBase),
+          percent:
+            data.percent !== undefined ? Number(data.percent).toFixed(2) : null,
+          note: String(data.note ?? ""),
+        },
+      });
     });
 
     await writeAudit(me.id, "CREATE", "distribution", row.id, null, {
       ...data,
-      amountBase: decimalStr(amountBase),
+      amountBase: row.amountBase.toString(),
     });
 
     return NextResponse.json(
@@ -191,6 +201,12 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (e) {
+    if (e instanceof InsufficientBalanceError) {
+      return NextResponse.json(
+        { error: t("finance.err.insufficientBalance") },
+        { status: 400 }
+      );
+    }
     return toApiError(e, t);
   }
 }

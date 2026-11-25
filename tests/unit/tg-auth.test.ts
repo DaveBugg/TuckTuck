@@ -63,4 +63,16 @@ describe("validateInitData", () => {
     const result = validateInitData(initData, "wrong-token");
     assert.strictEqual(result.ok, false);
   });
+
+  it("accepts when tried against the correct bot token among several", () => {
+    const now = Math.floor(Date.now() / 1000);
+    const initData = buildInitData({ id: 42, first_name: "Test" }, now);
+    const wrong = validateInitData(initData, "wrong-token-1");
+    const alsoWrong = validateInitData(initData, "wrong-token-2");
+    const right = validateInitData(initData, BOT_TOKEN);
+    assert.strictEqual(wrong.ok, false);
+    assert.strictEqual(alsoWrong.ok, false);
+    assert.strictEqual(right.ok, true);
+    assert.strictEqual(right.user?.id, 42);
+  });
 });

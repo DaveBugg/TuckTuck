@@ -13,6 +13,7 @@ function parseBody(b: any): MemberInput[] | { error: string } {
   if (!Array.isArray(b.members)) return { error: "members array required" };
   const out: MemberInput[] = [];
   const seen = new Set<string>();
+  let totalPercent = 0;
   for (const m of b.members) {
     const memberId = typeof m?.memberId === "string" ? m.memberId.trim() : "";
     if (!memberId) return { error: "memberId required" };
@@ -25,8 +26,12 @@ function parseBody(b: any): MemberInput[] | { error: string } {
         return { error: "percent must be 0..100" };
       }
       percent = p;
+      totalPercent += p;
     }
     out.push({ memberId, percent });
+  }
+  if (totalPercent > 100) {
+    return { error: "total percent must not exceed 100" };
   }
   return out;
 }

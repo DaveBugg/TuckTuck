@@ -2,6 +2,30 @@
 
 > Рабочий журнал задач. Новое — сверху. Закрытое удалять/сжимать, не раздувать.
 
+## 2026-11-25 — Finance Board: аудит-исправления (миграция + безопасность + балансы)
+
+- [x] Миграция `20261125101903_finance_audit_fixes`: `Expense @@unique([recurringId, date])`,
+      `User.telegramLinkCodeAt`; применена на `tucktuck-pg` чисто.
+- [x] `recurring/run`: `nextRunAt` сдвигается только при успешном создании Expense; дедуп через
+      P2002; шаблоны неактивных создателей пропускаются.
+- [x] `distributions` POST: баланс и создание в одной интерактивной транзакции.
+- [x] `splitIncome`: строгие проценты, остаток на проекте, отбраковка отрицательных долей.
+- [x] `projects/[id]/members`: сумма долей ≤ 100; `summary`/`distributions` считают project-расходы
+      только при `scope=PROJECT`.
+- [x] `expenses/[id]` PATCH: итоговое состояние валидируется через `validateScope`; `approve`: нельзя
+      аппрувить собственный расход; `incomes/[id]` PATCH: запрет смены amount/currency при
+      распределениях.
+- [x] TG-бот: webhook fail-closed, `/api/auth/telegram` multi-bot + rate-limit, TTL 10 минут для кода
+      привязки с атомарным `updateMany`, аппрув-кнопки с атомарным захватом, `esc()` в
+      `notifyAuthorDecision`, неизвестные пользователи в одобренной группе молчат, неймспейс
+      `fin*` для всех finance-коллбеков.
+- [x] `settings/finance`: финансист только с привязанным Telegram; валюты в UPPERCASE + формат
+      `^[A-Z0-9]{2,10}$`; теги trim + ≤24 символов.
+- [x] Тесты: обновлены `finance-distribute.test.ts`, `finance-scope.test.ts`, `tg-bot-flow.test.ts`,
+      `tg-auth.test.ts`.
+- [x] Итог: `npm run type-check`, `npm run lint` (1 старый warning), `npm test` (174 passed/1
+      skipped), `npm run build` — все чисто.
+
 ## 2026-11-24 — Система памяти агентов
 
 - [x] `CLAUDE.md` (общий управляющий документ) + `AGENTS.md` (тонкий указатель для Kimi)
@@ -13,14 +37,14 @@
 ## 2026-11-25 — Finance Board: периодика + финал (этапы 5–6)
 
 - [x] Этап 5: `finance-recurring.ts` (чистые функции `nextRunAfter` с клампом dayOfMonth,
-      `dueTemplates`, `buildExpenseFromTemplate`), API `/api/finance/recurring` +
-      `/run` (воркер по `TUCKTUCK_WORKER_TOKEN` или `finance.manage`, дедуп по recurringId+date,
-      аудит GENERATE), тик в `notify-worker.mjs`, вкладка «Периодические» в `/finance/expenses`,
-      живой прогон через worker-token
-- [x] Этап 6: фикс вкладки «Периодические» (stale-рендер DataTable при смене таба → `key`,
-      i18n расписания с plural-формами, `serializeSnapshot` не распознавал минифицированный
-      Decimal → проверка по полям s/e/d), E2E в браузере (доска, расходы, настройки, профиль,
-      вкладка периодики), `TUCKTUCK_WORKER_TOKEN` сгенерирован в локальный `.env`
+      `dueTemplates`, `buildExpenseFromTemplate`), API `/api/finance/recurring` + `/run` (воркер по
+      `TUCKTUCK_WORKER_TOKEN` или `finance.manage`, дедуп по recurringId+date, аудит GENERATE), тик
+      в `notify-worker.mjs`, вкладка «Периодические» в `/finance/expenses`, живой прогон через
+      worker-token
+- [x] Этап 6: фикс вкладки «Периодические» (stale-рендер DataTable при смене таба → `key`, i18n
+      расписания с plural-формами, `serializeSnapshot` не распознавал минифицированный Decimal →
+      проверка по полям s/e/d), E2E в браузере (доска, расходы, настройки, профиль, вкладка
+      периодики), `TUCKTUCK_WORKER_TOKEN` сгенерирован в локальный `.env`
 - [x] Итог: 165 юнит-тестов зелёные, type-check/lint чисто, build OK, пуш на GitHub
 
 ## 2026-11-25 — Finance Board: Telegram-бот (этап 4)

@@ -118,6 +118,7 @@ export async function GET() {
               projectId: p.id,
               kind: "EXPENSE",
               status: "APPROVED",
+              scope: "PROJECT",
             },
             select: { amountBase: true, kind: true },
           }),

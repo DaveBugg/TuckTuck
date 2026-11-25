@@ -18,6 +18,12 @@ export async function POST(req: Request, ctx: Ctx) {
     if (!existing) {
       return NextResponse.json({ error: t("err.notFound") }, { status: 404 });
     }
+    if (existing.createdById === me.id) {
+      return NextResponse.json(
+        { error: t("finance.err.cannotApproveOwn") },
+        { status: 403 }
+      );
+    }
     if (!canTransitionStatus(existing.status, "APPROVED")) {
       return NextResponse.json(
         { error: t("finance.err.cannotTransition") },

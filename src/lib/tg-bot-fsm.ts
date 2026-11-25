@@ -95,11 +95,11 @@ export function buildCurrencyKeyboard(
     rows.push(
       currencies.slice(i, i + TG_CURRENCY_ROW).map(c => ({
         text: c,
-        callback_data: `cur:${c}`,
+        callback_data: `fincr:${c}`,
       }))
     );
   }
-  rows.push([{ text: otherLabel, callback_data: "curo" }]);
+  rows.push([{ text: otherLabel, callback_data: "fincuro" }]);
   return rows;
 }
 
@@ -110,9 +110,9 @@ export function buildScopeKeyboard(labels: {
 }): InlineButton[][] {
   return [
     [
-      { text: labels.team, callback_data: "scope:TEAM" },
-      { text: labels.project, callback_data: "scope:PROJECT" },
-      { text: labels.member, callback_data: "scope:MEMBER" },
+      { text: labels.team, callback_data: "finsc:TEAM" },
+      { text: labels.project, callback_data: "finsc:PROJECT" },
+      { text: labels.member, callback_data: "finsc:MEMBER" },
     ],
   ];
 }
@@ -126,10 +126,10 @@ function paginationButtons(
   const lastPage = Math.max(0, Math.ceil(total / pageSize) - 1);
   const out: InlineButton[] = [];
   if (page > 0) {
-    out.push({ text: "←", callback_data: `${prefix}p:${page - 1}` });
+    out.push({ text: "←", callback_data: `fin${prefix}p:${page - 1}` });
   }
   if (page < lastPage) {
-    out.push({ text: "→", callback_data: `${prefix}p:${page + 1}` });
+    out.push({ text: "→", callback_data: `fin${prefix}p:${page + 1}` });
   }
   return out;
 }
@@ -142,7 +142,7 @@ export function buildListKeyboard<T extends { id: string; name: string }>(
   const start = page * TG_PAGE_SIZE;
   const slice = items.slice(start, start + TG_PAGE_SIZE);
   const rows: InlineButton[][] = slice.map(item => [
-    { text: item.name, callback_data: `${prefix}:${item.id}` },
+    { text: item.name, callback_data: `fin${prefix}:${item.id}` },
   ]);
   const nav = paginationButtons(page, items.length, TG_PAGE_SIZE, prefix);
   if (nav.length) rows.push(nav);
@@ -153,14 +153,14 @@ export function buildProjectKeyboard(
   projects: ProjectItem[],
   page: number
 ): InlineButton[][] {
-  return buildListKeyboard(projects, page, "proj");
+  return buildListKeyboard(projects, page, "pr");
 }
 
 export function buildMemberKeyboard(
   members: MemberItem[],
   page: number
 ): InlineButton[][] {
-  return buildListKeyboard(members, page, "mem");
+  return buildListKeyboard(members, page, "me");
 }
 
 export function buildTagsKeyboard(
@@ -175,7 +175,7 @@ export function buildTagsKeyboard(
     const mark = selected.has(tag) ? "✅ " : "";
     chipRow.push({
       text: `${mark}${tag}`,
-      callback_data: `tag:${tag}`,
+      callback_data: `finta:${tag}`,
     });
     if (chipRow.length >= 3) {
       rows.push([...chipRow]);
@@ -184,8 +184,8 @@ export function buildTagsKeyboard(
   }
   if (chipRow.length) rows.push([...chipRow]);
   rows.push([
-    { text: skipLabel, callback_data: "tags-skip" },
-    { text: doneLabel, callback_data: "tags-done" },
+    { text: skipLabel, callback_data: "fintags-skip" },
+    { text: doneLabel, callback_data: "fintags-done" },
   ]);
   return rows;
 }
@@ -195,8 +195,8 @@ export function buildConfirmKeyboard(
   cancelLabel: string
 ): InlineButton[][] {
   return [
-    [{ text: sendLabel, callback_data: "confirm" }],
-    [{ text: cancelLabel, callback_data: "tg-cancel" }],
+    [{ text: sendLabel, callback_data: "finconfirm" }],
+    [{ text: cancelLabel, callback_data: "fintg-cancel" }],
   ];
 }
 
@@ -223,19 +223,21 @@ export function decideApprovalTarget(
 
 /** Префиксы callback-данных, относящихся к Finance Board. */
 export const FINANCE_CALLBACK_PREFIXES = [
-  "cur:",
-  "curo",
-  "scope:",
-  "proj",
-  "mem",
-  "tag:",
-  "tags-",
-  "confirm",
-  "tg-cancel",
+  "fincr:",
+  "fincuro",
+  "finsc:",
+  "finpr:",
+  "finprp:",
+  "finme:",
+  "finmep:",
+  "finta:",
+  "fintags-",
+  "finconfirm",
+  "fintg-cancel",
   "fina:",
   "finr:",
-  "menu-expense",
-  "menu-balance",
+  "finmenu-expense",
+  "finmenu-balance",
 ];
 
 export function isFinanceCallback(data: string): boolean {

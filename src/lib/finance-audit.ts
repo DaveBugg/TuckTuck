@@ -46,9 +46,11 @@ export async function writeAudit(
   entity: AuditEntity,
   entityId: string,
   before: unknown,
-  after: unknown
+  after: unknown,
+  tx?: Prisma.TransactionClient
 ): Promise<Prisma.FinanceAuditLogGetPayload<{}>> {
-  return prisma.financeAuditLog.create({
+  const client = tx ?? prisma;
+  return client.financeAuditLog.create({
     data: {
       actorId,
       action,

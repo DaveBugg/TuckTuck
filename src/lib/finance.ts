@@ -59,30 +59,22 @@ export type SplitResult = {
 /**
  * Распределить доход по долям участников.
  *
- * Округляем каждое начисление до 2 знаков, остаток отдаём последнему — так сумма
- * начислений гарантированно равна исходной сумме, и ни один цент не теряется.
+ * Каждому начисляется строгий процент от суммы (не нормализуем доли).
+ * Округляем до 2 знаков; остаток, включая когда сумма долей < 100%,
+ * остаётся на балансе проекта. Отрицательные доли отбраковываются.
  */
 export function splitIncome(
   amountBase: number,
   members: SplitMember[]
 ): SplitResult[] {
   if (!members.length || amountBase <= 0) return [];
-  const totalPercent = members.reduce((acc, m) => acc + m.percent, 0);
-  if (totalPercent <= 0) return [];
+  if (members.some(m => m.percent < 0)) return [];
 
-  let distributed = 0;
-  const out: SplitResult[] = [];
-  for (let i = 0; i < members.length; i++) {
-    const m = members[i];
-    const raw = (amountBase * m.percent) / totalPercent;
-    const rounded =
-      i === members.length - 1
-        ? Math.round((amountBase - distributed) * 100) / 100
-        : Math.round(raw * 100) / 100;
-    distributed += rounded;
-    out.push({ memberId: m.memberId, amountBase: rounded, percent: m.percent });
-  }
-  return out;
+  return members.map(m => ({
+    memberId: m.memberId,
+    amountBase: Math.round(((amountBase * m.percent) / 100) * 100) / 100,
+    percent: m.percent,
+  }));
 }
 
 export type ScopeValidationError = string;

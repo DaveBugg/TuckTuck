@@ -16,17 +16,41 @@ import {
 } from "@/lib/i18n/config";
 import { tForRequest } from "@/lib/i18n/server";
 import { validateInitData } from "@/lib/tg-auth";
+import { rateLimit, ipKey } from "@/lib/rate-limit";
+
+// Один IP может перебирать подписи WebApp по разным ботам.
+const IP_LIMIT = 20;
+const IP_WINDOW_SEC = 300;
 
 /**
  * Вход по Telegram WebApp initData.
  *
  * Публичный эндпоинт: WebApp шлёт подписанные Telegram-ом данные, мы
- * проверяем подпись по токену первого активного бота, находим пользователя
- * по telegramUserId и создаём обычную сессию.
+ * проверяем подпись по ВСЕМ активным ботам (пользователь мог открыть панель
+ * через любого из них), находим активного User по telegramUserId и создаём
+ * обычную сессию.
  */
 export async function POST(req: Request) {
   const t = tForRequest(req);
   try {
+    const clientIp = (req.headers.get("x-forwarded-for") || "")
+      .split(",")[0]
+      .trim();
+    const limited = await rateLimit(
+      ipKey("tg-auth", clientIp),
+      IP_LIMIT,
+      IP_WINDOW_SEC
+    );
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: t("auth.err.tooMany", { sec: limited.retryAfterSec }) },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limited.retryAfterSec) },
+        }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const initData = typeof body.initData === "string" ? body.initData : "";
     if (!initData) {
@@ -36,38 +60,40 @@ export async function POST(req: Request) {
       );
     }
 
-    // Берём первый активный бот — его токеном и проверяем подпись WebApp.
-    const bot = await prisma.notifyBot.findFirst({
+    const bots = await prisma.notifyBot.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "asc" },
     });
-    if (!bot) {
+    if (!bots.length) {
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }
       );
     }
 
-    let token: string;
-    try {
-      token = decryptSecret(bot.tokenEnc);
-    } catch {
-      console.error("[auth/telegram] failed to decrypt bot token", bot.id);
+    let validatedUser: { id: number } | null = null;
+    for (const bot of bots) {
+      let token: string;
+      try {
+        token = decryptSecret(bot.tokenEnc);
+      } catch {
+        continue;
+      }
+      const validated = validateInitData(initData, token);
+      if (validated.ok) {
+        validatedUser = validated.user;
+        break;
+      }
+    }
+
+    if (!validatedUser) {
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }
       );
     }
 
-    const validated = validateInitData(initData, token);
-    if (!validated.ok) {
-      return NextResponse.json(
-        { error: t("err.unauthorized") },
-        { status: 401 }
-      );
-    }
-
-    const tgUserId = BigInt(String(validated.user.id));
+    const tgUserId = BigInt(String(validatedUser.id));
     const user = await prisma.user.findUnique({
       where: { telegramUserId: tgUserId },
     });
