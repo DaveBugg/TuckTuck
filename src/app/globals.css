@@ -222,6 +222,11 @@
     --vc-date-today-bg: var(--accent);
     --vc-date-today-color: var(--accent-foreground);
     --vc-date-weekend-today-color: var(--accent-foreground);
+    --vc-months-years-bg: transparent;
+    --vc-months-years-color: var(--popover-foreground);
+    --vc-months-years-bg-hover: var(--accent);
+    --vc-months-years-bg-selected: var(--primary);
+    --vc-months-years-color-selected: var(--primary-foreground);
     --vc-focus-outline-color: var(--ring);
   }
 }
