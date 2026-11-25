@@ -344,7 +344,7 @@ ok "панель отвечает"
 if [ "$FIRST_RUN" = "1" ]; then
   say "Завожу администратора"
   # Пароль печатается ОДИН раз и нигде не сохраняется.
-  docker compose exec -T tucktuck node prisma/seed.mjs </dev/null || warn "создать администратора не удалось — запустите вручную"
+  docker compose exec -T tucktuck node node_modules/tsx/dist/cli.mjs prisma/seed.ts </dev/null || warn "создать администратора не удалось — запустите вручную"
 fi
 
 # Уборка за собой: обновление переставляет тег latest на новый образ, а прежний

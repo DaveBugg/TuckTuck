@@ -258,7 +258,7 @@ curl -fsSL https://raw.githubusercontent.com/DaveBugg/TuckTuck/main/setup.sh | s
 git clone https://github.com/DaveBugg/TuckTuck.git && cd TuckTuck
 cp .env.example .env && nano .env    # домен, пароль БД, секреты
 ./scripts/deploy.sh
-docker compose exec tucktuck node prisma/seed.mjs   # первый админ
+docker compose exec tucktuck node node_modules/tsx/dist/cli.mjs prisma/seed.ts   # первый админ
 ```
 
 `deploy.sh` тянет образы, прогоняет миграции отдельным контейнером, обновляет приложение, ждёт

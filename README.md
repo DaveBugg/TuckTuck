@@ -264,7 +264,7 @@ Setting it up by hand instead, from a clone:
 git clone https://github.com/DaveBugg/TuckTuck.git && cd TuckTuck
 cp .env.example .env && nano .env    # domain, DB password, secrets
 ./scripts/deploy.sh
-docker compose exec tucktuck node prisma/seed.mjs   # first admin
+docker compose exec tucktuck node node_modules/tsx/dist/cli.mjs prisma/seed.ts   # first admin
 ```
 
 `deploy.sh` pulls images, runs migrations in a separate container, updates the app, then waits for
