@@ -8,7 +8,13 @@ import { addPeriod } from "@/lib/resources";
 import { webhookSecret } from "@/lib/notify-webhook";
 import { proxyForBot } from "@/lib/notify-proxy";
 import { getSettings } from "@/lib/settings";
+import { getRates } from "@/lib/rates";
 import { makeT } from "@/lib/i18n/translate";
+import {
+  buildExpenseFromPayment,
+  createExpense,
+  type ExpenseInput,
+} from "@/lib/finance-service";
 import { reminderButtons } from "@/lib/notify";
 import { canPressButtons } from "@/lib/notify-chat-access";
 
@@ -171,29 +177,82 @@ export async function POST(req: Request, ctx: Ctx) {
 
     if (action === "paid") {
       if (!r) return reply(t("bot.resourceGone"), true);
-      // Захват ПЕРЕД действием: если упадём после записи платежа, но до
-      // пометки, ретрай Telegram записал бы платёж второй раз.
-      if (!(await claim("paid"))) return already();
 
       // Сдвигаем от даты, о которой напоминали, а не от текущей: пока
       // сообщение висело, дату могли поменять в панели.
       const from = msg.dueDate ?? r.nextPaymentAt;
       const next = addPeriod(from, r.periodValue, r.periodUnit);
-      await prisma.$transaction([
-        prisma.resourcePayment.create({
-          data: {
-            resourceId: r.id,
+
+      // Если ресурс привязан к проекту, оплата = расход проекта. Готовим данные
+      // заранее, чтобы не начинать транзакцию без курса.
+      const settings = await getSettings();
+      const rates = await getRates();
+      let prepared: ExpenseInput | null = null;
+      if (r.projectId) {
+        const prep = buildExpenseFromPayment({
+          resource: {
+            id: r.id,
+            name: r.name,
+            projectId: r.projectId,
+          },
+          payment: {
             amount: r.amount,
             currency: r.currency,
             paidAt: from,
-            note: t("bot.paid.note"),
           },
-        }),
-        prisma.resource.update({
-          where: { id: r.id },
-          data: { nextPaymentAt: next },
-        }),
-      ]);
+          displayCurrency: settings.displayCurrency,
+          perUsd: rates.perUsd,
+          t,
+        });
+        if ("error" in prep) {
+          return reply(prep.error, true);
+        }
+        prepared = prep;
+      }
+
+      // Захват и запись в одной транзакции: если упадём после записи платежа,
+      // но до пометки, ретрай Telegram не запишет платёж второй раз.
+      const ALREADY_HANDLED = "already-handled";
+      let handled = false;
+      try {
+        await prisma.$transaction(async tx => {
+          const claimed = await tx.notifyMessage.updateMany({
+            where: { id: msg.id, actedAction: "" },
+            data: { actedAction: "paid", actedAt: new Date(), actedBy: who },
+          });
+          if (claimed.count !== 1) {
+            // Кто-то другой обработал нажатие раньше — прерываем без побочек.
+            throw new Error(ALREADY_HANDLED);
+          }
+          handled = true;
+
+          await tx.resourcePayment.create({
+            data: {
+              resourceId: r.id,
+              amount: r.amount,
+              currency: r.currency,
+              paidAt: from,
+              note: t("bot.paid.note"),
+            },
+          });
+          if (prepared) {
+            await createExpense({
+              data: prepared,
+              forceStatus: "APPROVED",
+              tx,
+            });
+          }
+          await tx.resource.update({
+            where: { id: r.id },
+            data: { nextPaymentAt: next },
+          });
+        });
+      } catch (e: any) {
+        if (e.message === ALREADY_HANDLED) return already();
+        throw e;
+      }
+      if (!handled) return already();
+
       await finish(
         t("bot.paid.text", { date: next.toISOString().slice(0, 10) })
       );

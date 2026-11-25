@@ -692,6 +692,11 @@ export const en: Record<string, string> = {
   "finance.err.alreadyApproved": "Expense is already processed",
   "finance.err.userAlreadyLinked": "User is already linked to another member",
 
+  "finance.expense.resourcePaymentTitle": "Payment: {name}",
+  "finance.projects.unlinkResource": "Unlink resource",
+  "finance.projects.confirm.unlinkResource":
+    "Unlink “{name}” from the project? Expenses already created from payments will remain.",
+
   // ── Finance Board UI ─────────────────────────────────────────────────────
   "nav.finance": "Finance",
   "nav.system": "System",

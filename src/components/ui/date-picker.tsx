@@ -1,15 +1,16 @@
 "use client";
 
+// Поле даты с календарём vanilla-calendar-pro.
+//
+// Календарь раскрывается ИНЛАЙН (под кнопкой), а не через Popover-портал:
+// внутри модальных Dialog портал оказывался пустым/недоступным, а inline-блок
+// живёт в том же DOM-дереве и лишён этой классической грабли.
+
 import React, { useEffect, useRef, useState } from "react";
 import { CalendarIcon, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Calendar } from "vanilla-calendar-pro";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -47,78 +48,83 @@ export function DatePicker({
   const { locale } = useI18n();
   const [open, setOpen] = useState(false);
   const calRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<Calendar | null>(null);
+  // onChange/value — через ref: иначе каждый ререндер родителя пересоздавал бы
+  // календарь, пока он открыт.
+  const onChangeRef = useRef(onChange);
+  const valueRef = useRef(value);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    valueRef.current = value;
+  }, [onChange, value]);
 
   useEffect(() => {
     if (!open || !calRef.current) return;
     const cal = new Calendar(calRef.current, {
       selectedTheme: resolvedTheme === "dark" ? "dark" : "light",
-      selectedDates: value ? [value] : [],
+      selectedDates: valueRef.current ? [valueRef.current] : [],
       selectionDatesMode: "single",
       onClickDate(self) {
         const date = self.context?.selectedDates?.[0];
         if (date) {
-          onChange(date);
+          onChangeRef.current(date);
           setOpen(false);
         }
       },
     });
     cal.init();
-    calendarRef.current = cal;
     return () => {
       cal.destroy();
-      calendarRef.current = null;
     };
-  }, [open, resolvedTheme, value, onChange]);
+  }, [open, resolvedTheme]);
 
   const displayLocale = locale === "ru" ? "ru-RU" : "en-US";
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-            className
-          )}
-        >
-          <CalendarIcon className="mr-2 size-4 shrink-0" />
-          <span className="truncate">
-            {value
-              ? toDisplay(value, displayLocale)
-              : placeholder ||
-                toDisplay(new Date().toISOString().slice(0, 10), displayLocale)}
-          </span>
-          {value && (
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="clear date"
-              className="ml-auto inline-flex size-4 items-center justify-center rounded-sm opacity-50 hover:opacity-100 focus-visible:outline-none focus-visible:ring-1"
-              onClick={e => {
+    <div className={className}>
+      <Button
+        id={id}
+        type="button"
+        variant="outline"
+        disabled={disabled}
+        onClick={() => setOpen(v => !v)}
+        className={cn(
+          "w-full justify-start text-left font-normal",
+          !value && "text-muted-foreground"
+        )}
+      >
+        <CalendarIcon className="mr-2 size-4 shrink-0" />
+        <span className="truncate">
+          {value
+            ? toDisplay(value, displayLocale)
+            : placeholder ||
+              toDisplay(new Date().toISOString().slice(0, 10), displayLocale)}
+        </span>
+        {value && (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="clear date"
+            className="ml-auto inline-flex size-4 items-center justify-center rounded-sm opacity-50 hover:opacity-100 focus-visible:outline-none focus-visible:ring-1"
+            onClick={e => {
+              e.stopPropagation();
+              onChange("");
+            }}
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === " ") {
                 e.stopPropagation();
                 onChange("");
-              }}
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.stopPropagation();
-                  onChange("");
-                }
-              }}
-            >
-              <X className="size-3" />
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <div ref={calRef} className="p-2" />
-      </PopoverContent>
-    </Popover>
+              }
+            }}
+          >
+            <X className="size-3" />
+          </span>
+        )}
+      </Button>
+      {open && (
+        <div className="mt-1.5 w-fit rounded-md border bg-popover p-2 shadow-md">
+          <div ref={calRef} />
+        </div>
+      )}
+    </div>
   );
 }

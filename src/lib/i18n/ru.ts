@@ -717,6 +717,11 @@ export const ru: Record<string, string> = {
   "finance.err.userAlreadyLinked":
     "Пользователь уже привязан к другому участнику",
 
+  "finance.expense.resourcePaymentTitle": "Оплата: {name}",
+  "finance.projects.unlinkResource": "Отвязать ресурс",
+  "finance.projects.confirm.unlinkResource":
+    "Отвязать «{name}» от проекта? Расходы, уже созданные из оплат, останутся.",
+
   // ── Finance Board UI ─────────────────────────────────────────────────────
   "nav.finance": "Финансы",
   "nav.system": "Система",

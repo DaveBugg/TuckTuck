@@ -255,6 +255,7 @@ model Resource {
   tags           ResourceTag[]
   credentials    ResourceCredential[]
   payments       ResourcePayment[]
+  expenses       Expense[]
   reminders      PaymentReminder[]
   notifyMessages NotifyMessage[]
   metrics        ResourceMetric[]
@@ -676,6 +677,8 @@ model Expense {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   memberId  String? @db.Uuid
   member    TeamMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  resourceId String? @db.Uuid
+  resource   Resource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
 
   // Быстрые теги (серверы, реклама, зарплата и т.п.). Массив строк, а не связь
   // к Tag: теги операций не требуют справочника и заводятся на лету.

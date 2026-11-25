@@ -2,6 +2,28 @@
 
 > Рабочий журнал задач. Новое — сверху. Закрытое удалять/сжимать, не раздувать.
 
+## 2026-11-25 — Finance Board: оплата ресурса = расход проекта, карточки раскрыты, отвязка ресурса
+
+- [x] `Expense.resourceId` + relation `Resource` (`onDelete: SetNull`), миграция
+      `20261125120000_expense_resource`; применена на `tucktuck-pg`
+- [x] `src/lib/finance-service.ts`: `buildExpenseFromPayment` +
+      `createExpenseFromResourcePayment`; `createExpense` теперь принимает
+      `me?: User | null` и `resourceId`
+- [x] `POST /api/resources/[id]/pay` и TG-кнопка `paid` в
+      `api/notify/webhook/[botId]` создают APPROVED Expense PROJECT при
+      `resource.projectId`
+- [x] `ProjectsPage`: карточки раскрыты по умолчанию, детали грузятся сразу;
+      исправлено «Нет участников» до загрузки детали; в раскрытой карточке
+      список ресурсов с кнопкой отвязки
+- [x] `ResourceForm`: селект проекта позволяет снять привязку (`projectId: null`)
+- [x] i18n ru/en: `finance.expense.resourcePaymentTitle`,
+      `finance.projects.unlinkResource`,
+      `finance.projects.confirm.unlinkResource`
+- [x] Юнит-тест `tests/unit/finance-resource-payment.test.ts`, добавлен в
+      `test:unit`
+- [x] Проверки: `type-check` чисто, `lint` (0 errors, 1 старый warning),
+      `npm test` (211 passed / 1 skipped), `npm run build` OK
+
 ## 2026-11-25 — Проекты: привязка ресурсов, детальные карточки, DatePicker
 
 - [x] `Resource.projectId` + `ProjectMember.active` (миграция `20261125132040_project_resources`);

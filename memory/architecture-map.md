@@ -30,13 +30,15 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
   `auth/me`, `auth/2fa/{setup,verify,disable}`, `auth/change-password`, `auth/telegram` (вход по
   WebApp initData)
 - **resources**: `resources` (GET список с фильтрами/сортировкой, POST создание+дефолтные
-  напоминания), `resources/totals`, `resources/[id]` (PATCH/DELETE), `resources/[id]/pay` (сдвиг
-  `nextPaymentAt`), `resources/[id]/agent` (токен), `resources/[id]/agent/install` (SSH,
+  напоминания), `resources/totals`, `resources/[id]` (PATCH/DELETE, `projectId: null` — отвязка от
+  проекта), `resources/[id]/pay` (сдвиг `nextPaymentAt` + создание APPROVED Expense PROJECT при
+  `resource.projectId`), `resources/[id]/agent` (токен), `resources/[id]/agent/install` (SSH,
   NDJSON-стрим)
 - **monitoring**: `monitoring`, `monitoring/[id]`, `monitoring/[id]/history` (1/7/14/30д),
   `monitoring/self` (+`/enable`), `monitoring/rollup`, `ingest/metrics` (приём от агента по токену)
 - **notify**: `notify/bots` (+`[id]`, `[id]/test`, `[id]/webhook`), `notify/check`, `notify/run`
-  (воркер/ручной прогон), `notify/webhook/[botId]` (callback-кнопки напоминаний + FSM-бот)
+  (воркер/ручной прогон), `notify/webhook/[botId]` (callback-кнопки напоминаний + FSM-бот; кнопка
+  `paid` порождает APPROVED Expense PROJECT при `resource.projectId`)
 - **profile**: `profile/telegram-link` (GET/POST/DELETE — привязка/отвязка Telegram)
 - **settings**: `settings/finance` (GET/PATCH — валюты/теги/финансист), `settings/telegram-groups`
   (+`[id]/approve` — одобрение групп)
@@ -75,7 +77,7 @@ Next.js 16 App Router. Страницы — `src/app`, API — `src/app/api`, л
 | `finance.ts`                                     | Чистые функции: балансы, `splitIncome`, scope/kind, approve-статусы         |
 | `finance-api.ts`                                 | Хелперы API Finance: парсинг тел, конвертация в `amountBase`                |
 | `finance-audit.ts`                               | `writeAudit` + сериализация снимков Decimal/Date/bigint                     |
-| `finance-service.ts`                             | Создание Expense: подготовка данных + запись + аудит (общее для API и бота) |
+| `finance-service.ts`                             | Создание Expense: подготовка данных + запись + аудит (общее для API и бота); `buildExpenseFromPayment` — оплата ресурса → расход проекта |
 | `tg-auth.ts`                                     | Чистая валидация Telegram WebApp initData (HMAC, свежесть)                  |
 | `tg-bot-fsm.ts`                                  | Чистые функции бота: парсинг сумм, клавиатуры, маршрутизация аппрува        |
 | `tg-bot-state.ts`                                | Состояние FSM-диалога: Redis + in-memory fallback, TTL 10 мин               |
@@ -100,10 +102,11 @@ singletons — prisma, redis, кеш настроек. Новую логику �
 
 `page.tsx` (server, `displayCurrency` из `getSettings()`) → `FinanceDashboard.tsx`;
 `expenses/page.tsx` → `ExpenseList.tsx` + фильтры/inline-действия; `income/page.tsx` →
-`IncomeList.tsx`; `projects/page.tsx` → `ProjectList.tsx` + диалоги `ProjectForm`,
-`MembersEditDialog`, `DistributionDialog`; `team/page.tsx` → `TeamList.tsx` + диалоги `MemberForm`,
-`LinkUserDialog`; `audit/page.tsx` → `AuditLogList.tsx` + диалог diff. Общий код: `types.ts`,
-`helpers.tsx`, `OperationDialog.tsx` (создание/правка расхода/выплаты/дохода).
+`IncomeList.tsx`; `projects/page.tsx` → `ProjectsPage` (карточки раскрыты по умолчанию, детали загружаются сразу;
+ресурсы проекта с кнопкой отвязки) + диалоги `ProjectForm`, `MembersEditDialog`,
+`DistributionDialog`; `team/page.tsx` → `TeamList.tsx` + диалоги `MemberForm`, `LinkUserDialog`;
+`audit/page.tsx` → `AuditLogList.tsx` + диалог diff. Общий код: `types.ts`, `helpers.tsx`,
+`OperationDialog.tsx` (создание/правка расхода/выплаты/дохода).
 
 ## Prisma (`prisma/schema.prisma`)
 
@@ -138,7 +141,8 @@ Server `lib/auth.ts`: сессия по `jti`, `revokedAt`/`isActive`, `lastSeen
 
 ## Тесты (`tests/unit/`)
 
-23 файла: notify, monitoring, worst-level, spend, totals, rate-limit, quiet-hours, permissions,
+24 файла: notify, monitoring, worst-level, spend, totals, rate-limit, quiet-hours, permissions,
 timezone, server-timezone, i18n, secret-crypto, panel-url, ssh-install, robots, list-query,
-finance-balance, finance-distribute, finance-scope, finance-approval, finance-audit, tg-auth,
-tg-bot-flow. Новый файл — добавить в скрипт `test:unit` в `package.json`.
+finance-balance, finance-distribute, finance-scope, finance-approval, finance-audit,
+finance-recurring, finance-resource-payment, tg-auth, tg-bot-flow. Новый файл — добавить в скрипт
+`test:unit` в `package.json`.

@@ -4,13 +4,21 @@ import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import { visibilityWhere, addPeriod } from "@/lib/resources";
 import { tForRequest } from "@/lib/i18n/server";
+import { getSettings } from "@/lib/settings";
+import { getRates } from "@/lib/rates";
+import {
+  createExpense,
+  buildExpenseFromPayment,
+  type ExpenseInput,
+} from "@/lib/finance-service";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /**
- * Отметить оплату: пишем строку в историю и двигаем дату следующей оплаты.
+ * Отметить оплату: пишем строку в историю, двигаем дату следующей оплаты и,
+ * если ресурс привязан к проекту, создаём утверждённый расход проекта.
  *
- * Обе операции в ОДНОЙ транзакции: запись в историю без сдвига даты оставила бы
+ * Все операции в ОДНОЙ транзакции: запись в историю без сдвига даты оставила бы
  * ресурс висеть в «просрочено», а сдвиг без записи потерял бы факт платежа.
  *
  * Дата сдвигается от ПЛАНОВОЙ даты, а не от сегодня. Иначе платёж, внесённый с
@@ -27,11 +35,13 @@ export async function POST(req: Request, ctx: Ctx) {
       where: { id, ...visibilityWhere(me) },
       select: {
         id: true,
+        name: true,
         amount: true,
         currency: true,
         periodValue: true,
         periodUnit: true,
         nextPaymentAt: true,
+        projectId: true,
       },
     });
     if (!r)
@@ -65,8 +75,27 @@ export async function POST(req: Request, ctx: Ctx) {
 
     const next = addPeriod(r.nextPaymentAt, r.periodValue, r.periodUnit);
 
-    const [, updated] = await prisma.$transaction([
-      prisma.resourcePayment.create({
+    // Если ресурс привязан к проекту, готовим расход заранее: при отсутствии
+    // кураса сразу вернём 400, не начиная транзакцию.
+    let prepared: ExpenseInput | null = null;
+    if (r.projectId) {
+      const settings = await getSettings();
+      const rates = await getRates();
+      const prep = buildExpenseFromPayment({
+        resource: { id: r.id, name: r.name, projectId: r.projectId },
+        payment: { amount, currency: r.currency, paidAt },
+        displayCurrency: settings.displayCurrency,
+        perUsd: rates.perUsd,
+        t,
+      });
+      if ("error" in prep) {
+        return NextResponse.json({ error: prep.error }, { status: 400 });
+      }
+      prepared = prep;
+    }
+
+    const updated = await prisma.$transaction(async tx => {
+      await tx.resourcePayment.create({
         data: {
           resourceId: r.id,
           amount,
@@ -75,13 +104,21 @@ export async function POST(req: Request, ctx: Ctx) {
           note: typeof b.note === "string" ? b.note.trim() : "",
           recordedById: me.id,
         },
-      }),
-      prisma.resource.update({
+      });
+      if (prepared) {
+        await createExpense({
+          me,
+          data: prepared,
+          forceStatus: "APPROVED",
+          tx,
+        });
+      }
+      return tx.resource.update({
         where: { id: r.id },
         data: { nextPaymentAt: next },
         select: { id: true, nextPaymentAt: true },
-      }),
-    ]);
+      });
+    });
 
     return NextResponse.json({
       ok: true,

@@ -11,6 +11,7 @@ import {
   ArrowUpCircle,
   Receipt,
   Link2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import type {
   Summary,
   ProjectRow,
   ProjectDetail,
+  ProjectResource,
   ExpenseRow,
   IncomeRow,
 } from "../types";
@@ -74,6 +76,15 @@ export default function ProjectsPage({
     kind: "expense" | "income";
   }>({ open: false, projectId: "", kind: "expense" });
 
+  const loadDetail = useCallback(async (id: string) => {
+    try {
+      const d = await apiFetch(`/api/finance/projects/${id}`);
+      setDetails(prev => ({ ...prev, [id]: d.row }));
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }, []);
+
   const load = useCallback(async () => {
     try {
       const s: Summary = await apiFetch("/api/finance/summary");
@@ -82,6 +93,8 @@ export default function ProjectsPage({
         "/api/finance/projects?archived=false&pageSize=1000"
       );
       setProjects(data.rows);
+      setExpanded(new Set(data.rows.map((p: ProjectRow) => p.id)));
+      await Promise.all(data.rows.map((p: ProjectRow) => loadDetail(p.id)));
 
       const now = new Date();
       const year = now.getUTCFullYear();
@@ -126,20 +139,11 @@ export default function ProjectsPage({
     } catch (e: any) {
       toast.error(e.message);
     }
-  }, []);
+  }, [loadDetail]);
 
   useEffect(() => {
     load();
   }, [load, reloadKey]);
-
-  const loadDetail = useCallback(async (id: string) => {
-    try {
-      const d = await apiFetch(`/api/finance/projects/${id}`);
-      setDetails(prev => ({ ...prev, [id]: d.row }));
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  }, []);
 
   const loadUnassigned = useCallback(async () => {
     try {
@@ -204,6 +208,30 @@ export default function ProjectsPage({
       await apiJson(`/api/resources/${resourceId}`, "PATCH", { projectId });
       toast.success(t("common.saved"));
       setLinkingProjectId(null);
+      setReloadKey(k => k + 1);
+      if (expanded.has(projectId)) loadDetail(projectId);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const unlinkResource = async (
+    projectId: string,
+    resource: ProjectResource
+  ) => {
+    const ok = await confirm({
+      title: t("finance.projects.unlinkResource"),
+      description: t("finance.projects.confirm.unlinkResource", {
+        name: resource.name,
+      }),
+      confirmText: t("finance.projects.unlinkResource"),
+    });
+    if (!ok) return;
+    try {
+      await apiJson(`/api/resources/${resource.id}`, "PATCH", {
+        projectId: null,
+      });
+      toast.success(t("common.saved"));
       setReloadKey(k => k + 1);
       if (expanded.has(projectId)) loadDetail(projectId);
     } catch (e: any) {
@@ -335,7 +363,7 @@ export default function ProjectsPage({
                     {t("finance.projects.membersShares")}
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {activeMembers.length === 0 && (
+                    {detail && activeMembers.length === 0 && (
                       <span className="text-sm text-muted-foreground">
                         {t("finance.projects.noMembers")}
                       </span>
@@ -519,6 +547,41 @@ export default function ProjectsPage({
                               ))}
                             </tbody>
                           </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {resources.length > 0 && (
+                      <div>
+                        <p className="mb-2 text-sm font-medium">
+                          {t("finance.projects.resources")}
+                        </p>
+                        <div className="space-y-2">
+                          {resources.map(r => (
+                            <div
+                              key={r.id}
+                              className="flex items-center justify-between rounded-md border px-3 py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">{r.name}</span>
+                                <Badge variant="outline">
+                                  {formatMoney(r.amount, r.currency, fmtNum)}
+                                </Badge>
+                              </div>
+                              {can("resources.manage") && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => unlinkResource(p.id, r)}
+                                  aria-label={t(
+                                    "finance.projects.unlinkResource"
+                                  )}
+                                >
+                                  <X className="size-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
