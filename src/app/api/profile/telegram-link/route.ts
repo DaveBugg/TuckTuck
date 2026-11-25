@@ -7,6 +7,7 @@ import { getMe } from "@/lib/telegram";
 import { proxyForBot } from "@/lib/notify-proxy";
 import { tForRequest } from "@/lib/i18n/server";
 import { toApiError } from "@/lib/list-query";
+import { serializeTelegramUserId } from "@/lib/user-serializer";
 
 function generateCode(): string {
   return crypto.randomBytes(8).toString("hex");
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
       me.telegramUserId !== null && me.telegramUserId !== undefined;
     return NextResponse.json({
       linked,
-      userId: linked ? String(me.telegramUserId) : null,
+      userId: linked ? serializeTelegramUserId(me.telegramUserId) : null,
     });
   } catch (e) {
     return toApiError(e, t);

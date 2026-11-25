@@ -39,8 +39,15 @@ const fetcher =
     return { rows: data.rows, total: data.total };
   };
 
-const ENTITIES = ["expense", "income", "distribution", "project", "member"];
-const ACTIONS = ["CREATE", "UPDATE", "DELETE", "APPROVE", "REJECT"];
+const ENTITIES = [
+  "expense",
+  "income",
+  "distribution",
+  "project",
+  "member",
+  "recurring",
+];
+const ACTIONS = ["CREATE", "UPDATE", "DELETE", "APPROVE", "REJECT", "GENERATE"];
 
 export default function AuditPage() {
   const { t, fmtDateTime } = useI18n();
@@ -61,17 +68,31 @@ export default function AuditPage() {
     {
       id: "actor",
       header: t("finance.audit.col.actor"),
-      cell: r => <span>{r.actor ? r.actor.name || r.actor.email : "—"}</span>,
+      cell: r => (
+        <span>
+          {r.actor
+            ? r.actor.name || r.actor.email
+            : t("finance.audit.actor.system")}
+        </span>
+      ),
     },
     {
       id: "action",
       header: t("finance.audit.col.action"),
-      cell: r => <span className="font-medium">{r.action}</span>,
+      cell: r => (
+        <span className="font-medium">
+          {t(`finance.audit.action.${r.action}` as any)}
+        </span>
+      ),
     },
     {
       id: "entity",
       header: t("finance.audit.col.entity"),
-      cell: r => <span className="text-muted-foreground">{r.entity}</span>,
+      cell: r => (
+        <span className="text-muted-foreground">
+          {t(`finance.audit.entity.${r.entity}` as any)}
+        </span>
+      ),
     },
     {
       id: "entityId",
@@ -87,12 +108,18 @@ export default function AuditPage() {
     {
       id: "entity",
       label: t("finance.audit.filter.entity"),
-      options: ENTITIES.map(e => ({ value: e, label: e })),
+      options: ENTITIES.map(e => ({
+        value: e,
+        label: t(`finance.audit.entity.${e}` as any),
+      })),
     },
     {
       id: "action",
       label: t("finance.audit.filter.action"),
-      options: ACTIONS.map(a => ({ value: a, label: a })),
+      options: ACTIONS.map(a => ({
+        value: a,
+        label: t(`finance.audit.action.${a}` as any),
+      })),
     },
   ];
 
@@ -128,7 +155,9 @@ export default function AuditPage() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {detail?.entity} · {detail?.action}
+              {detail
+                ? `${t(`finance.audit.entity.${detail.entity}` as any)} · ${t(`finance.audit.action.${detail.action}` as any)}`
+                : ""}
             </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

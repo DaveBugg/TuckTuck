@@ -138,12 +138,13 @@ export async function POST(req: Request) {
       }
     }
 
-    await writeAudit(me?.id ?? null, "GENERATE", "recurring", "run", null, {
-      created,
-      skipped,
-      templates: due.length,
-      at: now.toISOString(),
-    });
+    if (created > 0) {
+      await writeAudit(me?.id ?? null, "GENERATE", "recurring", "run", null, {
+        created,
+        skipped,
+        templateIds: due.map(t => t.id),
+      });
+    }
 
     return NextResponse.json({ created, skipped });
   } catch (e) {

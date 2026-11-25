@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import { tForRequest } from "@/lib/i18n/server";
 import { getSettings, invalidateSettingsCache } from "@/lib/settings";
+import { serializeTelegramUserId } from "@/lib/user-serializer";
 
 const MAX_CURRENCIES = 12;
 const MAX_TAGS = 8;
@@ -71,7 +72,7 @@ async function readFinanceSettings(t: ReturnType<typeof tForRequest>) {
     financierOptions: users.map(u => ({
       id: u.id,
       name: u.name || u.email,
-      telegramUserId: String(u.telegramUserId),
+      telegramUserId: serializeTelegramUserId(u.telegramUserId),
     })),
   };
 }

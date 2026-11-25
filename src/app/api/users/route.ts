@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { parseListParams, toApiError } from "@/lib/list-query";
 import { tForRequest } from "@/lib/i18n/server";
+import { serializeTelegramUserId } from "@/lib/user-serializer";
 
 const ROLES = ["ADMIN", "USER"] as const;
 
@@ -54,7 +55,14 @@ export async function GET(req: Request) {
       }),
       prisma.user.count({ where }),
     ]);
-    return NextResponse.json({ rows, total });
+    return NextResponse.json({
+      rows: rows.map(r => ({
+        ...r,
+        telegramUserId: serializeTelegramUserId(r.telegramUserId),
+        createdAt: r.createdAt.toISOString(),
+      })),
+      total,
+    });
   } catch (e) {
     return toApiError(e);
   }
