@@ -953,6 +953,8 @@ export const en: Record<string, string> = {
   "finance.bot.restricted": "Access restricted. Contact your administrator.",
   "finance.bot.menu.title": "Choose an action:",
   "finance.bot.btn.expense": "＋ Expense",
+  "finance.bot.cmd.expense": "New expense",
+  "finance.bot.cmd.start": "Menu and panel sign-in",
   "finance.bot.btn.balance": "💰 My balance",
   "finance.bot.btn.openPanel": "Open panel",
   "finance.bot.opening": "Opening panel…",

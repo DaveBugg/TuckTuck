@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import { decryptSecret } from "@/lib/secret-crypto";
-import { getWebhookInfo, setWebhook } from "@/lib/telegram";
+import { getWebhookInfo, setMyCommands, setWebhook } from "@/lib/telegram";
 import { publicBaseUrl, webhookSecret } from "@/lib/notify-webhook";
 import { proxyForBot } from "@/lib/notify-proxy";
 import { tForRequest } from "@/lib/i18n/server";
@@ -121,6 +121,16 @@ export async function POST(req: Request, ctx: Ctx) {
         { status: 400 }
       );
     }
+    // Меню «/» в чате: ставим один раз при установке вебхука. Ошибка меню
+    // не должна валить установку вебхука — поэтому fire-and-forget.
+    void setMyCommands(
+      token,
+      [
+        { command: "expense", description: t("finance.bot.cmd.expense") },
+        { command: "start", description: t("finance.bot.cmd.start") },
+      ],
+      await proxyForBot(bot.proxyUrlEnc)
+    ).catch(() => {});
     return NextResponse.json({
       ok: true,
       url: `${base}/api/notify/webhook/${bot.id}`,

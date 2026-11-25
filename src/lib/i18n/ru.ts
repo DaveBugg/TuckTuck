@@ -990,6 +990,8 @@ export const ru: Record<string, string> = {
   "finance.bot.restricted": "Доступ ограничен. Обратитесь к администратору.",
   "finance.bot.menu.title": "Выберите действие:",
   "finance.bot.btn.expense": "＋ Расход",
+  "finance.bot.cmd.expense": "Новый расход",
+  "finance.bot.cmd.start": "Меню и вход в панель",
   "finance.bot.btn.balance": "💰 Мой баланс",
   "finance.bot.btn.openPanel": "Открыть панель",
   "finance.bot.opening": "Открываю панель…",

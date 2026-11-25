@@ -48,54 +48,41 @@ export function validateInitData(
     return { ok: false, reason: "stale" };
   }
 
-  // data-check-string: пары key=value, отсортированы по ключу, через \n.
-  // hash исключается всегда. Поле signature (Bot API 7.10+) — неоднозначно:
-  // часть клиентов исключает его из HMAC, часть включает. Проверяем оба
-  // варианта: каждый из них криптографически доказывает владение токеном.
-  const buildCheckString = (excludeSignature: boolean): string => {
-    const pairs: string[] = [];
-    for (const [key, value] of params.entries()) {
-      if (key === "hash") continue;
-      if (excludeSignature && key === "signature") continue;
-      pairs.push(`${key}=${value}`);
-    }
-    pairs.sort();
-    return pairs.join("\n");
-  };
+  // data-check-string: пары key=value кроме hash, отсортированы по ключу,
+  // через \n. Поле signature (Ed25519, Bot API 7.10+) ВКЛЮЧАЕТСЯ — проверено
+  // на живом initData: Telegram подписывает строку с ним.
+  const pairs: string[] = [];
+  for (const [key, value] of params.entries()) {
+    if (key === "hash") continue;
+    pairs.push(`${key}=${value}`);
+  }
+  pairs.sort();
+  const dataCheckString = pairs.join("\n");
 
-  // secret_key = HMAC_SHA256(key=botToken, data="WebAppData")
+  // secret_key = HMAC_SHA256(key="WebAppData", message=botToken).
+  // Канонический порядок из документации (hmac.new(b"WebAppData", token)) —
+  // не HMAC(key=token, msg="WebAppData"): перепутанный порядок даёт другой
+  // ключ, и валидация молча не сходится никогда.
   const secretKey = crypto
-    .createHmac("sha256", botToken)
-    .update("WebAppData")
+    .createHmac("sha256", "WebAppData")
+    .update(botToken)
     .digest();
 
   // Timing-safe сравнение. Длина обеих строк фиксирована (64 hex), поэтому
   // дополнительная проверка длины не утечёт полезной информации.
   const hashBuf = Buffer.from(hash, "hex");
-  const hasSignature = params.has("signature");
-  const variants = hasSignature ? [true, false] : [false];
-  let signatureOk = false;
-  for (const excludeSignature of variants) {
-    const expectedBuf = Buffer.from(
-      crypto
-        .createHmac("sha256", secretKey)
-        .update(buildCheckString(excludeSignature))
-        .digest("hex"),
-      "hex"
-    );
-    if (
-      hashBuf.length === expectedBuf.length &&
-      crypto.timingSafeEqual(hashBuf, expectedBuf)
-    ) {
-      signatureOk = true;
-      break;
-    }
-  }
-  if (!signatureOk) {
-    return {
-      ok: false,
-      reason: hasSignature ? "bad_hash_with_signature" : "bad_hash",
-    };
+  const expectedBuf = Buffer.from(
+    crypto
+      .createHmac("sha256", secretKey)
+      .update(dataCheckString)
+      .digest("hex"),
+    "hex"
+  );
+  if (
+    hashBuf.length !== expectedBuf.length ||
+    !crypto.timingSafeEqual(hashBuf, expectedBuf)
+  ) {
+    return { ok: false, reason: "bad_hash" };
   }
 
   const userRaw = params.get("user");

@@ -11,9 +11,10 @@ function buildInitData(
 ): string {
   const pairs = [`auth_date=${authDate}`, `user=${JSON.stringify(user)}`];
   const dataCheckString = pairs.join("\n");
+  // Канонический secret из документации: HMAC(key="WebAppData", msg=token).
   const secretKey = crypto
-    .createHmac("sha256", BOT_TOKEN)
-    .update("WebAppData")
+    .createHmac("sha256", "WebAppData")
+    .update(BOT_TOKEN)
     .digest();
   const hash = crypto
     .createHmac("sha256", secretKey)
@@ -78,36 +79,44 @@ describe("validateInitData", () => {
 
   it("accepts initData with a signature field from Bot API 7.10+", () => {
     const now = Math.floor(Date.now() / 1000);
-    const base = buildInitData({ id: 42, first_name: "Test" }, now);
-    // Telegram may add an arbitrary signature; it must be excluded from the
-    // data-check-string, so the existing hash should still validate.
-    const initData = `${base}&signature=dummy-signature-value`;
-    const result = validateInitData(initData, BOT_TOKEN);
-    assert.strictEqual(result.ok, true);
-    assert.strictEqual(result.user?.id, 42);
-  });
-
-  it("accepts a hash computed with signature in the check-string (client convention variant)", () => {
-    const now = Math.floor(Date.now() / 1000);
+    // signature ВКЛЮЧАЕТСЯ в data-check-string (проверено на живом initData).
     const user = JSON.stringify({ id: 42, first_name: "Test" });
     const pairs = [`auth_date=${now}`, `user=${user}`];
     const dataCheckString = [...pairs, "signature=dummy-signature-value"]
       .sort()
       .join("\n");
     const secretKey = crypto
-      .createHmac("sha256", BOT_TOKEN)
-      .update("WebAppData")
+      .createHmac("sha256", "WebAppData")
+      .update(BOT_TOKEN)
       .digest();
     const hash = crypto
       .createHmac("sha256", secretKey)
       .update(dataCheckString)
       .digest("hex");
     const initData = `${pairs.join("&")}&signature=dummy-signature-value&hash=${hash}`;
-    // Часть клиентов подписывает check-string С signature — это тоже
-    // криптографическое доказательство владения токеном, принимаем обе
-    // конвенции.
     const result = validateInitData(initData, BOT_TOKEN);
     assert.strictEqual(result.ok, true);
     assert.strictEqual(result.user?.id, 42);
+  });
+
+  it("rejects when the signature field is tampered", () => {
+    const now = Math.floor(Date.now() / 1000);
+    const user = JSON.stringify({ id: 42, first_name: "Test" });
+    const pairs = [`auth_date=${now}`, `user=${user}`];
+    const dataCheckString = [...pairs, "signature=real-signature"]
+      .sort()
+      .join("\n");
+    const secretKey = crypto
+      .createHmac("sha256", "WebAppData")
+      .update(BOT_TOKEN)
+      .digest();
+    const hash = crypto
+      .createHmac("sha256", secretKey)
+      .update(dataCheckString)
+      .digest("hex");
+    // Подмена signature ломает HMAC — поле подписано вместе с остальными.
+    const initData = `${pairs.join("&")}&signature=forged-signature&hash=${hash}`;
+    const result = validateInitData(initData, BOT_TOKEN);
+    assert.strictEqual(result.ok, false);
   });
 });

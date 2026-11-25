@@ -150,6 +150,15 @@ export function setWebhook(
   );
 }
 
+/** Список команд в меню «/» чата. Ставится вместе с (пере)установкой вебхука. */
+export function setMyCommands(
+  token: string,
+  commands: { command: string; description: string }[],
+  proxyUrl = ""
+) {
+  return call(token, "setMyCommands", { commands }, proxyUrl);
+}
+
 /**
  * Что Телеграм думает о нашем вебхуке.
  *
