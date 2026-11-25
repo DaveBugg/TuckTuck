@@ -955,6 +955,7 @@ export const en: Record<string, string> = {
   "finance.bot.btn.expense": "＋ Expense",
   "finance.bot.cmd.expense": "New expense",
   "finance.bot.cmd.start": "Menu and panel sign-in",
+  "finance.bot.nothingToCancel": "Nothing to cancel — no expense in progress.",
   "finance.bot.btn.balance": "💰 My balance",
   "finance.bot.btn.openPanel": "Open panel",
   "finance.bot.opening": "Opening panel…",

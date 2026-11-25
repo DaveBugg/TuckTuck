@@ -118,18 +118,36 @@ async function flowSay(
   proxy: string
 ): Promise<void> {
   const state = await getFsmState(chatId, userId);
+  // Кнопка «Отмена» на каждом шаге: выйти из флоу можно в любой момент, а не
+  // только на подтверждении. Если клавиатура уже содержит отмену — не дублируем.
+  let kb = buttons;
+  if (
+    buttons.length &&
+    !buttons.flat().some(b => b.callback_data === "fintg-cancel")
+  ) {
+    const t = makeT((await getSettings()).notifyLocale);
+    kb = [
+      ...buttons,
+      [
+        {
+          text: t("finance.bot.expense.cancel"),
+          callback_data: "fintg-cancel",
+        },
+      ],
+    ];
+  }
   if (state.flowMessageId) {
     const edit = await editMessageText(
       token,
       chatId,
       String(state.flowMessageId),
       text,
-      buttons,
+      kb,
       proxy
     );
     if (edit.ok) return;
     // Редактирование не удалось — отправляем новое и запоминаем его id.
-    const sent = await sendMessage(token, chatId, text, buttons, proxy);
+    const sent = await sendMessage(token, chatId, text, kb, proxy);
     if (sent.ok) {
       await saveState(chatId, userId, {
         ...state,
@@ -138,7 +156,7 @@ async function flowSay(
     }
     return;
   }
-  const sent = await sendMessage(token, chatId, text, buttons, proxy);
+  const sent = await sendMessage(token, chatId, text, kb, proxy);
   if (sent.ok) {
     await saveState(chatId, userId, {
       ...state,
@@ -769,6 +787,36 @@ async function handleMessage(
   // Команды в группах приходят с суффиксом бота: /expense@tucktuck_manage_bot.
   if (/^\/expense(@\w+)?\s*$/.test(text) || text === "＋ Расход") {
     await startExpense(token, chatId, userId, proxy);
+    return;
+  }
+
+  // Отмена ввода расхода на любом шаге.
+  if (/^\/cancel(@\w+)?\s*$/.test(text)) {
+    const t = makeT((await getSettings()).notifyLocale);
+    if (state.step === "idle") {
+      await sendMessage(
+        token,
+        chatId,
+        t("finance.bot.nothingToCancel"),
+        [],
+        proxy
+      );
+      return;
+    }
+    const msg = t("finance.bot.expense.cancelled");
+    if (state.flowMessageId) {
+      await editMessageText(
+        token,
+        chatId,
+        String(state.flowMessageId),
+        msg,
+        [],
+        proxy
+      );
+    } else {
+      await sendMessage(token, chatId, msg, [], proxy);
+    }
+    await clearFsmState(chatId, userId);
     return;
   }
 

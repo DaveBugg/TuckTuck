@@ -992,6 +992,7 @@ export const ru: Record<string, string> = {
   "finance.bot.btn.expense": "＋ Расход",
   "finance.bot.cmd.expense": "Новый расход",
   "finance.bot.cmd.start": "Меню и вход в панель",
+  "finance.bot.nothingToCancel": "Нечего отменять — ввод расхода не начат.",
   "finance.bot.btn.balance": "💰 Мой баланс",
   "finance.bot.btn.openPanel": "Открыть панель",
   "finance.bot.opening": "Открываю панель…",
