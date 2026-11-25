@@ -2,6 +2,18 @@
 
 > Рабочий журнал задач. Новое — сверху. Закрытое удалять/сжимать, не раздувать.
 
+## 2026-11-25 — Мажоры пакетов + прод-деплой
+
+- [x] Миноры + `next` 16.1.6→16.4.6 (закрыты CVE sharp)
+- [x] Мажоры: **Prisma 7.10.1** (генератор `prisma-client` + `@prisma/adapter-pg` +
+      `prisma.config.ts`, импорты из `@/generated/prisma/client`, seed.ts на tsx), **ESLint 10**,
+      **otplib 13** (новый sync API в 2FA), **@types/node 26**. Проверки + Docker-образы зелёные
+- [x] Фикс `setup.sh` + README (seed.mjs → seed.ts)
+- [x] Деплой на rafads: **https://tucktuck.vorrybest.digital** (детали в `memory/environment.md`),
+      open-webui не тронут
+- [ ] Отслеживать Prisma >7.10.1 ради ухода транзитивного `effect` CVE (3 high в npm audit)
+- [ ] После релиза и тестов: обновить описание репозитория под новое направление проекта
+
 ## 2026-11-25 — Finance Board: аудит-исправления (миграция + безопасность + балансы)
 
 - [x] Миграция `20261125101903_finance_audit_fixes`: `Expense @@unique([recurringId, date])`,

@@ -25,6 +25,16 @@ npm run dev                   # http://localhost:3000
 - HTTPS: Caddy на 80/443. Два режима — Let's Encrypt сам (`TUCKTUCK_TLS_DIRECTIVE` пусто) или свои
   сертификаты в `caddy/certs` (напр. Cloudflare Origin).
 
+## Живая установка (2026-11-25)
+
+- **https://tucktuck.vorrybest.digital** — сервер `rafads` (31.77.219.172, ssh-алиас `rafads`, root).
+- Каталог установки: `/opt/tucktuck` (`.env`, `docker-compose.yml`, `deploy.sh`).
+- Приложение на `127.0.0.1:3100` (3000 занят open-webui), свой прокси-контейнер НЕ поднят
+  (`TUCKTUCK_SKIP_PROXY=1`) — TLS держит хостовый Caddy (`/etc/caddy/Caddyfile`, там же сайт
+  `opnw.vorrybest.digital` = open-webui, **не трогать**). Бэкап: `/etc/caddy/Caddyfile.bak-tucktuck`.
+- Домен за Cloudflare-прокси. Воркер напоминаний поднят (профиль workers).
+- Обновление: `ssh rafads "cd /opt/tucktuck && ./deploy.sh"` или заново setup.sh без переменных.
+
 ## Env-переменные (см. `.env.example`)
 
 | Переменная                                            | Назначение                                                                                                |
