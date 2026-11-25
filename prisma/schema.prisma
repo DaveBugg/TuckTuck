@@ -224,6 +224,8 @@ model Resource {
   provider   Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
   groupId    String?   @db.Uuid
   group      Group?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  projectId  String?   @db.Uuid
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   // Сумма и валюта. Для крипты в currency лежит тикер монеты (USDT, BTC), а в
   // chain — сеть (TRC20, ERC20): одна и та же монета в разных сетях платится
@@ -611,6 +613,7 @@ model Project {
   updatedAt DateTime @updatedAt
 
   members       ProjectMember[]
+  resources     Resource[]
   incomes       Income[]
   expenses      Expense[]
   distributions Distribution[]
@@ -629,6 +632,7 @@ model ProjectMember {
   // Доля дохода проекта в процентах. NULL = участник без доли (например,
   // ассистент с фиксированными выплатами). Сумма долей не обязана быть 100%.
   percent Decimal? @db.Decimal(5, 2)
+  active  Boolean  @default(true)
 
   @@id([projectId, memberId])
 }

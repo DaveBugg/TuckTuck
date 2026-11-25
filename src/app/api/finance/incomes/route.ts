@@ -159,7 +159,7 @@ export async function POST(req: Request) {
     }[] = [];
     if (distribute && projectId) {
       const members = await prisma.projectMember.findMany({
-        where: { projectId },
+        where: { projectId, active: true },
         select: { memberId: true, percent: true },
       });
       const withPercent = members

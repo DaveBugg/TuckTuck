@@ -14,7 +14,7 @@ import { tForRequest } from "@/lib/i18n/server";
 export async function GET() {
   try {
     await requirePermission("resources.view");
-    const [providers, tags, groups] = await prisma.$transaction([
+    const [providers, tags, groups, projects] = await prisma.$transaction([
       prisma.provider.findMany({
         orderBy: { name: "asc" },
         select: { id: true, name: true, url: true },
@@ -27,8 +27,13 @@ export async function GET() {
         orderBy: { name: "asc" },
         select: { id: true, name: true },
       }),
+      prisma.project.findMany({
+        where: { archived: false },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+      }),
     ]);
-    return NextResponse.json({ providers, tags, groups });
+    return NextResponse.json({ providers, tags, groups, projects });
   } catch (e) {
     return toApiError(e);
   }

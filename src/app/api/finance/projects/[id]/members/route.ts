@@ -7,7 +7,11 @@ import { writeAudit } from "@/lib/finance-audit";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-type MemberInput = { memberId: string; percent?: number | null };
+type MemberInput = {
+  memberId: string;
+  percent?: number | null;
+  active?: boolean;
+};
 
 function parseBody(b: any): MemberInput[] | { error: string } {
   if (!Array.isArray(b.members)) return { error: "members array required" };
@@ -28,7 +32,8 @@ function parseBody(b: any): MemberInput[] | { error: string } {
       percent = p;
       totalPercent += p;
     }
-    out.push({ memberId, percent });
+    const active = m.active === false ? false : true;
+    out.push({ memberId, percent, active });
   }
   if (totalPercent > 100) {
     return { error: "total percent must not exceed 100" };
@@ -55,7 +60,7 @@ export async function PUT(req: Request, ctx: Ctx) {
 
     const before = await prisma.projectMember.findMany({
       where: { projectId: id },
-      select: { memberId: true, percent: true },
+      select: { memberId: true, percent: true, active: true },
     });
 
     await prisma.$transaction(async tx => {
@@ -66,6 +71,7 @@ export async function PUT(req: Request, ctx: Ctx) {
             projectId: id,
             memberId: m.memberId,
             percent: m.percent === null ? null : (m.percent ?? null),
+            active: m.active ?? true,
           })),
         });
       }
@@ -73,7 +79,7 @@ export async function PUT(req: Request, ctx: Ctx) {
 
     const after = await prisma.projectMember.findMany({
       where: { projectId: id },
-      select: { memberId: true, percent: true },
+      select: { memberId: true, percent: true, active: true },
     });
 
     await writeAudit(
@@ -89,6 +95,7 @@ export async function PUT(req: Request, ctx: Ctx) {
       members: after.map(m => ({
         memberId: m.memberId,
         percent: m.percent?.toString() ?? null,
+        active: m.active,
       })),
     });
   } catch (e) {

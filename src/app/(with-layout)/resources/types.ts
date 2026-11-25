@@ -32,6 +32,8 @@ export type ResourceRow = {
   sshFingerprint: string;
   provider: { id: string; name: string; url: string } | null;
   group: { id: string; name: string } | null;
+  projectId: string | null;
+  project: { id: string; name: string } | null;
   tags: TagRow[];
 };
 
@@ -39,4 +41,5 @@ export type Catalog = {
   providers: Array<{ id: string; name: string; url: string }>;
   tags: TagRow[];
   groups: Array<{ id: string; name: string }>;
+  projects: Array<{ id: string; name: string }>;
 };

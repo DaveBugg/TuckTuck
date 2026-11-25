@@ -14,7 +14,10 @@ export type TgInitDataUser = {
 };
 
 export type ValidateInitDataResult =
-  { ok: true; user: TgInitDataUser } | { ok: false; user?: undefined };
+  | { ok: true; user: TgInitDataUser }
+  // reason — для серверных логов: иначе «не пускает из Telegram»
+  // недиагностируемо. Наружу (в ответ клиенту) reason не уходит.
+  | { ok: false; reason: string; user?: undefined };
 
 /**
  * Проверить подпись initData от Telegram WebApp.
@@ -29,32 +32,36 @@ export function validateInitData(
   maxAgeSec = 86400
 ): ValidateInitDataResult {
   if (typeof initData !== "string" || !initData || !botToken) {
-    return { ok: false };
+    return { ok: false, reason: "empty" };
   }
 
-  const params = new URLSearchParams(initData);
+  const params = new URLSearchParams(initData.replace(/^\?/, ""));
   const hash = params.get("hash");
-  if (!hash) return { ok: false };
+  if (!hash) return { ok: false, reason: "no_hash" };
 
   const authDateRaw = params.get("auth_date");
   const authDate = authDateRaw ? Number(authDateRaw) : NaN;
-  if (!Number.isFinite(authDate)) return { ok: false };
+  if (!Number.isFinite(authDate)) return { ok: false, reason: "no_auth_date" };
 
   const now = Math.floor(Date.now() / 1000);
   if (authDate > now || now - authDate > maxAgeSec) {
-    return { ok: false };
+    return { ok: false, reason: "stale" };
   }
 
-  // data-check-string: пары key=value кроме hash и signature, отсортированы по
-  // ключу, через \n. Telegram с Bot API 7.10+ добавляет поле signature, которое
-  // тоже исключается из проверки (см. официальную документацию WebApp).
-  const pairs: string[] = [];
-  for (const [key, value] of params.entries()) {
-    if (key === "hash" || key === "signature") continue;
-    pairs.push(`${key}=${value}`);
-  }
-  pairs.sort();
-  const dataCheckString = pairs.join("\n");
+  // data-check-string: пары key=value, отсортированы по ключу, через \n.
+  // hash исключается всегда. Поле signature (Bot API 7.10+) — неоднозначно:
+  // часть клиентов исключает его из HMAC, часть включает. Проверяем оба
+  // варианта: каждый из них криптографически доказывает владение токеном.
+  const buildCheckString = (excludeSignature: boolean): string => {
+    const pairs: string[] = [];
+    for (const [key, value] of params.entries()) {
+      if (key === "hash") continue;
+      if (excludeSignature && key === "signature") continue;
+      pairs.push(`${key}=${value}`);
+    }
+    pairs.sort();
+    return pairs.join("\n");
+  };
 
   // secret_key = HMAC_SHA256(key=botToken, data="WebAppData")
   const secretKey = crypto
@@ -62,31 +69,44 @@ export function validateInitData(
     .update("WebAppData")
     .digest();
 
-  // expectedHash = HMAC_SHA256(key=secret_key, data=data-check-string), hex.
-  const expectedHash = crypto
-    .createHmac("sha256", secretKey)
-    .update(dataCheckString)
-    .digest("hex");
-
   // Timing-safe сравнение. Длина обеих строк фиксирована (64 hex), поэтому
   // дополнительная проверка длины не утечёт полезной информации.
   const hashBuf = Buffer.from(hash, "hex");
-  const expectedBuf = Buffer.from(expectedHash, "hex");
-  if (
-    hashBuf.length !== expectedBuf.length ||
-    !crypto.timingSafeEqual(hashBuf, expectedBuf)
-  ) {
-    return { ok: false };
+  const hasSignature = params.has("signature");
+  const variants = hasSignature ? [true, false] : [false];
+  let signatureOk = false;
+  for (const excludeSignature of variants) {
+    const expectedBuf = Buffer.from(
+      crypto
+        .createHmac("sha256", secretKey)
+        .update(buildCheckString(excludeSignature))
+        .digest("hex"),
+      "hex"
+    );
+    if (
+      hashBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(hashBuf, expectedBuf)
+    ) {
+      signatureOk = true;
+      break;
+    }
+  }
+  if (!signatureOk) {
+    return {
+      ok: false,
+      reason: hasSignature ? "bad_hash_with_signature" : "bad_hash",
+    };
   }
 
   const userRaw = params.get("user");
-  if (!userRaw) return { ok: false };
+  if (!userRaw) return { ok: false, reason: "no_user_field" };
 
   try {
     const user = JSON.parse(userRaw) as TgInitDataUser;
-    if (!user || typeof user.id !== "number") return { ok: false };
+    if (!user || typeof user.id !== "number")
+      return { ok: false, reason: "bad_user_field" };
     return { ok: true, user };
   } catch {
-    return { ok: false };
+    return { ok: false, reason: "bad_user_json" };
   }
 }

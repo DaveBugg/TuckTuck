@@ -93,6 +93,7 @@ export default function ResourcesPage() {
     providers: [],
     tags: [],
     groups: [],
+    projects: [],
   });
   // Метрики всех машин одним запросом на страницу: значку в колонке нужен цвет
   // сразу, а не по наведению, и сотня строк не должна означать сотню запросов.
@@ -278,6 +279,16 @@ export default function ResourcesPage() {
           )}
         </div>
       ),
+    },
+    {
+      id: "project",
+      header: t("res.col.project"),
+      cell: r =>
+        r.project ? (
+          <Badge variant="secondary">{r.project.name}</Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
     },
   ];
 

@@ -59,17 +59,45 @@ export type ProjectRow = {
   _count: { members: number; incomes: number; expenses: number };
 };
 
+export type ProjectResource = {
+  id: string;
+  name: string;
+  amount: string;
+  currency: string;
+  nextPaymentAt: string;
+};
+
+export type ProjectRecentOp = {
+  id: string;
+  kind: "income" | "expense";
+  title: string;
+  amount: string;
+  currency: string;
+  amountBase: string;
+  date: string;
+};
+
+export type ProjectMonthlyStat = {
+  income: number;
+  expense: number;
+};
+
 export type ProjectDetail = {
   id: string;
   name: string;
   description: string | null;
   archived: boolean;
+  createdAt: string;
+  updatedAt: string;
   members: Array<{
     memberId: string;
     name: string;
     active: boolean;
     percent: string | null;
   }>;
+  resources: ProjectResource[];
+  recentOps: ProjectRecentOp[];
+  monthlyStats: Record<string, ProjectMonthlyStat>;
 };
 
 export type DistributionRow = {

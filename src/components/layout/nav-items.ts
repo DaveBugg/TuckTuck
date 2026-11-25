@@ -40,9 +40,9 @@ export const NAV_ITEMS: NavItem[] = [
     permission: "finance.view",
     children: [
       { href: "/finance", labelKey: "nav.financeBoard" },
+      { href: "/finance/projects", labelKey: "nav.financeProjects" },
       { href: "/finance/expenses", labelKey: "nav.financeExpenses" },
       { href: "/finance/income", labelKey: "nav.financeIncome" },
-      { href: "/finance/projects", labelKey: "nav.financeProjects" },
       { href: "/finance/team", labelKey: "nav.financeTeam" },
       { href: "/finance/audit", labelKey: "nav.financeAudit" },
     ],

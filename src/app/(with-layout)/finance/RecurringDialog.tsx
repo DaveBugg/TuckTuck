@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/ui/search-select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { useI18n } from "@/components/i18n-provider";
 import { CURRENCIES } from "@/lib/resources";
@@ -318,13 +319,12 @@ export default function RecurringDialog({
             <Label htmlFor="rec-start">
               {t("finance.recurring.startDate")}
             </Label>
-            <Input
+            <DatePicker
               id="rec-start"
               className="mt-1.5"
-              type="date"
               value={nextRunAt}
-              onChange={e => setNextRunAt(e.target.value)}
-              required
+              onChange={setNextRunAt}
+              placeholder={t("finance.recurring.startDate")}
             />
           </div>
 

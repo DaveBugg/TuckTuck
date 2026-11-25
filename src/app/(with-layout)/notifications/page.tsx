@@ -36,6 +36,7 @@ export default function NotificationsPage() {
     providers: [],
     tags: [],
     groups: [],
+    projects: [],
   });
   const [modal, setModal] = useState<{ open: boolean; row?: BotRow }>({
     open: false,

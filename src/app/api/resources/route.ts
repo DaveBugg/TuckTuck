@@ -87,6 +87,7 @@ function parseBody(b: any, t: TFunc, partial = false) {
   }
   if (b.providerId !== undefined) out.providerId = b.providerId || null;
   if (b.groupId !== undefined) out.groupId = b.groupId || null;
+  if (b.projectId !== undefined) out.projectId = b.projectId || null;
   if (b.isActive !== undefined) out.isActive = !!b.isActive;
   return out;
 }
@@ -105,6 +106,7 @@ export async function GET(req: Request) {
     const kind = p.get("kind");
     const providerId = p.get("providerId");
     const tagId = p.get("tagId");
+    const projectId = p.get("projectId");
     const due = p.get("due"); // 3 | 7 | 14 — «оплатить в ближайшие N дней»
 
     const where: Prisma.ResourceWhereInput = {
@@ -112,6 +114,11 @@ export async function GET(req: Request) {
       ...(KINDS.includes(kind as any) ? { kind: kind as any } : {}),
       ...(providerId ? { providerId } : {}),
       ...(tagId ? { tags: { some: { tagId } } } : {}),
+      ...(projectId === "null" || projectId === "__none__"
+        ? { projectId: null }
+        : projectId
+          ? { projectId }
+          : {}),
       ...(p.search
         ? {
             OR: [
@@ -159,6 +166,7 @@ export async function GET(req: Request) {
           isActive: true,
           agentToken: true,
           isSelf: true,
+          projectId: true,
           // Адресные поля SSH — чтобы форма повторной установки не заставляла
           // вводить их заново. Ключа среди них нет: он не хранится.
           sshHost: true,
@@ -167,6 +175,7 @@ export async function GET(req: Request) {
           sshFingerprint: true,
           provider: { select: { id: true, name: true, url: true } },
           group: { select: { id: true, name: true } },
+          project: { select: { id: true, name: true } },
           tags: {
             select: { tag: { select: { id: true, name: true, color: true } } },
           },
@@ -187,6 +196,7 @@ export async function GET(req: Request) {
         // Сам токен наружу не отдаём — только факт, что агент подключён.
         agentToken: undefined,
         agentConnected: !!r.agentToken,
+        project: r.project,
       })),
       total,
     });

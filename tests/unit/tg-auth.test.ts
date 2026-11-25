@@ -87,7 +87,7 @@ describe("validateInitData", () => {
     assert.strictEqual(result.user?.id, 42);
   });
 
-  it("rejects initData when signature is included in the data-check-string", () => {
+  it("accepts a hash computed with signature in the check-string (client convention variant)", () => {
     const now = Math.floor(Date.now() / 1000);
     const user = JSON.stringify({ id: 42, first_name: "Test" });
     const pairs = [`auth_date=${now}`, `user=${user}`];
@@ -103,9 +103,11 @@ describe("validateInitData", () => {
       .update(dataCheckString)
       .digest("hex");
     const initData = `${pairs.join("&")}&signature=dummy-signature-value&hash=${hash}`;
-    // Our validator excludes signature from the check-string, so this forged
-    // hash (computed with signature included) must not match.
+    // Часть клиентов подписывает check-string С signature — это тоже
+    // криптографическое доказательство владения токеном, принимаем обе
+    // конвенции.
     const result = validateInitData(initData, BOT_TOKEN);
-    assert.strictEqual(result.ok, false);
+    assert.strictEqual(result.ok, true);
+    assert.strictEqual(result.user?.id, 42);
   });
 });

@@ -72,6 +72,7 @@ export async function POST(req: Request) {
     }
 
     let validatedUser: { id: number } | null = null;
+    let lastReason = "no_bots_valid";
     for (const bot of bots) {
       let token: string;
       try {
@@ -84,9 +85,12 @@ export async function POST(req: Request) {
         validatedUser = validated.user;
         break;
       }
+      lastReason = validated.reason;
     }
 
     if (!validatedUser) {
+      // Причина — только в серверный лог: снаружи всегда нейтральный 401.
+      console.warn(`[auth/telegram] rejected: ${lastReason}`);
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }
@@ -98,6 +102,7 @@ export async function POST(req: Request) {
       where: { telegramUserId: tgUserId },
     });
     if (!user || !user.isActive) {
+      console.warn("[auth/telegram] rejected: user_not_linked_or_inactive");
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }

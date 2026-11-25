@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchSelect } from "@/components/ui/search-select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 import { apiJson } from "@/lib/client-api";
 import {
@@ -64,6 +65,7 @@ const empty = {
   nextPaymentAt: "",
   providerId: "",
   groupId: "",
+  projectId: "",
   isActive: true,
   tagIds: [] as string[],
 };
@@ -119,6 +121,7 @@ export default function ResourceForm({
         nextPaymentAt: row.nextPaymentAt,
         providerId: row.provider?.id || "",
         groupId: row.group?.id || "",
+        projectId: row.projectId || "",
         isActive: row.isActive,
         tagIds: row.tags.map(tag => tag.id),
       });
@@ -400,13 +403,12 @@ export default function ResourceForm({
             </div>
             <div className="sm:col-span-3">
               <Label htmlFor="rf-date">{t("res.form.nextPayment")}</Label>
-              <Input
+              <DatePicker
                 id="rf-date"
                 className="mt-1.5"
-                type="date"
                 value={f.nextPaymentAt}
-                onChange={e => set("nextPaymentAt", e.target.value)}
-                required
+                onChange={v => set("nextPaymentAt", v)}
+                placeholder={t("res.form.nextPayment")}
               />
             </div>
 
@@ -487,6 +489,26 @@ export default function ResourceForm({
                   searchPlaceholder={t("common.search")}
                   emptyText={t("common.nothingFound")}
                   ariaLabel={t("res.form.group")}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-6">
+              <Label>{t("res.form.project")}</Label>
+              <div className="mt-1.5">
+                <SearchSelect
+                  value={f.projectId || NONE}
+                  onChange={v => set("projectId", v === NONE ? "" : v)}
+                  options={[
+                    { value: NONE, label: t("res.form.projectNone") },
+                    ...catalog.projects.map(p => ({
+                      value: p.id,
+                      label: p.name,
+                    })),
+                  ]}
+                  searchPlaceholder={t("common.search")}
+                  emptyText={t("common.nothingFound")}
+                  ariaLabel={t("res.form.project")}
                 />
               </div>
             </div>

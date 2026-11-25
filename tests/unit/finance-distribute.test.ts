@@ -83,3 +83,26 @@ test("splitIncome: отбраковывает отрицательные про�
   ]);
   assert.deepEqual(result, []);
 });
+
+test("splitIncome: исключает неактивных участников", () => {
+  const result = splitIncome(100, [
+    { memberId: "a", percent: 50, active: true },
+    { memberId: "b", percent: 30, active: false },
+    { memberId: "c", percent: 20 },
+  ]);
+  assert.deepEqual(
+    result.map(r => ({ memberId: r.memberId, amountBase: r.amountBase })),
+    [
+      { memberId: "a", amountBase: 50 },
+      { memberId: "c", amountBase: 20 },
+    ]
+  );
+});
+
+test("splitIncome: пустой результат, если все неактивны", () => {
+  const result = splitIncome(100, [
+    { memberId: "a", percent: 50, active: false },
+    { memberId: "b", percent: 30, active: false },
+  ]);
+  assert.deepEqual(result, []);
+});

@@ -53,7 +53,11 @@ export function teamBalance(
   );
 }
 
-export type SplitMember = { memberId: string; percent: number };
+export type SplitMember = {
+  memberId: string;
+  percent: number;
+  active?: boolean;
+};
 export type SplitResult = {
   memberId: string;
   amountBase: number;
@@ -66,15 +70,17 @@ export type SplitResult = {
  * Каждому начисляется строгий процент от суммы (не нормализуем доли).
  * Округляем до 2 знаков; остаток, включая когда сумма долей < 100%,
  * остаётся на балансе проекта. Отрицательные доли отбраковываются.
+ * Неактивные участники (active === false) исключаются из распределения.
  */
 export function splitIncome(
   amountBase: number,
   members: SplitMember[]
 ): SplitResult[] {
-  if (!members.length || amountBase <= 0) return [];
-  if (members.some(m => m.percent < 0)) return [];
+  const active = members.filter(m => m.active !== false);
+  if (!active.length || amountBase <= 0) return [];
+  if (active.some(m => m.percent < 0)) return [];
 
-  return members.map(m => ({
+  return active.map(m => ({
     memberId: m.memberId,
     amountBase: Math.round(((amountBase * m.percent) / 100) * 100) / 100,
     percent: m.percent,
@@ -137,4 +143,31 @@ export function canTransitionStatus(
 /** Сколько «к выплате» — сумма положительных балансов участников. */
 export function totalPayable(memberBalances: number[]): number {
   return memberBalances.reduce((acc, b) => acc + (b > 0 ? b : 0), 0);
+}
+
+export type MonthlyStat = { income: number; expense: number };
+
+/**
+ * Собрать статистику доходов/расходов по месяцам (ключ ГГГГ-ММ).
+ * Даты могут быть Date или ISO-строкой; amountBase — число, строка или Decimal.
+ */
+export function buildMonthlyStats(
+  incomes: { amountBase: AmountValue; date: Date | string }[],
+  expenses: { amountBase: AmountValue; date: Date | string }[]
+): Record<string, MonthlyStat> {
+  const key = (d: Date | string) =>
+    (d instanceof Date ? d : new Date(d)).toISOString().slice(0, 7);
+
+  const stats: Record<string, MonthlyStat> = {};
+  for (const item of incomes) {
+    const k = key(item.date);
+    stats[k] = { ...{ income: 0, expense: 0 }, ...stats[k] };
+    stats[k].income += toNum(item.amountBase);
+  }
+  for (const item of expenses) {
+    const k = key(item.date);
+    stats[k] = { ...{ income: 0, expense: 0 }, ...stats[k] };
+    stats[k].expense += toNum(item.amountBase);
+  }
+  return stats;
 }

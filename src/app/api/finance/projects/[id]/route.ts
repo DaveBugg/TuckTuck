@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth";
 import { toApiError } from "@/lib/list-query";
 import { tForRequest } from "@/lib/i18n/server";
 import { writeAudit } from "@/lib/finance-audit";
+import { buildMonthlyStats } from "@/lib/finance";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -24,14 +25,88 @@ export async function GET(req: Request, ctx: Ctx) {
         members: {
           select: {
             percent: true,
+            active: true,
             member: { select: { id: true, name: true, active: true } },
           },
+        },
+        resources: {
+          select: {
+            id: true,
+            name: true,
+            amount: true,
+            currency: true,
+            nextPaymentAt: true,
+          },
+          orderBy: { nextPaymentAt: "asc" },
         },
       },
     });
     if (!row) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
+    const since = new Date();
+    since.setUTCMonth(since.getUTCMonth() - 11);
+    since.setUTCDate(1);
+    since.setUTCHours(0, 0, 0, 0);
+
+    const [recentIncomes, recentExpenses, monthlyIncomes, monthlyExpenses] =
+      await prisma.$transaction([
+        prisma.income.findMany({
+          where: { projectId: id },
+          orderBy: { date: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            title: true,
+            amount: true,
+            currency: true,
+            amountBase: true,
+            date: true,
+          },
+        }),
+        prisma.expense.findMany({
+          where: { projectId: id, kind: "EXPENSE", status: "APPROVED" },
+          orderBy: { date: "desc" },
+          take: 10,
+          select: {
+            id: true,
+            title: true,
+            amount: true,
+            currency: true,
+            amountBase: true,
+            date: true,
+          },
+        }),
+        prisma.income.groupBy({
+          by: ["date"],
+          where: { projectId: id, date: { gte: since } },
+          orderBy: { date: "asc" },
+          _sum: { amountBase: true },
+        }),
+        prisma.expense.groupBy({
+          by: ["date"],
+          where: {
+            projectId: id,
+            kind: "EXPENSE",
+            status: "APPROVED",
+            date: { gte: since },
+          },
+          orderBy: { date: "asc" },
+          _sum: { amountBase: true },
+        }),
+      ]);
+
+    const monthlyStats = buildMonthlyStats(
+      monthlyIncomes.map(m => ({
+        amountBase: m._sum?.amountBase ?? 0,
+        date: m.date,
+      })),
+      monthlyExpenses.map(m => ({
+        amountBase: m._sum?.amountBase ?? 0,
+        date: m.date,
+      }))
+    );
 
     return NextResponse.json({
       row: {
@@ -41,9 +116,37 @@ export async function GET(req: Request, ctx: Ctx) {
         members: row.members.map(m => ({
           memberId: m.member.id,
           name: m.member.name,
-          active: m.member.active,
+          active: m.active,
           percent: m.percent?.toString() ?? null,
         })),
+        resources: row.resources.map(r => ({
+          ...r,
+          amount: r.amount.toString(),
+          nextPaymentAt: r.nextPaymentAt.toISOString().slice(0, 10),
+        })),
+        recentOps: [
+          ...recentIncomes.map(r => ({
+            id: r.id,
+            kind: "income" as const,
+            title: r.title,
+            amount: r.amount.toString(),
+            currency: r.currency,
+            amountBase: r.amountBase.toString(),
+            date: r.date.toISOString().slice(0, 10),
+          })),
+          ...recentExpenses.map(r => ({
+            id: r.id,
+            kind: "expense" as const,
+            title: r.title,
+            amount: r.amount.toString(),
+            currency: r.currency,
+            amountBase: r.amountBase.toString(),
+            date: r.date.toISOString().slice(0, 10),
+          })),
+        ]
+          .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+          .slice(0, 10),
+        monthlyStats,
       },
     });
   } catch (e) {

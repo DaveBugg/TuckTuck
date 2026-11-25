@@ -88,6 +88,7 @@ function parsePatch(b: any, t: TFunc) {
   }
   if (b.providerId !== undefined) out.providerId = b.providerId || null;
   if (b.groupId !== undefined) out.groupId = b.groupId || null;
+  if (b.projectId !== undefined) out.projectId = b.projectId || null;
   if (b.isActive !== undefined) out.isActive = !!b.isActive;
   return out;
 }

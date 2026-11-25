@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { SearchSelect } from "@/components/ui/search-select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { apiFetch, apiJson } from "@/lib/client-api";
 import { useI18n } from "@/components/i18n-provider";
 import { CURRENCIES } from "@/lib/resources";
@@ -50,6 +51,9 @@ export default function OperationDialog({
   onSaved,
   displayCurrency,
   initialType = "expense",
+  presetScope,
+  presetProjectId,
+  presetKind,
   row,
 }: {
   open: boolean;
@@ -57,6 +61,9 @@ export default function OperationDialog({
   onSaved: () => void;
   displayCurrency: string;
   initialType?: OpType;
+  presetScope?: Scope;
+  presetProjectId?: string;
+  presetKind?: OpType;
   row?: OperationRow;
 }) {
   const { t } = useI18n();
@@ -101,19 +108,22 @@ export default function OperationDialog({
 
   useEffect(() => {
     if (!open) return;
-    const baseType = isEdit ? rowType(row) : initialType;
+    const baseType = isEdit ? rowType(row) : (presetKind ?? initialType);
     const baseScope = isEdit
       ? rowScope(row)
-      : initialType === "payout"
-        ? "MEMBER"
-        : "TEAM";
+      : (presetScope ??
+        (initialType === "payout" || presetKind === "payout"
+          ? "MEMBER"
+          : "TEAM"));
     setType(baseType);
     setTitle(row?.title ?? "");
     setAmount(row?.amount ?? "");
     setCurrency(row?.currency ?? "USD");
     setScope(baseScope);
     setProjectId(
-      isEdit && row && !isExpense(row) && row.projectId ? row.projectId : ""
+      isEdit && row && !isExpense(row) && row.projectId
+        ? row.projectId
+        : (presetProjectId ?? "")
     );
     setMemberId(
       isEdit && row && isExpense(row) && row.memberId ? row.memberId : ""
@@ -124,7 +134,15 @@ export default function OperationDialog({
     setTagInput("");
     setDistribute(true);
     setProjectDetail(null);
-  }, [open, row, initialType, isEdit]);
+  }, [
+    open,
+    row,
+    initialType,
+    presetKind,
+    presetScope,
+    presetProjectId,
+    isEdit,
+  ]);
 
   useEffect(() => {
     if (scope === "PROJECT" && projectId && type === "income") {
@@ -138,7 +156,9 @@ export default function OperationDialog({
 
   const distributionPreview = useMemo(() => {
     if (type !== "income" || !distribute || !projectDetail || isEdit) return [];
-    const withShare = projectDetail.members.filter(m => m.percent !== null);
+    const withShare = projectDetail.members.filter(
+      m => m.active && m.percent !== null
+    );
     if (!withShare.length) return [];
     const totalPercent = withShare.reduce(
       (acc, m) => acc + Number(m.percent),
@@ -417,13 +437,12 @@ export default function OperationDialog({
 
           <div>
             <Label htmlFor="op-date">{t("finance.operation.date")}</Label>
-            <Input
+            <DatePicker
               id="op-date"
               className="mt-1.5"
-              type="date"
               value={date}
-              onChange={e => setDate(e.target.value)}
-              required
+              onChange={setDate}
+              placeholder={t("finance.operation.date")}
             />
           </div>
 
