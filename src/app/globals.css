@@ -188,4 +188,28 @@
   *::-webkit-scrollbar-corner {
     background: transparent;
   }
+
+  /* Календарь (vanilla-calendar-pro) в токенах панели. Стоковая тёмная тема
+     библиотеки — чужой синий #0f172a с ярко-красными выходными; переменные
+     темы календаря мапим на наши, поэтому переключение светлая/тёмная
+     работает само, без второго набора правил. */
+  .vc {
+    --vc-bg: var(--popover);
+    --vc-color: var(--popover-foreground);
+    --vc-header-color: var(--popover-foreground);
+    --vc-title-color: var(--popover-foreground);
+    --vc-title-color-hover: var(--primary);
+    --vc-week-day-color: var(--muted-foreground);
+    --vc-week-day-off-color: var(--muted-foreground);
+    --vc-date-hover-bg: var(--accent);
+    --vc-date-color-hover: var(--accent-foreground);
+    --vc-date-weekend-color: var(--destructive);
+    --vc-date-weekend-outside-color: var(--muted-foreground);
+    --vc-date-outside-color: var(--muted-foreground);
+    --vc-date-selected-bg: var(--primary);
+    --vc-date-selected-color: var(--primary-foreground);
+    --vc-date-today-bg: var(--secondary);
+    --vc-date-today-color: var(--secondary-foreground);
+    --vc-focus-outline-color: var(--ring);
+  }
 }

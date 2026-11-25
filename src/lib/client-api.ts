@@ -29,6 +29,11 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<any> {
   if (res.status === 401) {
     Cookies.remove("tt_user");
     if (typeof window !== "undefined") {
+      // Jwt в HttpOnly-куке клиенту недоступен, а middleware доверяет подписи:
+      // при ревокнутой сервером сессии редирект на логин без очистки tt_token
+      // зацикливался (login → dashboard → 401 → login). Поэтому сначала
+      // серверный logout — он чистит обе куки, — и только потом редирект.
+      await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
       window.location.href = "/auth/login";
     }
     throw new ApiError(clientT()("err.sessionExpired"), 401);
