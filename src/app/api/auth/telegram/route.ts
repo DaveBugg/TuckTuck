@@ -150,6 +150,9 @@ export async function POST(req: Request) {
       console.warn(
         `[auth/telegram] rejected: ${lastReason} ${debugSignatureVariants(initData, bots)}`
       );
+      // ВРЕМЕННАЯ диагностика: полный initData для офлайн-разбора подписи.
+      // Не секрет: подписанный на 24ч набор публичных полей. Снять после отладки.
+      console.warn(`[auth/telegram] diag initData: ${JSON.stringify(initData)}`);
       return NextResponse.json(
         { error: t("err.unauthorized") },
         { status: 401 }
